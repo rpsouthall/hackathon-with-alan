@@ -33,3 +33,12 @@ targeted checks, not a claim of exhaustive GPU/device or every-camera-angle QA.
 When rebuilding a running Wrangler production preview, restart the preview
 afterwards: its old static asset index can otherwise return an empty 200 GLB
 response. This is a local preview issue; asset hashes remain unchanged.
+
+## Follow-up: stationary shop-wall flicker
+
+The user's recording exposed a separate asset-level problem: timber posts,
+plaster and floor layers shared exact surface depths. The render-only venue
+repair separates these layers and shelf framing in the source geometry. Lighting
+and cutaway shaders are unchanged. See `asset-fixes/venue-depth` at the repository
+root for the generator patch and saved-scene migration. Three actual-GLB depth
+regressions reproduce the original issue and pass the corrected export.

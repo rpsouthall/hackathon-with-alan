@@ -1,6 +1,6 @@
 {
   "revision": "kyoto-city-v2-final-20260913",
-  "status": "final environment export",
+  "status": "venue surface separation; gameplay contract unchanged",
   "units": "metres",
   "up_axis": "Y",
   "footprint_m": [
@@ -18,7 +18,7 @@
   "files": {
     "kyoto_city.glb": {
       "bytes": 22392928,
-      "sha256": "c7ab5b967097652767f312ed8e4c8be3b4c78a9149c67fc2eff3343eb9575140"
+      "sha256": "7ea646130932a0557aa83599d0a697438e3574467fb93ec01424dd3b6a48154d"
     },
     "kyoto_city_collision.glb": {
       "bytes": 378380,
@@ -30,7 +30,7 @@
     },
     "kyoto_city_lod1.glb": {
       "bytes": 14014860,
-      "sha256": "54f24eb271c7aee2efdf022f5ba9440471a9c71f26485d9dc4b80b1e08512700"
+      "sha256": "9a81fc6fe459477544be3091b4a3f55023439fd9d5823d7285d23e6d07040169"
     }
   },
   "npc_ids": [
@@ -49,5 +49,6 @@
     "tea_hanami_host",
     "market_provisions_host",
     "restaurant_momiji_host"
-  ]
+  ],
+  "render_revision": "kyoto-city-v2-depth-fix-20260913"
 }

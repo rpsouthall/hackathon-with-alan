@@ -1,0 +1,36 @@
+--- a/kyoto_city/scripts/venues.py
++++ b/kyoto_city/scripts/venues.py
+@@ -184,10 +184,11 @@
+                 return b(n+q,(x+dx,y+dy,z),(w,d,h),mat)
+             place('_back',0,depth/2-.03,.30+height/2,width,.06,height,'wood_dark')
+             for dx in (-width/2+.045,width/2-.045):
+-                place('_post',dx,0,.30+height/2,.09,depth,height,'wood')
++                place('_post',dx,0,.30+height/2,.09,depth+.04,height,'wood')
+             for row in range(5):
+                 z=.34+row*(height-.12)/4
+-                place('_shelf',0,0,z,width,depth,.07,'wood_light')
++                # Recess shelf edges so posts/back never share their surface plane.
++                place('_shelf',0,0,z,width-.20,depth-.09,.07,'wood_light')
+                 if row==4:continue
+                 count=max(3,int(width/.18)) if fill=='books' else max(2,int(width/.40))
+                 for i in range(count):
+@@ -295,7 +296,9 @@
+             if curve.users==0:bpy.data.curves.remove(curve)
+ 
+         # Actual open architectural shell, with a flush, supported entrance.
+-        solid('floor',(0,0,.215),(7.2,7.0,.17),'wood_dark')
++        # Keep the authoritative floor at .300; visible support sits below boards.
++        b('floor',(0,0,.210),(7.2,7.0,.16),'wood_dark')
++        collider('floor',(0,0,.215),(7.2,7.0,.17))
+         for i in range(24):
+             b('floor_board',(-3.55+(i+.5)*7.1/24,0,.286),(7.1/24-.012,6.82,.028),
+               'wood_light' if i%7==0 else 'wood')
+@@ -314,7 +317,7 @@
+         # Timber frames are visible from the street and inside.
+         for xx in (-3.50,3.50):
+             for yy in (-3.46,0,3.40):
+-                b('corner_post',(xx,yy,2.03),(.20,.20,3.46),'wood_dark')
++                b('corner_post',(xx,yy,2.03),(.25,.25,3.46),'wood_dark')
+         for yy in (-3.47,3.39):
+             for zz in (.47,3.50):
+                 if yy<0 and zz<1:
