@@ -2,15 +2,18 @@ import { createServer } from "node:http";
 import { randomUUID } from "node:crypto";
 import { WebSocket, WebSocketServer } from "ws";
 import { WorldRoom } from "./room";
-import { clientMessageSchema, type ServerMessage } from "./schema";
+import { clientMessageSchema, PROTOCOL_VERSION, type EnvironmentManifest, type NpcSnapshot, type ServerMessage } from "./schema";
+import { initWorldPhysics } from "./physics";
 
 /** Single-process guest server for integration testing and local demos.
  * Not part of the Sites Worker: deploy an authenticated room service for production.
  */
-export function createRoomServer({ origins = ["http://localhost:5173", "http://127.0.0.1:5173"], maxRooms = 32 } = {}) {
+export function createRoomServer({ origins = ["http://localhost:5173", "http://127.0.0.1:5173"], maxRooms = 32, environment, npcs }: {
+  origins?: string[]; maxRooms?: number; environment?: EnvironmentManifest; npcs?: NpcSnapshot[];
+} = {}) {
   const rooms = new Map<string, WorldRoom>();
   const peers = new Map<WebSocket, { playerId: string; roomId: string | null; alive: boolean; count: number; window: number; joinedAt: number }>();
-  const http = createServer((_request, response) => { response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ service: "world-dev-server", protocol: 1 })); });
+  const http = createServer((_request, response) => { response.writeHead(200, { "content-type": "application/json" }); response.end(JSON.stringify({ service: "world-dev-server", protocol: PROTOCOL_VERSION })); });
   const sockets = new WebSocketServer({ noServer: true, maxPayload: 4096 });
   http.on("upgrade", (request, socket, head) => {
     if (request.url !== "/world" || !request.headers.origin || !origins.includes(request.headers.origin) || peers.size >= 128) {
@@ -18,15 +21,17 @@ export function createRoomServer({ origins = ["http://localhost:5173", "http://1
     }
     sockets.handleUpgrade(request, socket, head, (ws) => sockets.emit("connection", ws, request));
   });
-  const send = (socket: WebSocket, message: ServerMessage) => {
+  const sendEncoded = (socket: WebSocket, message: string) => {
     if (socket.readyState !== WebSocket.OPEN) return;
     if (socket.bufferedAmount > 256 * 1024) { socket.close(1008, "Slow consumer"); return; }
-    socket.send(JSON.stringify(message));
+    socket.send(message);
   };
+  const send = (socket: WebSocket, message: ServerMessage) => sendEncoded(socket, JSON.stringify(message));
   const publish = (roomId: string) => {
     const room = rooms.get(roomId); if (!room) return;
-    const snapshot = room.snapshot();
-    for (const [socket, peer] of peers) if (peer.roomId === roomId) send(socket, { type: "snapshot", snapshot });
+    const message: ServerMessage = { type: "state", ...room.dynamicSnapshot() };
+    const encoded = JSON.stringify(message);
+    for (const [socket, peer] of peers) if (peer.roomId === roomId) sendEncoded(socket, encoded);
   };
   sockets.on("connection", (socket) => {
     const peer = { playerId: `player_${randomUUID()}`, roomId: null as string | null, alive: true, count: 0, window: Date.now(), joinedAt: Date.now() };
@@ -47,7 +52,8 @@ export function createRoomServer({ origins = ["http://localhost:5173", "http://1
         let room = rooms.get(message.roomId);
         if (!room) {
           if (rooms.size >= maxRooms) { send(socket, { type: "error", message: "Server is full" }); socket.close(1008); return; }
-          room = new WorldRoom(message.roomId); rooms.set(message.roomId, room);
+          try { room = new WorldRoom(message.roomId, environment, npcs); rooms.set(message.roomId, room); }
+          catch { send(socket, { type: "error", message: "World could not initialize" }); socket.close(1011); return; }
         }
         try { room.join(peer.playerId, message.name); }
         catch { send(socket, { type: "error", message: "Room is full" }); socket.close(1008); return; }
@@ -64,7 +70,7 @@ export function createRoomServer({ origins = ["http://localhost:5173", "http://1
       peers.delete(socket);
       if (!peer.roomId) return;
       const room = rooms.get(peer.roomId); room?.leave(peer.playerId);
-      if (!room?.snapshot().players.length) rooms.delete(peer.roomId);
+      if (!room?.playerCount) { room?.dispose(); rooms.delete(peer.roomId); }
       else publish(peer.roomId);
     });
   });
@@ -72,8 +78,8 @@ export function createRoomServer({ origins = ["http://localhost:5173", "http://1
   const tick = setInterval(() => {
     const now = performance.now(), delta = (now - previous) / 1000; previous = now;
     for (const [roomId, room] of rooms) {
-      const revision = room.snapshot().revision; room.tick(delta, now);
-      if (room.snapshot().revision !== revision) publish(roomId);
+      const revision = room.snapshotRevision; room.tick(delta, now);
+      if (room.snapshotRevision !== revision) publish(roomId);
     }
   }, 50);
   const heartbeat = setInterval(() => {
@@ -83,17 +89,28 @@ export function createRoomServer({ origins = ["http://localhost:5173", "http://1
     }
   }, 10000);
   return {
-    listen(port = 8788, host = "127.0.0.1") {
-      return new Promise<number>((resolve, reject) => {
-        http.once("error", reject);
-        http.listen(port, host, () => { http.removeListener("error", reject); const address = http.address(); resolve(typeof address === "object" && address ? address.port : port); });
-      });
+    async listen(port = 8788, host = "127.0.0.1") {
+      try {
+        if (environment?.physics) await initWorldPhysics();
+        previous = performance.now();
+        return await new Promise<number>((resolve, reject) => {
+          http.once("error", reject);
+          http.listen(port, host, () => { http.removeListener("error", reject); const address = http.address(); resolve(typeof address === "object" && address ? address.port : port); });
+        });
+      } catch (error) {
+        // Failed startup must not leave the tick/heartbeat timers alive.
+        clearInterval(tick); clearInterval(heartbeat);
+        sockets.close();
+        throw error;
+      }
     },
     async close() {
       clearInterval(tick); clearInterval(heartbeat);
       for (const socket of peers.keys()) socket.terminate();
       await new Promise<void>((resolve) => sockets.close(() => resolve()));
       await new Promise<void>((resolve) => http.close(() => resolve()));
+      for (const room of rooms.values()) room.dispose();
+      rooms.clear();
     },
   };
 }

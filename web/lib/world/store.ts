@@ -17,6 +17,14 @@ export function createWorldStore(transport: WorldTransport) {
   const receive = (message: ServerMessage) => {
     if (message.type === "error") return update({ error: message.message });
     if (message.type === "welcome") { sequence = 0; return update({ snapshot: message.snapshot, localPlayerId: message.playerId, error: null }); }
+    if (message.type === "state") {
+      const previous = state.snapshot;
+      if (!state.localPlayerId || !previous || message.protocol !== previous.protocol || message.roomId !== previous.roomId || message.environmentRevision !== previous.environment.revision || message.revision <= previous.revision) return;
+      return update({ snapshot: {
+        protocol: message.protocol, roomId: message.roomId, revision: message.revision,
+        environment: previous.environment, players: message.players, npcs: message.npcs, encounters: message.encounters,
+      } });
+    }
     if (!state.localPlayerId || !state.snapshot || message.snapshot.roomId !== state.snapshot.roomId || message.snapshot.revision <= state.snapshot.revision) return;
     update({ snapshot: message.snapshot });
   };

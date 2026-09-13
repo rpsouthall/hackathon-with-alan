@@ -1,4 +1,5 @@
 import { WorldRoom } from "./room";
+import { initWorldPhysics } from "./physics";
 import { PROTOCOL_VERSION, serverMessageSchema, type ServerMessage, type WorldCommand, type EnvironmentManifest, type NpcSnapshot } from "./schema";
 
 export type ConnectionState = "connecting" | "connected" | "disconnected";
@@ -14,23 +15,45 @@ export function createLocalTransport(options: { environment?: EnvironmentManifes
   return {
     mode: "local",
     connect({ roomId, name, onMessage, onConnection }) {
-      const room = new WorldRoom(roomId, options.environment, options.npcs);
-      const playerId = `player_${crypto.randomUUID()}`;
-      room.join(playerId, name);
-      onConnection("connected");
-      onMessage({ type: "welcome", playerId, snapshot: room.snapshot() });
-      let lastRevision = -1;
-      const publish = () => {
-        const snapshot = room.snapshot();
-        if (snapshot.revision !== lastRevision) { lastRevision = snapshot.revision; onMessage({ type: "snapshot", snapshot }); }
+      let stopped = false;
+      let room: WorldRoom | undefined;
+      let timer: ReturnType<typeof setInterval> | undefined;
+      onConnection("connecting");
+      const start = async () => {
+        try {
+          if (options.environment?.physics) await initWorldPhysics();
+          if (stopped) return;
+          room = new WorldRoom(roomId, options.environment, options.npcs);
+          const playerId = `player_${crypto.randomUUID()}`;
+          room.join(playerId, name);
+          onConnection("connected");
+          onMessage({ type: "welcome", playerId, snapshot: room.snapshot() });
+          let lastRevision = room.snapshotRevision;
+          const publish = () => {
+            if (!room || stopped) return;
+            if (room.snapshotRevision !== lastRevision) {
+              lastRevision = room.snapshotRevision;
+              onMessage({ type: "state", ...room.dynamicSnapshot() });
+            }
+          };
+          send = (command) => {
+            if (!room || stopped) return;
+            const message = room.command(playerId, command);
+            if (message) onMessage({ type: "error", message });
+            publish();
+          };
+          let previous = performance.now();
+          timer = setInterval(() => { const now = performance.now(); room?.tick((now - previous) / 1000, now); previous = now; publish(); }, 50);
+        } catch {
+          room?.dispose();
+          if (!stopped) {
+            onMessage({ type: "error", message: "The local world could not initialize. Reload to try again." });
+            onConnection("disconnected");
+          }
+        }
       };
-      send = (command) => {
-        const message = room.command(playerId, command);
-        if (message) onMessage({ type: "error", message });
-        publish();
-      };
-      const timer = setInterval(() => { room.tick(0.05); publish(); }, 50);
-      return () => { clearInterval(timer); send = () => {}; onConnection("disconnected"); };
+      void start();
+      return () => { stopped = true; clearInterval(timer); room?.dispose(); send = () => {}; onConnection("disconnected"); };
     },
     send(command) { send(command); },
   };

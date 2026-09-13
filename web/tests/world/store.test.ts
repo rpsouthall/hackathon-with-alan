@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createWorldStore } from "../../lib/world/store";
 import { WorldRoom } from "../../lib/world/room";
 import type { WorldTransport } from "../../lib/world/transport";
-import type { WorldCommand } from "../../lib/world/schema";
+import { serverMessageSchema, type WorldCommand, type ServerMessage } from "../../lib/world/schema";
 
 test("store rejects stale and cross-room snapshots; disconnect blocks commands", () => {
   let receiver: Parameters<WorldTransport["connect"]>[0] | undefined;
@@ -25,4 +25,51 @@ test("store rejects stale and cross-room snapshots; disconnect blocks commands",
   receiver!.onConnection("disconnected");
   store.send({ type: "leave-encounter" });
   assert.equal(sent.length, 2); assert.equal(store.getSnapshot().snapshot, null);
+});
+
+test("compact state keeps the welcome environment and ignores stale, mismatched and pre-welcome updates", () => {
+  let receiver: Parameters<WorldTransport["connect"]>[0] | undefined;
+  const transport: WorldTransport = { mode: "multiplayer", connect(options) { receiver = options; return () => {}; }, send() {} };
+  const store = createWorldStore(transport);
+  store.connect("one", "Alice");
+  const room = new WorldRoom("one");
+  room.join("a", "Alice");
+  const sendState = (patch: Partial<Extract<ServerMessage, { type: "state" }>> = {}) => receiver!.onMessage({ type: "state", ...room.dynamicSnapshot(), ...patch });
+  const beforeWelcome = store.getSnapshot();
+  sendState();
+  assert.equal(store.getSnapshot(), beforeWelcome);
+  receiver!.onConnection("connected");
+  const welcome = room.snapshot();
+  receiver!.onMessage({ type: "welcome", playerId: "a", snapshot: welcome });
+  const initial = store.getSnapshot();
+  sendState(); // Same revision as welcome is redundant.
+  sendState({ revision: 0 });
+  sendState({ revision: 100, roomId: "other" });
+  sendState({ revision: 100, environmentRevision: "other-release" });
+  assert.equal(store.getSnapshot(), initial);
+  room.join("b", "Bob");
+  sendState();
+  assert.equal(store.getSnapshot().snapshot?.players.length, 2);
+  assert.equal(store.getSnapshot().snapshot?.environment, welcome.environment);
+  assert.equal(store.getSnapshot().snapshot?.revision, room.snapshotRevision);
+  const accepted = store.getSnapshot();
+  sendState({ revision: initial.snapshot!.revision });
+  assert.equal(store.getSnapshot(), accepted);
+  receiver!.onConnection("disconnected");
+  sendState({ revision: 1000 });
+  assert.equal(store.getSnapshot().snapshot, null);
+  room.dispose();
+});
+
+test("compact state schema excludes a repeated environment and room snapshots remain isolated", () => {
+  const room = new WorldRoom("one");
+  room.join("a", "Alice");
+  const dynamic = room.dynamicSnapshot();
+  assert(serverMessageSchema.safeParse({ type: "state", ...dynamic }).success);
+  assert(!serverMessageSchema.safeParse({ type: "state", ...dynamic, environment: room.snapshot().environment }).success);
+  dynamic.players[0].position[0] = 999;
+  dynamic.players[0].appearance.top = "#abcdef";
+  assert.notEqual(room.snapshot().players[0].position[0], 999);
+  assert.notEqual(room.snapshot().players[0].appearance.top, "#abcdef");
+  room.dispose();
 });
