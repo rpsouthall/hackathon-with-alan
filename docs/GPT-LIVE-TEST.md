@@ -12,6 +12,12 @@ with 11 seconds of reported session usage. This confirms API access and generate
 speech; browser microphone capture, WebRTC playback and NPC integration still
 need hands-on verification.
 
+Follow-up browser check: replaced a strict ICE-gathering timeout with a short
+candidate-gathering window. The Codex browser then reached `session.started`
+with its microphone and remote audio track, and displayed Aiko's Japanese
+greeting in live captions. All 20 backend/connection tests passed. The user
+should still confirm audible playback and a spoken two-way exchange.
+
 ## Run locally
 
 Use Node 22 or newer. Put `OPENAI_API_KEY` in the ignored `backend/.env` file.

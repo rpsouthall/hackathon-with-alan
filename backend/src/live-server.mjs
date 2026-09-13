@@ -23,8 +23,8 @@ export function createLiveServer({ key, fetchImpl = fetch, closeSession = closeL
     const reply = (status, data) => { res.writeHead(status, { ...headers, 'content-type': 'application/json' }); res.end(JSON.stringify(data)); };
     try {
       if (req.headers.host !== 'localhost:8787') { reply(403,{error:'Use localhost:8787.'}); return; }
-      if (req.method === 'GET' && ['/','/voice-test.js','/live-config.mjs'].includes(req.url)) {
-        const path = req.url === '/' ? '../public/voice-test.html' : req.url === '/live-config.mjs' ? './live-config.mjs' : '../public/voice-test.js';
+      if (req.method === 'GET' && ['/','/voice-test.js','/webrtc-offer.mjs','/live-config.mjs'].includes(req.url)) {
+        const path = req.url === '/' ? '../public/voice-test.html' : req.url === '/live-config.mjs' ? './live-config.mjs' : `../public${req.url}`;
         const source = await readFile(new URL(path,import.meta.url));
         res.writeHead(200,{...headers,'content-type':req.url==='/'?'text/html; charset=utf-8':'text/javascript; charset=utf-8'});res.end(source);return;
       }
@@ -46,7 +46,12 @@ export function createLiveServer({ key, fetchImpl = fetch, closeSession = closeL
           method:'POST',headers:{Authorization:`Bearer ${key}`,'content-type':'application/json'},
           body:JSON.stringify({session:aikoSession(),transport:{type:'webrtc',sdp:input.sdp}}),signal:AbortSignal.timeout(30000),
         });
-        const data=await r.json();
+        let data;
+        try { data=await r.json(); }
+        catch {
+          console.error('Live response was not JSON:', r.status);
+          reply(502,{error:'The voice service returned an unreadable response. Please retry.'});return;
+        }
         if(!r.ok) {
           const code=data.error?.code;
           const message=code==='insufficient_quota'?'The OpenAI project has no available API quota. Check credit redemption.':r.status===401?'OpenAI rejected the API key.':r.status===403||r.status===404?'This project cannot start GPT-Live sessions.':r.status===429?'OpenAI rate limit or quota reached.':'OpenAI could not start the voice session.';
@@ -61,7 +66,13 @@ export function createLiveServer({ key, fetchImpl = fetch, closeSession = closeL
         if(typeof data.transport?.sdp!=='string'){await hangup(ticket);reply(502,{error:'Unexpected OpenAI session response.'});return;}
         reply(201,{ticket,session:{id:data.session.id},transport:{type:'webrtc',sdp:data.transport.sdp},limitMs});
       } finally {creating=false;}
-    } catch {reply(502,{error:'Connection failed. Check the network and retry.'});}
+    } catch (error) {
+      // Log only error classifications, never credentials, SDP or upstream bodies.
+      const code=error.cause?.code || error.code;
+      console.error('Live request failed:', error.name, typeof code==='string'?code:'unknown');
+      const timeout=error.name==='TimeoutError' || code==='UND_ERR_CONNECT_TIMEOUT';
+      reply(timeout?504:502,{error:timeout?'The voice service took too long to connect. Please retry.':'The local voice server could not reach OpenAI. Please retry or restart the voice server.'});
+    }
   });
   return {server,closeSessions:()=>Promise.all([...sessions.keys()].map(hangup))};
 }

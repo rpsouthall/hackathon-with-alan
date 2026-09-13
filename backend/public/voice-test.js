@@ -1,4 +1,5 @@
 import { transcriptFragment } from '/live-config.mjs';
+import { createConnectionOffer } from '/webrtc-offer.mjs';
 const $=id=>document.getElementById(id);
 const start=$('start'),stop=$('stop'),mute=$('mute'),audio=$('audio'),status=$('status'),error=$('error'),captions=$('captions');
 let current=null;
@@ -45,18 +46,14 @@ start.onclick=async()=>{
    };
    s.dc.onclose=()=>{if(!s.ending&&current===s){showError('The voice connection closed.');void end(s,false);}};
    s.dc.onerror=()=>{if(!s.ending)void end(s,false);};
-   await s.pc.setLocalDescription(await s.pc.createOffer());
-   if(s.pc.iceGatheringState!=='complete')await new Promise((resolve,reject)=>{
-     const timer=setTimeout(()=>{s.pc.removeEventListener('icegatheringstatechange',changed);reject(new Error('Microphone connection timed out.'));},10000);
-     function changed(){if(s.pc.iceGatheringState==='complete'){clearTimeout(timer);s.pc.removeEventListener('icegatheringstatechange',changed);resolve();}}
-     s.pc.addEventListener('icegatheringstatechange',changed);changed();
-   });
+   status.textContent='Microphone ready · Setting up the voice connection…';
+   const sdp=await createConnectionOffer(s.pc);
    status.textContent='Connecting to Aiko…';
-   const response=await fetch('/api/live/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp:s.pc.localDescription.sdp}),signal:AbortSignal.timeout(35000)});
+   const response=await fetch('/api/live/session',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sdp}),signal:AbortSignal.timeout(35000)});
    const result=await response.json();if(!response.ok)throw new Error(result.error||'Unable to start voice.');
    s.ticket=result.ticket;
    s.limit=setTimeout(()=>void end(s),Math.max(1000,result.limitMs-5000));
-   s.timeout=setTimeout(()=>{showError('Aiko did not connect. Please try again.');void end(s,false);},20000);
+   s.timeout=setTimeout(()=>{showError('The browser could not establish the voice connection. Try this page in Chrome or Safari.');void end(s,false);},20000);
    await s.pc.setRemoteDescription({type:'answer',sdp:result.transport.sdp});
  }catch(e){showError(e.name==='NotAllowedError'?'Microphone access was blocked. Allow it in your browser and try again.':e.message);await end(s,false);}
 };
