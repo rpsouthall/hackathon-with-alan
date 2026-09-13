@@ -1,0 +1,11 @@
+Rapier JavaScript bindings, @dimforge/rapier3d-compat 0.19.0
+Copyright 2020 Dimforge EURL
+https://github.com/dimforge/rapier.js
+Licensed under Apache-2.0; see LICENSE-APACHE-2.0.
+
+Modification notice:
+The generated rapier.mjs reconstructs the published package's source-map
+TypeScript and replaces only its initializer with an import of a precompiled
+WebAssembly.Module and initSync({ module }). Original wasm-bindgen glue and
+the WASM binary are unchanged. This adaptation enables Cloudflare Workers
+without changing the physics API or simulation implementation.

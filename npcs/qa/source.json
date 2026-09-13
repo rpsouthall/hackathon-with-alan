@@ -1,0 +1,85 @@
+{
+  "verdict": "PASS",
+  "blender": "5.2.1 LTS",
+  "grid_metres": 0.025,
+  "triangles": 1606,
+  "bones": 21,
+  "parts": [
+    {
+      "name": "SM_NPC_Body",
+      "triangles": 386,
+      "vertices": 263,
+      "materials": 5
+    },
+    {
+      "name": "SM_NPC_Eyes",
+      "triangles": 48,
+      "vertices": 32,
+      "materials": 2
+    },
+    {
+      "name": "SM_NPC_Mouth",
+      "triangles": 12,
+      "vertices": 8,
+      "materials": 1
+    },
+    {
+      "name": "SM_NPC_Hair_crop",
+      "triangles": 110,
+      "vertices": 80,
+      "materials": 1
+    },
+    {
+      "name": "SM_NPC_Hair_bob",
+      "triangles": 64,
+      "vertices": 45,
+      "materials": 1
+    },
+    {
+      "name": "SM_NPC_Hair_topknot",
+      "triangles": 118,
+      "vertices": 84,
+      "materials": 2
+    },
+    {
+      "name": "SM_NPC_Outfit_jacket",
+      "triangles": 250,
+      "vertices": 174,
+      "materials": 3
+    },
+    {
+      "name": "SM_NPC_Outfit_apron",
+      "triangles": 186,
+      "vertices": 130,
+      "materials": 3
+    },
+    {
+      "name": "SM_NPC_Outfit_haori",
+      "triangles": 236,
+      "vertices": 166,
+      "materials": 3
+    },
+    {
+      "name": "SM_NPC_Glasses",
+      "triangles": 100,
+      "vertices": 72,
+      "materials": 1
+    },
+    {
+      "name": "SM_NPC_Bag",
+      "triangles": 96,
+      "vertices": 68,
+      "materials": 3
+    }
+  ],
+  "actions": [
+    "Idle",
+    "Walk",
+    "Run",
+    "Wave",
+    "Bow",
+    "Talk",
+    "Listen"
+  ],
+  "rigid_weights": true
+}

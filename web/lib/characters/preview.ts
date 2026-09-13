@@ -22,6 +22,10 @@ export function mountAvatarPreview(
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFShadowMap;
   renderer.domElement.style.display = "block";
+  // The high-DPI drawing buffer must not contribute an intrinsic flex height:
+  // otherwise ResizeObserver can repeatedly grow the stage from that buffer.
+  renderer.domElement.style.position = "absolute";
+  renderer.domElement.style.inset = "0";
   renderer.domElement.style.width = "100%";
   renderer.domElement.style.height = "100%";
   renderer.domElement.setAttribute("aria-hidden", "true");

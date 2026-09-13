@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { WebSocket } from "ws";
 import { createRoomServer } from "../../lib/world/dev-server";
-import { serverMessageSchema, type ServerMessage, type RoomSnapshot } from "../../lib/world/schema";
+import { PROTOCOL_VERSION, serverMessageSchema, type ServerMessage, type RoomSnapshot } from "../../lib/world/schema";
 import { KYOTO_ENVIRONMENT, KYOTO_NPCS } from "../../lib/world/kyoto";
 import { CHARACTER_PRESETS } from "../../lib/characters/presets";
 
@@ -26,7 +26,7 @@ function latest(peer: ReturnType<typeof client>): RoomSnapshot | undefined {
   if (message.type !== "state" || welcome?.type !== "welcome") return;
   return {
     protocol: message.protocol, roomId: message.roomId, revision: message.revision,
-    environment: welcome.snapshot.environment, players: message.players, npcs: message.npcs, encounters: message.encounters,
+    environment: welcome.snapshot.environment, players: message.players, npcs: message.npcs, encounters: message.encounters, vehicles: message.vehicles,
   };
 }
 test("real websocket clients share movement and disconnects, with room isolation", async () => {
@@ -34,7 +34,7 @@ test("real websocket clients share movement and disconnects, with room isolation
   const a = client(`ws://127.0.0.1:${port}/world`), b = client(`ws://127.0.0.1:${port}/world`), c = client(`ws://127.0.0.1:${port}/world`);
   try {
     await until(() => [a, b, c].every((p) => p.socket.readyState === WebSocket.OPEN));
-    for (const [peer, roomId, name] of [[a, "shared", "Alice"], [b, "shared", "Bob"], [c, "other", "Other"]] as const) peer.send({ type: "join", protocol: 1, roomId, name });
+    for (const [peer, roomId, name] of [[a, "shared", "Alice"], [b, "shared", "Bob"], [c, "other", "Other"]] as const) peer.send({ type: "join", protocol: PROTOCOL_VERSION, roomId, name });
     await until(() => latest(a)?.players.length === 2 && latest(b)?.players.length === 2 && latest(c)?.players.length === 1);
     const welcome = a.messages.find((m) => m.type === "welcome"); assert.ok(welcome?.type === "welcome");
     a.send({ type: "command", command: { type: "move", direction: [1, 0], yaw: 1, sequence: 0 } });
@@ -51,7 +51,7 @@ test("server rejects incompatible protocol and client-authored identity", async 
   try {
     await until(() => peer.socket.readyState === WebSocket.OPEN);
     const closed = new Promise<number>((resolve) => peer.socket.once("close", resolve));
-    peer.send({ type: "join", protocol: 1, roomId: "room", name: "Alice", playerId: "impersonated" });
+    peer.send({ type: "join", protocol: PROTOCOL_VERSION, roomId: "room", name: "Alice", playerId: "impersonated" });
     assert.equal(await closed, 1002);
   } finally { peer.socket.terminate(); await server.close(); }
 });
@@ -62,7 +62,7 @@ test("two networked players join an encounter, arbitrate turns and release disco
   let movement: ReturnType<typeof setInterval> | undefined;
   try {
     await until(() => [a, b].every((p) => p.socket.readyState === WebSocket.OPEN));
-    for (const [peer, name] of [[a, "Alice"], [b, "Bob"]] as const) peer.send({ type: "join", protocol: 1, roomId: "shared", name });
+    for (const [peer, name] of [[a, "Alice"], [b, "Bob"]] as const) peer.send({ type: "join", protocol: PROTOCOL_VERSION, roomId: "shared", name });
     await until(() => latest(a)?.players.length === 2 && latest(b)?.players.length === 2);
     let sequence = 0;
     movement = setInterval(() => { for (const peer of [a, b]) peer.send({ type: "command", command: { type: "move", direction: [-0.6, -0.8], yaw: 0, sequence } }); sequence++; }, 50);
@@ -90,7 +90,7 @@ test("city clients share exact player cosmetics while live updates omit the stat
   const a = client(`ws://127.0.0.1:${port}/world`), b = client(`ws://127.0.0.1:${port}/world`);
   try {
     await until(() => [a, b].every((peer) => peer.socket.readyState === WebSocket.OPEN));
-    for (const [peer, name] of [[a, "Alice"], [b, "Bob"]] as const) peer.send({ type: "join", protocol: 1, roomId: "city", name });
+    for (const [peer, name] of [[a, "Alice"], [b, "Bob"]] as const) peer.send({ type: "join", protocol: PROTOCOL_VERSION, roomId: "city", name });
     await until(() => latest(a)?.players.length === 2 && latest(b)?.players.length === 2);
     const alice = a.messages.find((message) => message.type === "welcome");
     const bob = b.messages.find((message) => message.type === "welcome");

@@ -59,3 +59,41 @@ test('re-entering an encounter replaces the same tab session after teardown and 
     for (const [key, value] of previous) if (value === undefined) delete process.env[key]; else process.env[key] = value;
   }
 });
+
+test('two learners keep private lessons and cannot interrupt each other’s live avatar', async () => {
+  const previous = ['OPENAI_API_KEY', 'LIVEAVATAR_API_KEY', 'LIVEAVATAR_AVATAR_ID'].map(key => [key, process.env[key]] as const);
+  for (const [key] of previous) process.env[key] = 'test-only';
+  const opened: string[] = [], closed: string[] = [];
+  const app = createLessonServer({ createBridge: (scenario, _language, _question, sink) => ({
+    start: async () => { opened.push(scenario.id); sink.ready(); },
+    close: async () => { closed.push(scenario.id); },
+    audio() {}, ask() {}, feedback() {}, avatarReady() {},
+  }) });
+  const clients: WebSocket[] = [];
+  try {
+    app.server.listen(0, '127.0.0.1'); await once(app.server, 'listening');
+    const address = app.server.address(); assert.ok(address && typeof address === 'object');
+    for (let i = 0; i < 2; i++) {
+      const ws = new WebSocket(`ws://127.0.0.1:${address.port}/lesson-api/session`, { origin: 'http://localhost:5173' });
+      clients.push(ws); await once(ws, 'open');
+    }
+    const [a, b] = clients;
+    const first = await command(a, { type: 'start', scenarioId: 'coffee', characterId: 'cafe_owner', clientId: 'learner-a', language: 'English' }, 'connected');
+    const second = await command(b, { type: 'start', scenarioId: 'market', characterId: 'market_produce', clientId: 'learner-b', language: 'Japanese' }, 'connected');
+    assert.notDeepEqual(first.lesson, second.lesson, 'Each learner keeps the selected scenario');
+    await command(a, { type: 'live' }, 'ready');
+    const busy = await command(b, { type: 'live' }, 'error');
+    assert.match(String(busy.message), /another|busy|in use/i);
+    assert.deepEqual(opened, ['coffee']); assert.deepEqual(closed, []);
+    await command(a, { type: 'stop-live' }, 'ended');
+    await command(b, { type: 'live' }, 'ready');
+    assert.deepEqual(opened, ['coffee', 'market']);
+    a.close(); await once(a, 'close');
+    assert.deepEqual(closed, ['coffee'], 'The departed learner cannot close the other avatar');
+    await command(b, { type: 'stop-live' }, 'ended');
+    assert.deepEqual(closed, ['coffee', 'market']);
+  } finally {
+    clients.forEach(ws => ws.terminate()); await app.close();
+    for (const [key, value] of previous) if (value === undefined) delete process.env[key]; else process.env[key] = value;
+  }
+});

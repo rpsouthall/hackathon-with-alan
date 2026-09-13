@@ -16,7 +16,10 @@
     "dev:world": "node --import tsx lib/world/run-server.ts",
     "dev:lesson": "node --import tsx server/lesson/run.ts",
     "test:lesson": "node --import tsx --test tests/lesson/*.test.ts",
-    "dev:game": "node scripts/dev-game.mjs"
+    "dev:game": "node scripts/dev-game.mjs",
+    "build:multiplayer": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js deploy --dry-run --config multiplayer/wrangler.jsonc --outdir dist",
+    "deploy:multiplayer": "node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js deploy --config multiplayer/wrangler.jsonc",
+    "test:multiplayer": "node scripts/prepare-rapier.mjs && node scripts/verify-multiplayer.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

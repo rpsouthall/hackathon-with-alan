@@ -32,23 +32,22 @@ export function CharacterEditor({ appearance, connected, onSave, onClose, joinin
       if (joining) {
         const fields = new FormData(event.currentTarget);
         const name = String(fields.get("name")).trim();
-        const roomId = String(fields.get("room")).trim();
+        const roomId = String(fields.get("room")).trim().toLowerCase();
         const shared = (event.nativeEvent as SubmitEvent).submitter?.getAttribute("value") !== "solo";
-        const serverUrl = shared ? String(fields.get("server")).trim() : "";
+        const serverUrl = shared ? joining.defaults.serverUrl : "";
         if (!name) { setValidationError("Add your name before joining."); return; }
-        if (shared) {
+        if (shared && serverUrl !== "hosted") {
           try { if (!["ws:", "wss:"].includes(new URL(serverUrl).protocol)) throw new Error("protocol"); }
-          catch { setValidationError("Add a WebSocket room server, or choose Play solo."); return; }
+          catch { setValidationError("The shared world is unavailable. Please try again."); return; }
         }
         joining.onJoin({ name, roomId, serverUrl, appearance: parsed.data });
       } else onSave(parsed.data);
     }}>
       <header className="editor-heading"><span className="editor-stamp" aria-hidden="true"><Shirt /></span><div><small>{joining ? "Your story starts here" : "Make yourself at home"}</small><h1 id="character-editor-title">{joining ? "Welcome to Kyoto" : "Your character"}</h1></div>{onClose && <Button type="button" variant="ghost" size="icon" aria-label="Close character editor" onClick={onClose}><X /></Button>}</header>
-      <p className="editor-description">{joining ? "Create your traveller, meet the locals and explore together. Join the same room as your friends, or start with a solo walk." : "Choose your look, then return to the streets. Everyone in your room sees your saved character."}</p>
+      <p className="editor-description">{joining ? "Create your traveller and join Kyoto. Everyone using the same room code explores the same streets." : "Choose your look, then return to the streets. Everyone in your room sees your saved character."}</p>
       {joining && <fieldset className="editor-join-fields"><legend>Your visit</legend>
         <label>Your name<input name="name" defaultValue={joining.defaults.name} required maxLength={32} autoFocus /></label>
-        <label>Room name<input name="room" defaultValue={joining.defaults.roomId} required pattern="[a-zA-Z0-9_-]+" maxLength={64} /></label>
-        <label>Room server<input name="server" defaultValue={joining.defaults.serverUrl} placeholder="wss://your-room-server/world" /></label>
+        <label>Room code<input name="room" defaultValue={joining.defaults.roomId} required pattern="[a-zA-Z0-9_-]+" maxLength={48} /></label>
       </fieldset>}
       <div className="editor-workspace"><CharacterPreview appearance={draft} /><div className="editor-customization">
       <fieldset className="editor-presets"><legend>Start with a style</legend>{presets.map((preset) => <button type="button" key={preset.name} onClick={() => setDraft({ ...preset.appearance })}><span aria-hidden="true" style={{ background: preset.appearance.top }} />{preset.name}</button>)}</fieldset>
@@ -62,7 +61,7 @@ export function CharacterEditor({ appearance, connected, onSave, onClose, joinin
       </div></div>
       {validationError && <p role="alert">{validationError}</p>}
       {!connected && <p role="status">Reconnect to your room to save your character.</p>}
-      <footer className="editor-actions">{joining ? <><Button type="submit" value="solo" variant="outline">Play solo</Button><Button type="submit" value="shared"><Check /> Join shared room</Button></> : <><Button type="button" variant="outline" onClick={() => setDraft({ ...appearance })}><RotateCcw /> Reset changes</Button><Button type="submit" disabled={!connected}><Check /> Save character</Button></>}</footer>
+      <footer className="editor-actions">{joining ? <><Button type="submit" value="solo" variant="outline">Play solo</Button><Button type="submit" value="shared"><Check /> Join Kyoto</Button></> : <><Button type="button" variant="outline" onClick={() => setDraft({ ...appearance })}><RotateCcw /> Reset changes</Button><Button type="submit" disabled={!connected}><Check /> Save character</Button></>}</footer>
       <small className="editor-footnote">Your saved appearance stays on this browser for your next visit.</small>
     </form>
   </dialog>;

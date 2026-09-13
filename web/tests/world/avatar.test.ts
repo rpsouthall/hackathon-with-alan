@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { ANIMATIONS, CHARACTER_PRESETS, createAvatar, disposeAvatarTemplate, type CharacterAvatar } from "../../lib/characters/avatar";
+import { EMOTES, EMOTE_NAMES } from "../../lib/world/player-actions";
 
 const data = await readFile(new URL("../../public/models/characters/komorebi_npc.glb", import.meta.url));
 const template = await new GLTFLoader().parseAsync(data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength), "");
@@ -29,6 +30,9 @@ function visibleBounds(object: THREE.Object3D): THREE.Box3 {
 }
 
 function footBounds(avatar: CharacterAvatar, side: "L" | "R"): THREE.Box3 {
+  return boneBounds(avatar, `${side}_foot`);
+}
+function boneBounds(avatar: CharacterAvatar, bone: string): THREE.Box3 {
   updateSkeletons(avatar.object);
   const result = new THREE.Box3();
   const point = new THREE.Vector3();
@@ -36,7 +40,7 @@ function footBounds(avatar: CharacterAvatar, side: "L" | "R"): THREE.Box3 {
     if (!(node instanceof THREE.SkinnedMesh)) return;
     const indices = node.geometry.attributes.skinIndex;
     for (let index = 0; index < indices.count; index++) {
-      if (node.skeleton.bones[indices.getX(index)].name !== `${side}_foot`) continue;
+      if (node.skeleton.bones[indices.getX(index)].name !== bone) continue;
       node.getVertexPosition(index, point);
       result.expandByPoint(point.applyMatrix4(node.matrixWorld));
     }
@@ -159,6 +163,30 @@ test("one-shot gestures finish normally, but an interrupted gesture cannot cance
   avatar.setVelocity(new THREE.Vector3());
   assert.equal(avatar.current, "Listen");
   avatar.dispose();
+});
+
+test("every wheel gesture animates the real skeleton once, with raised cheer hands and planted feet", () => {
+  const avatar = createAvatar(template); avatar.blinkEnabled = false;
+  for (const name of EMOTE_NAMES) {
+    avatar.playEmote(name);
+    const clip = avatar.actions[EMOTES[name].animation].getClip();
+    assert(clip.validate());
+    assert(Math.abs(clip.duration - EMOTES[name].duration) < 1e-5);
+    for (let frame = 0; frame < EMOTES[name].duration * 60 + 24; frame++) {
+      avatar.update(1 / 60);
+      for (const side of ["L", "R"] as const) assert(Math.abs(footBounds(avatar, side).min.y) < 0.025, `${name}: feet stay grounded`);
+    }
+    assert.equal(avatar.current, "Idle");
+  }
+  avatar.playEmote("cheer", 0.65);
+  const head = avatar.getSocket("socket_head");
+  for (const side of ["L", "R"]) assert(boneBounds(avatar, `${side}_hand`).max.y > head.y, "Both cheer hands rise above the head");
+  avatar.playEmote("nod", 0.24); assert(avatar.model.getObjectByName("head")!.rotation.x > 0.2);
+  avatar.playEmote("wave", 0.9); const elapsed = avatar.actions.Wave.time;
+  avatar.playEmote("wave"); assert(avatar.actions.Wave.time < elapsed, "Replaying the same emote restarts it");
+  avatar.setVelocity(new THREE.Vector3(3, 0, 0), "walk"); assert.equal(avatar.current, "Walk");
+  avatar.setVelocity(new THREE.Vector3(5.5, 0, 0), "run"); assert.equal(avatar.current, "Run");
+  assert.deepEqual(avatar.object.position.toArray(), [0, 0, 0]); avatar.dispose();
 });
 
 test("disposing an avatar only releases its own resources and template cleanup is idempotent", async () => {

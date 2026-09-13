@@ -3,17 +3,19 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import Image from 'next/image';
-import { ChevronRight, CircleStop, Headphones, Languages, Map, MicOff, RotateCcw, Sparkles, Volume2, Users, Shirt, X } from "lucide-react";
+import { ChevronRight, CircleStop, Headphones, Languages, Map, Mic, RotateCcw, Sparkles, Volume2, Users, Shirt, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LessonDialogue } from "@/components/lesson/lesson-dialogue";
 import { lessonNpcForWorldNpc } from "@/lib/lesson/world-lessons";
 import { lessonCharacterForWorldNpc } from "@/lib/lesson/characters";
+import { VoiceWelcome } from "@/components/game/voice-welcome";
+import { ProximityVoicePanel } from "@/components/game/proximity-voice";
 import { CharacterEditor, type CharacterJoinSettings } from "@/components/game/character-editor";
 import { appearanceSchema, type PlayerAppearance } from "@/lib/world/schema";
 import { WorldProvider, useWorld } from "@/components/world/world-provider";
 import { WorldViewport } from "@/components/world/world-viewport";
 import { KYOTO_ENVIRONMENT, KYOTO_NPCS } from "@/lib/world/kyoto";
-import { createLocalTransport, createWebSocketTransport, type WorldTransport } from "@/lib/world/transport";
+import { createHostedTransport, createLocalTransport, createWebSocketTransport, type WorldTransport } from "@/lib/world/transport";
 import { distance } from "@/lib/world/room";
 import { npcs, npcPresentation, type ExperiencePhase, type NpcDefinition, type TranscriptLine } from "@/lib/game/contracts";
 
@@ -68,11 +70,15 @@ const APPEARANCE_STORAGE_KEY = "kyoto-character-appearance-v1";
 type SessionSettings = { transport?: WorldTransport; roomId: string; name: string; serverUrl: string; appearance?: PlayerAppearance };
 
 export function GameExperience() {
+  return <VoiceWelcome><GameExperienceContent /></VoiceWelcome>;
+}
+
+function GameExperienceContent() {
   const [session, setSession] = useState<SessionSettings | null>(null);
   const hydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
   const localTransport = useMemo(() => createLocalTransport({ environment: KYOTO_ENVIRONMENT, npcs: KYOTO_NPCS }), []);
   function join(next: Omit<SessionSettings, "transport">) {
-    setSession({ ...next, transport: next.serverUrl ? createWebSocketTransport(next.serverUrl) : undefined });
+    setSession({ ...next, transport: next.serverUrl === "hosted" ? createHostedTransport() : next.serverUrl ? createWebSocketTransport(next.serverUrl) : undefined });
   }
   if (!session) return <main className="game-shell iso-game-shell welcome-stage" aria-label="Welcome to Kyoto Conversations">
     <div className="welcome-wordmark" aria-hidden="true">京都で話そう<small>Kyoto Conversations</small></div>
@@ -94,7 +100,9 @@ function WelcomeCreator({ onJoin }: { onJoin: (settings: CharacterJoinSettings) 
     } catch { /* Local storage is optional. */ }
     const configuredServer = (import.meta as ImportMeta & { env?: Record<string, string> }).env?.VITE_WORLD_SERVER_URL?.trim();
     const localHost = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
-    return { name: "Learner", roomId: "kyoto", appearance, serverUrl: configuredServer ?? (localHost ? "ws://127.0.0.1:8788/world" : "") };
+    const requestedRoom = new URLSearchParams(window.location.search).get("room")?.trim().toLowerCase();
+    const roomId = requestedRoom && /^[a-z0-9_-]{1,48}$/.test(requestedRoom) ? requestedRoom : "kyoto";
+    return { name: "Learner", roomId, appearance, serverUrl: configuredServer ?? (localHost ? "ws://127.0.0.1:8788/world" : "hosted") };
   });
   return <CharacterEditor appearance={welcome.appearance} connected onSave={() => {}} joining={{ defaults: welcome, onJoin }} />;
 }
@@ -103,18 +111,25 @@ function RoomSettings({ session, onJoin, onClose }: {
   session: SessionSettings; onJoin: (session: Omit<SessionSettings, "transport">) => void; onClose: () => void;
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
+  const [copied, setCopied] = useState("");
+  const { snapshot } = useWorld();
   useEffect(() => { const node = dialog.current; node?.showModal(); return () => node?.close(); }, []);
+  async function copyRoomLink() {
+    const url = new URL(window.location.href); url.searchParams.set("room", session.roomId);
+    try { await navigator.clipboard.writeText(url.toString()); setCopied("Room link copied. Send it to your friends."); }
+    catch { setCopied(url.toString()); }
+  }
   return <dialog ref={dialog} className="room-dialog" aria-labelledby="room-title" onCancel={(event) => { event.preventDefault(); onClose(); }}>
     <form className="room-form" onSubmit={(event) => {
       event.preventDefault(); const data = new FormData(event.currentTarget);
-      onJoin({ name: String(data.get("name")).trim(), roomId: String(data.get("room")).trim(), serverUrl: String(data.get("server")).trim() });
+      onJoin({ name: String(data.get("name")).trim(), roomId: String(data.get("room")).trim().toLowerCase(), serverUrl: session.serverUrl || "hosted", appearance: session.appearance });
       onClose();
     }}>
-      <div className="editor-heading"><div><small>Share the same streets</small><h1 id="room-title">Learn together</h1></div><Button type="button" variant="ghost" size="icon" aria-label="Close room settings" onClick={onClose}><X /></Button></div>
-      <p>Use the same room and server as your friends. Leave the server blank to explore on your own.</p>
+      <div className="editor-heading"><div><small>Share the same streets</small><h1 id="room-title">Your Kyoto room</h1></div><Button type="button" variant="ghost" size="icon" aria-label="Close room settings" onClick={onClose}><X /></Button></div>
+      <p>Join <strong>kyoto</strong> to meet everyone, or choose a room code for your group. Up to 32 travellers can share a room.</p>
       <label>Your name<input name="name" defaultValue={session.name} required maxLength={32} autoFocus /></label>
-      <label>Room name<input name="room" defaultValue={session.roomId} required pattern="[a-zA-Z0-9_-]+" maxLength={64} /></label>
-      <label>Multiplayer server<input name="server" defaultValue={session.serverUrl} placeholder="wss://your-room-server/world" /></label>
+      <label>Room code<input name="room" defaultValue={session.roomId} required pattern="[a-zA-Z0-9_-]+" maxLength={48} /></label>
+      {!!session.serverUrl && <div className="room-members"><strong>{snapshot?.players.length ?? 0} travellers in {session.roomId}</strong><ul>{snapshot?.players.map((player) => <li key={player.id}>{player.name}</li>)}</ul><Button type="button" variant="outline" onClick={() => void copyRoomLink()}>Copy room link</Button>{copied && <p role="status">{copied}</p>}</div>}
       <div className="editor-actions"><Button type="button" variant="outline" onClick={onClose}>Cancel</Button><Button type="submit">Join room</Button></div>
     </form>
   </dialog>;
@@ -122,9 +137,12 @@ function RoomSettings({ session, onJoin, onClose }: {
 
 function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (session: Omit<SessionSettings, "transport">) => void }) {
   const { snapshot, localPlayerId, connection, mode, error, clearError, send } = useWorld();
+  const [voiceSpeakers, setVoiceSpeakers] = useState<string[]>([]);
+  const speakingPlayerIds = voiceSpeakers;
+  const localSpeaking = speakingPlayerIds.includes(localPlayerId ?? "");
   const [showRoom, setShowRoom] = useState(false);
   const [showCharacter, setShowCharacter] = useState(false);
-  const [showCast, setShowCast] = useState(true);
+  const [showCast, setShowCast] = useState(false);
   const [walkingRequest, setWalkingRequest] = useState<{ npcId: string; sequence: number } | null>(null);
   const [walking, setWalking] = useState(false);
   const [walkingNotice, setWalkingNotice] = useState('');
@@ -146,14 +164,14 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
   const encounter = encounterContent[selectedNpc.id] ?? encounterContent.greeting;
   const visibleTranscript = useMemo(() => encounter.lines.slice(0, transcriptCount), [encounter.lines, transcriptCount]);
   const localPlayer = snapshot?.players.find((p) => p.id === localPlayerId);
-  const target = snapshot?.npcs.find((npc) => npc.id === selectedNpc.id);
+  const target = snapshot?.npcs.find(npc => npc.id === selectedNpc.id);
   const targetDistance = localPlayer && target ? distance(localPlayer.position, target.position) : null;
   const inRange = targetDistance !== null && !!target && targetDistance <= target.interactionRadius;
+  const targetEncounter = snapshot?.encounters.find(e => e.npcId === selectedNpc.id);
   const closest = snapshot?.npcs.filter((npc) => localPlayer && distance(localPlayer.position, npc.position) <= npc.interactionRadius).sort((a, b) => distance(localPlayer!.position, a.position) - distance(localPlayer!.position, b.position))[0];
-  const targetEncounter = snapshot?.encounters.find((e) => e.npcId === selectedNpc.id);
 
   function requestConversation(npcId = selectedNpc.id) {
-    if (connection !== "connected" || active) return;
+    if (connection !== "connected" || active || localPlayer?.vehicleId) return;
     const presentation = cast.find((npc) => npc.id === npcId);
     if (!presentation) return;
     setSelectedNpcId(presentation.id);
@@ -200,6 +218,8 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
       setAppearanceNotice("Your character is updated.");
     }
   }, [connection, localPlayerId, localPlayer, send]);
+
+  useEffect(() => { if (!appearanceNotice) return; const timer = setTimeout(() => setAppearanceNotice(""), 3000); return () => clearTimeout(timer); }, [appearanceNotice]);
 
   function saveAppearance(appearance: PlayerAppearance) {
     if (connection !== "connected" || !localPlayer) return;
@@ -253,14 +273,14 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
   }, []);
 
   return (
-    <main className={`game-shell iso-game-shell${phase === "conversation" && lessonNpcId ? " cinematic-encounter" : ""}`}>
+    <main className={`game-shell iso-game-shell minimal-game-hud${phase === "conversation" && lessonNpcId ? " cinematic-encounter" : ""}`}>
       <section className="world-stage" aria-label={`${snapshot?.environment.name ?? "World"} interactive preview`}>
-        {snapshot && <WorldViewport environment={snapshot.environment} players={snapshot.players} npcs={snapshot.npcs} localPlayerId={localPlayerId} selectedNpcId={selectedNpc.id} encounters={snapshot.encounters}
+        {snapshot && <WorldViewport environment={snapshot.environment} players={snapshot.players} npcs={snapshot.npcs} localPlayerId={localPlayerId} selectedNpcId={selectedNpc.id} encounters={snapshot.encounters} speakingPlayerIds={speakingPlayerIds}
           inputEnabled={phase === "explore" && connection === "connected" && !showRoom && !showCharacter}
           renderPaused={phase === "results" || showCharacter || showRoom}
           encounterNpcId={phase === "conversation" ? selectedNpc.id : undefined}
           walkingRequest={walkingRequest} onWalking={(walking, message) => { setWalking(walking); setWalkingNotice(message); }}
-          onMove={(direction, yaw) => send({ type: "move", direction, yaw, sequence: 0 })}
+          onMove={(direction, yaw, sprint) => send({ type: "move", direction, yaw, sprint, sequence: 0 })} onEmote={(name) => send({ type: "emote", name })}
           onInteract={(npcId) => requestConversation(npcId as NpcDefinition["id"])} />}
       </section>
       {appearanceNotice && <div className="appearance-notice" role="status">{appearanceNotice}<button aria-label="Dismiss appearance update" onClick={() => setAppearanceNotice("")}>×</button></div>}
@@ -268,65 +288,69 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
       {showRoom && <RoomSettings session={session} onJoin={onJoin} onClose={() => setShowRoom(false)} />}
       {error && <div className="world-error" role="alert">{error} <button onClick={clearError}>Dismiss</button></div>}
 
-      <header className="topbar">
-        <div className="brand-lockup" aria-label="Kyoto Conversations">
-          <span className="brand-mark" aria-hidden="true">京</span>
-          <span><strong>Kyoto Conversations</strong><small>京都で話そう</small></span>
+      <aside className="hud-party" aria-label="Connected players">
+        <div className="hud-party-heading"><span className={`hud-connection-dot ${connection === "connected" ? "is-online" : ""}`} />{mode === "local" ? "SOLO" : `${snapshot?.players.length ?? 0} ONLINE`}</div>
+        <ul>{snapshot?.players.map(player => <li key={player.id}><span className="hud-player-mark" style={{ backgroundColor: player.appearance.accent }} /><span>{player.name}</span>{player.id === localPlayerId && <small>YOU</small>}{speakingPlayerIds.includes(player.id) && <Mic className="hud-speaking-mic" role="img" aria-label={`${player.name} is speaking`} />}</li>)}</ul>
+        {connection !== "connected" && <span className="hud-connection-note" role="status">{connection}</span>}
+      </aside>
+
+      <details className="hud-menu">
+        <summary aria-label="Game menu"><span aria-hidden="true">☰</span><span>Menu</span></summary>
+        <div className="hud-menu-content">
+          <small>KYOTO / {session.roomId}</small>
+          <Button variant="ghost" onClick={() => setShowCast(value => !value)}><Map />Find a lesson</Button>
+          <Button variant="ghost" onClick={() => setShowCharacter(true)} disabled={!localPlayer}><Shirt />Character</Button>
+          <Button variant="ghost" onClick={() => setShowRoom(true)}><Users />Room settings</Button>
+          <Button variant="ghost" onClick={() => setShowTranslations(value => !value)}><Languages />{showTranslations ? "Hide" : "Show"} translations</Button>
+          {mode === "multiplayer" && <a href={`/?room=${encodeURIComponent(session.roomId)}`}>Room invite link ↗</a>}
+          <details className="hud-directory"><summary>Residents</summary><div>{cast.map(npc => <button key={npc.id} onClick={() => setSelectedNpcId(npc.id)}>{npc.name}<small>{npc.role}</small></button>)}</div></details>
         </div>
-        <div className="session-status"><span className={`status-light ${connection === "connected" ? "" : "is-offline"}`} />{mode === "local" ? "Solo exploration" : `Room ${session.roomId}`} · {connection} · {snapshot?.players.length ?? 0} players</div>
-        <Button variant="ghost" size="sm" className="hud-button" onClick={() => setShowTranslations((value) => !value)}>
-          <Languages /> {showTranslations ? "Hide English" : "Show English"}
-        </Button>
-        <Button className="room-button" variant="outline" size="sm" disabled={!localPlayer} onClick={() => setShowCharacter(true)}><Shirt /><span>Character</span></Button>
-        <Button className="room-button" variant="outline" size="sm" onClick={() => setShowRoom(true)}><Users /><span>Room</span></Button>
-      </header>
+      </details>
 
-      {phase === "explore" && (
-        <>
-          <aside className={`mission-card iso-rail ${showCast ? "" : "is-collapsed"}`} aria-label="Explore Kyoto">
-            <div className="rail-title" aria-hidden="true"><span>京都で</span><span>話そう</span><small>Speak in Kyoto</small></div>
-            <div className="rail-rule" aria-hidden="true" />
-            <div className="eyebrow"><Map /> Your afternoon</div>
-            <div className="mission-title-row"><h1>Meet the neighbourhood</h1><button className="cast-toggle" onClick={() => setShowCast(!showCast)} aria-expanded={showCast} aria-controls="world-cast">{showCast ? "Hide" : "Show"}</button></div>
-            <p>Pick a local, then Walk closer. Start a conversation when you reach them.</p>
-            <div className="character-picker" id="world-cast" hidden={!showCast}>{cast.map((npc) => {
-              const character = snapshot?.npcs.find((entry) => entry.id === npc.id);
-              const meters = localPlayer && character ? distance(localPlayer.position, character.position) : null;
-              const occupied = snapshot?.encounters.some((entry) => entry.npcId === npc.id);
-              const avatar = lessonCharacterForWorldNpc(npc.id);
-              return <button key={npc.id} aria-pressed={npc.id === selectedNpc.id} onClick={() => { setWalkingRequest(null); setSelectedNpcId(npc.id); }}><span className="cast-dot" style={{ background: npc.accent }} /><span><strong>{npc.name}</strong><small>{npc.role}{avatar ? ' · Live avatar' : ''}</small></span><small>{meters !== null ? `${meters.toFixed(0)} m` : "…"}{occupied ? " · Group" : ""}</small></button>;
-            })}</div>
-            <p className="rail-caption">言葉で、もっと近くに。<br /><span>Meet live characters and practise ten-question lessons around the neighbourhood.</span></p>
-            <Link className="environment-preview-link" href="/environments">Explore the conversation settings <ChevronRight size={14} /></Link>
-          </aside>
+      <details className={`hud-audio hud-compact-voice ${localSpeaking ? "is-transmitting" : ""}`}>
+        <summary className="hud-mic-toggle" aria-label="Voice controls" title={localSpeaking ? "Speaking · voice controls" : "Voice controls · hold T to talk"}><Mic aria-hidden="true" /></summary>
+        <div className="hud-audio-content">
+          {phase === "explore" && <ProximityVoicePanel onSpeakingChange={setVoiceSpeakers} />}
+          <p className="hud-npc-audio">Japanese lessons open when you talk to a tutor.</p>
+        </div>
+      </details>
 
-          <aside className="location-card iso-character-card" aria-label="Selected character">
-            {liveCharacter ? <Image className="npc-live-preview" src={liveCharacter.preview} alt={`${selectedNpc.name}'s live avatar`} width={76} height={76} unoptimized /> : <span className="npc-monogram" style={{ background: selectedNpc.accent }}>{selectedNpc.nameJapanese}</span>}
-            <div><small>{selectedNpc.role} · {selectedNpc.level}</small><h2>{selectedNpc.name}</h2><p>{selectedNpc.objective}</p><span className="distance-label">{inRange ? "Within talking distance" : targetDistance !== null ? `${targetDistance.toFixed(1)} m away` : "Joining the world…"}</span></div>
-          </aside>
-
-          <div className="interaction-prompt iso-interaction-prompt">
-            <span className="keycap" aria-hidden="true">話</span>
-            <span><small>Selected character</small>{selectedNpc.name}</span>
-            <Button size="sm" disabled={!target || connection !== "connected"} onClick={() => {
-              if (walking) setWalkingRequest(null);
-              else if (inRange) requestConversation();
-              else setWalkingRequest({ npcId: selectedNpc.id, sequence: Date.now() });
-            }}>{walking ? "Stop walking" : inRange ? targetEncounter ? "Join encounter" : "Start encounter" : "Walk closer"} <ChevronRight /></Button>
+      {phase === "explore" && <>
+        {closest && !localPlayer?.vehicleId && <button className="hud-interact" onClick={() => requestConversation(closest.id)}><kbd>E</kbd><span>Talk to <strong>{closest.name}</strong></span></button>}
+        <div className="hud-key-hints"><span><kbd>WASD</kbd> Move</span><span><kbd>Shift</kbd> Sprint</span><span><kbd>G</kbd> Emotes</span></div>
+      </>}
+      {phase === "explore" && <>
+        <button className="hud-lesson-toggle" onClick={() => setShowCast(value => !value)} aria-expanded={showCast} aria-controls="world-cast"><Languages />{showCast ? "Close lessons" : "Find a Japanese lesson"}</button>
+        {showCast && <aside className="hud-lesson-picker" aria-label="Japanese lessons">
+          <div className="hud-lesson-heading"><div><small>LEARN BY TALKING</small><h1>Meet your tutor</h1></div><button aria-label="Close lessons" onClick={() => setShowCast(false)}><X /></button></div>
+          <p>Choose a resident. Walk to them, then start your lesson.</p>
+          <div className="character-picker" id="world-cast">{cast.filter(npc => lessonNpcForWorldNpc(npc.id)).map(npc => {
+            const character = snapshot?.npcs.find(entry => entry.id === npc.id);
+            const meters = localPlayer && character ? distance(localPlayer.position, character.position) : null;
+            return <button key={npc.id} aria-pressed={npc.id === selectedNpc.id} onClick={() => { setWalkingRequest(null); setSelectedNpcId(npc.id); }}><span className="cast-dot" style={{ background: npc.accent }} /><span><strong>{npc.name}</strong><small>{npc.role}</small></span><small>{meters !== null ? `${meters.toFixed(0)} m` : "…"}</small></button>;
+          })}</div>
+          <div className="hud-lesson-selected">
+            {liveCharacter && <Image src={liveCharacter.preview} alt={`${selectedNpc.name}'s live avatar`} width={48} height={48} unoptimized />}
+            <div><strong>{selectedNpc.name}</strong><p>{selectedNpc.objective}</p></div>
           </div>
-          <div className="movement-hint iso-movement-hint"><span>W A S D</span> Move <span>E</span> {closest ? `Talk to ${closest.name}` : "Talk nearby"} · Click the world to focus</div>
-          {walkingNotice && <div className="walking-notice" role="status">{walkingNotice}</div>}
-        </>
-      )}
+          <Button disabled={!target || connection !== "connected" || !!localPlayer?.vehicleId} onClick={() => {
+            if (walking) setWalkingRequest(null);
+            else if (inRange) requestConversation();
+            else setWalkingRequest({ npcId: selectedNpc.id, sequence: Date.now() });
+          }}>{localPlayer?.vehicleId ? "Dismount to meet your tutor" : walking ? "Stop walking" : inRange ? targetEncounter ? "Join encounter" : "Start lesson" : "Walk to tutor"}<ChevronRight /></Button>
+          <Link href="/environments">Explore the lesson settings <ChevronRight size={14} /></Link>
+        </aside>}
+        {walkingNotice && <div className="walking-notice" role="status">{walkingNotice}</div>}
+      </>}
 
       {phase === "conversation" && lessonNpcId && <LessonDialogue key={active?.id} npcId={lessonNpcId} worldNpcId={selectedNpc.id} onClose={returnToWorld} />}
       {phase === "conversation" && !lessonNpcId && (
         <section className="conversation-layout" aria-label={`Conversation with ${selectedNpc.name}`}>
           <div className="conversation-focus">
             <div className="portrait" style={{ background: selectedNpc.accent }}>{selectedNpc.nameJapanese}</div>
-            <div className="speaking-label">{active?.participantIds.length} learners · Voice not connected</div>
+            <div className="speaking-label">{active?.participantIds.length} learners · Shared speaking turns</div>
             <h1>{selectedNpc.objective}</h1>
-            <p>Preview the dialogue while the voice service is being connected.</p>
+            <p>Practise together using the example below. Live NPC voice and ratings are coming soon.</p>
           </div>
           <aside className="transcript-panel">
             <div className="panel-heading"><span><Headphones /> Sample conversation</span><span className="live-pill">PREVIEW</span></div>
@@ -348,8 +372,7 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
               <Button size="sm" variant="outline" disabled={!!active?.speakerId && active.speakerId !== localPlayerId} onClick={() => active && send({ type: active.speakerId === localPlayerId ? "release-turn" : "claim-turn", encounterId: active.id })}>{active?.speakerId === localPlayerId ? "Release turn" : "Claim turn"}</Button>
             </div>
             <div className="conversation-controls">
-              <Button variant="outline" size="icon" disabled aria-label="Microphone unavailable until voice is connected"><MicOff /></Button>
-              <div className="voice-state"><Volume2 /><span><strong>Microphone off</strong><small>Voice service not connected</small></span></div>
+              <div className="voice-state"><Volume2 /><span><strong>NPC conversation</strong><small>The transcript and replies are examples; no NPC voice or assessment is connected.</small></span></div>
               <Button variant="destructive" onClick={finishConversation}><CircleStop /> Finish</Button>
             </div>
           </aside>

@@ -3,6 +3,9 @@ import { GLTFLoader, type GLTF } from "three/addons/loaders/GLTFLoader.js";
 import { clone } from "three/addons/utils/SkeletonUtils.js";
 import { appearanceSchema, type PlayerAppearance } from "../world/schema";
 import { ANIMATIONS, CHARACTER_PRESETS, MATERIAL_CHANNELS, type AvatarAnimation } from "./presets";
+import { createExtraEmoteClips } from "./emote-clips";
+import { EMOTES, type EmoteName } from "../world/player-actions";
+import { AvatarRidingPose, type RidingState } from "./riding-pose";
 
 export { ANIMATIONS, CHARACTER_PRESETS } from "./presets";
 export type { AvatarAnimation } from "./presets";
@@ -14,7 +17,7 @@ export function loadAvatarTemplate(url = AVATAR_ASSET_URL): Promise<GLTF> {
   return new GLTFLoader().loadAsync(url);
 }
 
-export type AnimationOptions = { fade?: number; once?: boolean; speed?: number };
+export type AnimationOptions = { fade?: number; once?: boolean; speed?: number; restart?: boolean };
 
 /** Independent skeleton, face and materials over shared, immutable template geometry. */
 export class CharacterAvatar {
@@ -32,6 +35,7 @@ export class CharacterAvatar {
   private disposed = false;
   private readonly blinkSeed = Math.random() * 3;
   private readonly faceMeshes: THREE.Mesh[] = [];
+  private readonly ridingPose: AvatarRidingPose;
   private readonly finished = (event: THREE.AnimationMixerEventMap["finished"]) => {
     // A fading gesture can finish after a new action has already started.
     if (event.action === this.actions[this.current]) this.play("Idle");
@@ -44,10 +48,12 @@ export class CharacterAvatar {
     for (const name of ANIMATIONS) {
       if (!clips.has(name)) throw new Error(`Character template is missing animation ${name}.`);
     }
+    for (const clip of createExtraEmoteClips(clips.get("Idle")!)) clips.set(clip.name, clip);
 
     this.object.name = "Avatar";
     this.model = clone(template.scene);
     this.object.add(this.model);
+    this.ridingPose = new AvatarRidingPose(this.model);
     const materialCopies = new Map<THREE.Material, THREE.Material>();
     this.model.traverse((node) => {
       if (!(node instanceof THREE.Mesh)) return;
@@ -68,7 +74,7 @@ export class CharacterAvatar {
       if (node.morphTargetDictionary && node.morphTargetInfluences) this.faceMeshes.push(node);
     });
     this.mixer = new THREE.AnimationMixer(this.model);
-    this.actions = Object.fromEntries(ANIMATIONS.map((name) => [name, this.mixer.clipAction(clips.get(name)!)])) as Record<AvatarAnimation, THREE.AnimationAction>;
+    this.actions = Object.fromEntries([...clips].map(([name, clip]) => [name, this.mixer.clipAction(clip)])) as Record<AvatarAnimation, THREE.AnimationAction>;
     this.mixer.addEventListener("finished", this.finished);
     this.setAppearance(this.appearance);
     this.play("Idle", { fade: 0 });
@@ -97,13 +103,13 @@ export class CharacterAvatar {
     return this;
   }
 
-  play(name: AvatarAnimation, { fade = 0.18, once = false, speed = 1 }: AnimationOptions = {}): this {
+  play(name: AvatarAnimation, { fade = 0.18, once = false, speed = 1, restart = false }: AnimationOptions = {}): this {
     if (this.disposed) return this;
     const next = this.actions[name];
     if (!next) throw new RangeError(`Unknown animation: ${name}`);
     if (!Number.isFinite(fade) || fade < 0 || !Number.isFinite(speed) || speed <= 0) throw new RangeError("Animation fade and speed must be finite and positive (fade may be zero).");
     const loop = once ? THREE.LoopOnce : THREE.LoopRepeat;
-    if (this.current === name && next.isRunning() && next.loop === loop) {
+    if (!restart && this.current === name && next.isRunning() && next.loop === loop) {
       next.setEffectiveTimeScale(speed);
       return this;
     }
@@ -120,17 +126,36 @@ export class CharacterAvatar {
     return this;
   }
 
+  playEmote(name: EmoteName, elapsed = 0): void {
+    if (this.disposed) return;
+    const { animation, duration } = EMOTES[name];
+    const clip = this.actions[animation].getClip();
+    this.play(animation, { once: true, restart: true, fade: elapsed > 0.18 ? 0 : 0.18, speed: clip.duration / duration });
+    this.actions[animation].time = THREE.MathUtils.clamp(Number.isFinite(elapsed) ? elapsed : 0, 0, duration) * clip.duration / duration;
+    this.mixer.update(0);
+  }
+
   /** Supply actual velocity after authoritative movement; never moves the actor root. */
-  setVelocity(velocity: THREE.Vector3): void {
+  setVelocity(velocity: THREE.Vector3, gait?: "walk" | "run"): void {
+    if (this.ridingPose.kind) return;
     const speed = Math.hypot(velocity.x, velocity.z);
     if (!Number.isFinite(speed) || speed < 0.025) {
       if (this.current === "Walk" || this.current === "Run") this.play("Idle");
       return;
     }
-    const animation = speed > 1.7 ? "Run" : "Walk";
+    const animation = gait ? gait === "run" ? "Run" : "Walk" : speed > 1.7 ? "Run" : "Walk";
     const authoredSpeed = animation === "Run" ? 1.32 : 0.72;
     this.play(animation, { speed: THREE.MathUtils.clamp(speed / (authoredSpeed * this.model.scale.x), 0.35, 3.5) });
   }
+
+  /** Riding is a separate reversible visual layer over the original seven clips. */
+  setRiding(state: RidingState | null): void {
+    if (this.disposed) return;
+    if (state && this.ridingPose.kind !== state.kind) this.play("Idle", { fade: .1 });
+    this.ridingPose.set(state);
+  }
+
+  get riding(): RidingState["kind"] | null { return this.ridingPose.kind; }
 
   /** Actual outgoing voice audio envelope, not a synthetic indication that voice works. */
   setSpeechLevel(level: number): void {
@@ -148,7 +173,9 @@ export class CharacterAvatar {
     if (this.disposed || !Number.isFinite(dt) || dt < 0) return;
     dt = Math.min(dt, 0.1);
     this.time += dt;
+    this.ridingPose.restore();
     this.mixer.update(dt);
+    this.ridingPose.apply(dt);
     const phase = (this.time + this.blinkSeed) % 4.1;
     const blink = this.blinkEnabled && phase < 0.16 ? Math.sin(phase / 0.16 * Math.PI) : 0;
     for (const mesh of this.faceMeshes) {
@@ -165,6 +192,7 @@ export class CharacterAvatar {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
+    this.ridingPose.restore();
     this.mixer.removeEventListener("finished", this.finished);
     this.mixer.stopAllAction();
     this.mixer.uncacheRoot(this.model);

@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Komorebi — Kyoto Residents</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./catalog.css">
+  <script type="importmap">{"imports":{"three":"../node_modules/three/build/three.module.js","three/addons/":"../node_modules/three/examples/jsm/"}}</script>
+</head>
+<body>
+  <canvas id="cast-canvas" aria-hidden="true"></canvas>
+  <header><a href="../">✳ &nbsp;KOMOREBI <span>/ THE NEIGHBOURHOOD</span></a><a href="../exports/kyoto_city_cast.json" download>Download cast data ↗</a></header>
+  <main>
+    <section class="intro"><div><p class="eyebrow">FIFTEEN STORIES. ONE CITY.</p><h1>The people of Kyoto<span>.</span></h1><p>Familiar faces, from the canal to the corner café.</p></div><div class="controls"><span id="status" role="status">Bringing everyone together…</span><div role="group" aria-label="Cast animation"><button data-animation="Idle" aria-pressed="true">Idle</button><button data-animation="Walk" aria-pressed="false">Walk</button><button data-animation="Run" aria-pressed="false">Run</button><button data-animation="Wave" aria-pressed="false">Wave</button></div></div></section>
+    <div id="cast-grid" aria-label="Kyoto resident catalog"></div>
+    <footer>ORIGINAL VOXEL CHARACTERS <span>Three hairstyles · Three outfits · One shared animation rig</span> KYOTO / 2026</footer>
+  </main>
+  <script type="module" src="./catalog.js"></script>
+</body>
+</html>

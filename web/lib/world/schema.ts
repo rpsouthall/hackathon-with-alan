@@ -1,9 +1,17 @@
 import { z } from "zod";
+import { EMOTE_NAMES } from "./player-actions";
+import { VEHICLE_KINDS } from "./vehicle-contract";
+export type { VehicleKind } from "./vehicle-contract";
 
-export const PROTOCOL_VERSION = 1 as const;
+export const PROTOCOL_VERSION = 2 as const;
+export const MAX_ROOM_PLAYERS = 32;
 const id = z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/);
 export const vectorSchema = z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]);
 export type Vec3 = z.infer<typeof vectorSchema>;
+export const vehicleSpawnSchema = z.object({ id, kind: z.enum(VEHICLE_KINDS), position: vectorSchema, yaw: z.number().finite().min(-Math.PI).max(Math.PI) }).strict();
+export type VehicleSpawn = z.infer<typeof vehicleSpawnSchema>;
+export const vehicleSchema = vehicleSpawnSchema.extend({ riderId: id.nullable(), speed: z.number().finite().min(0).max(7.01) });
+export type VehicleSnapshot = z.infer<typeof vehicleSchema>;
 const assetUrl = z.string().max(2048).refine((value) => /^\/(?!\/)/.test(value) || /^https:\/\//.test(value), "Use a root-relative asset path or HTTPS URL");
 const boxSchema = z.object({ min: vectorSchema, max: vectorSchema }).refine(({ min, max }) => min.every((v, i) => v < max[i]), "Box minimum must be below maximum");
 const quaternionSchema = z.tuple([z.number().finite(), z.number().finite(), z.number().finite(), z.number().finite()])
@@ -25,6 +33,7 @@ export const environmentSchema = z.object({
   assetUrl: assetUrl.nullable(), spawn: vectorSchema,
   bounds: boxSchema, colliders: z.array(boxSchema).max(256),
   npcSpawns: z.record(id, vectorSchema),
+  vehicleSpawns: z.array(vehicleSpawnSchema).max(32).optional(),
   // When present these exported, rotated collision boxes drive Rapier on the authority.
   physics: physicsSchema.optional(),
   lights: z.array(z.object({
@@ -34,9 +43,10 @@ export const environmentSchema = z.object({
   })).max(32).optional(),
 }).superRefine((value, context) => {
   const inside = (p: Vec3) => p.every((v, i) => v >= value.bounds.min[i] && v <= value.bounds.max[i]);
-  if (!inside(value.spawn) || Object.values(value.npcSpawns).some((p) => !inside(p))) {
+  if (!inside(value.spawn) || Object.values(value.npcSpawns).some((p) => !inside(p)) || value.vehicleSpawns?.some((v) => !inside(v.position))) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "Spawn points must be inside world bounds" });
   }
+  if (new Set(value.vehicleSpawns?.map((v) => v.id)).size !== (value.vehicleSpawns?.length ?? 0)) context.addIssue({ code: z.ZodIssueCode.custom, message: "Vehicle IDs must be unique" });
 });
 export type EnvironmentManifest = z.infer<typeof environmentSchema>;
 export const npcSchema = z.object({
@@ -63,26 +73,32 @@ export const avatarAppearanceSchema = appearanceSchema;
 export type AvatarAppearance = PlayerAppearance;
 export const playerSchema = z.object({
   id, name: z.string().min(1).max(32), position: vectorSchema,
-  yaw: z.number().finite(), animation: z.enum(["idle", "walk"]),
+  yaw: z.number().finite(), animation: z.enum(["idle", "walk", "run"]),
+  emote: z.object({ name: z.enum(EMOTE_NAMES), id: z.number().int().positive(), elapsed: z.number().finite().min(0).max(3) }).nullable().optional(),
   appearance: appearanceSchema.default({}),
+  vehicleId: id.nullable().default(null),
 });
 export type PlayerSnapshot = z.infer<typeof playerSchema>;
 export const encounterSchema = z.object({
-  id, npcId: id, ownerId: id, participantIds: z.array(id).min(1).max(8),
+  id, npcId: id, ownerId: id, participantIds: z.array(id).min(1).max(MAX_ROOM_PLAYERS),
   speakerId: id.nullable(),
 });
 export type EncounterSnapshot = z.infer<typeof encounterSchema>;
 export const roomSchema = z.object({
   protocol: z.literal(PROTOCOL_VERSION), roomId: id, revision: z.number().int().nonnegative(),
-  environment: environmentSchema, players: z.array(playerSchema).max(8), npcs: z.array(npcSchema).max(64),
-  encounters: z.array(encounterSchema).max(8),
+  environment: environmentSchema, players: z.array(playerSchema).max(MAX_ROOM_PLAYERS), npcs: z.array(npcSchema).max(64),
+  encounters: z.array(encounterSchema).max(MAX_ROOM_PLAYERS),
+  vehicles: z.array(vehicleSchema).max(32).default([]),
 });
 export type RoomSnapshot = z.infer<typeof roomSchema>;
 /** Static environment travels once in welcome; live room state stays small. */
 export const roomStateSchema = roomSchema.omit({ environment: true }).extend({ environmentRevision: id });
 export type RoomStateSnapshot = z.infer<typeof roomStateSchema>;
 export const commandSchema = z.discriminatedUnion("type", [
-  z.object({ type: z.literal("move"), direction: z.tuple([z.number().finite().min(-1).max(1), z.number().finite().min(-1).max(1)]), yaw: z.number().finite().min(-Math.PI).max(Math.PI), sequence: z.number().int().nonnegative() }).strict(),
+  z.object({ type: z.literal("move"), direction: z.tuple([z.number().finite().min(-1).max(1), z.number().finite().min(-1).max(1)]), yaw: z.number().finite().min(-Math.PI).max(Math.PI), sequence: z.number().int().nonnegative(), sprint: z.boolean().optional() }).strict(),
+  z.object({ type: z.literal("emote"), name: z.enum(EMOTE_NAMES) }).strict(),
+  z.object({ type: z.literal("mount-vehicle"), vehicleId: id }).strict(),
+  z.object({ type: z.literal("dismount-vehicle") }).strict(),
   z.object({ type: z.literal("interact"), npcId: id }).strict(),
   z.object({ type: z.literal("join-encounter"), encounterId: id }).strict(),
   z.object({ type: z.literal("claim-turn"), encounterId: id }).strict(),

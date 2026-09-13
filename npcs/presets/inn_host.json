@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "appearance": {
+    "id": "inn_host",
+    "name": "Ren",
+    "role": "Inn host",
+    "hair": "topknot",
+    "outfit": "haori",
+    "glasses": true,
+    "bag": false,
+    "height": 1.8,
+    "skin": "#bc845e",
+    "hairColor": "#353d3d",
+    "top": "#6b8076",
+    "accent": "#b68766",
+    "trousers": "#414d53",
+    "shoes": "#3c4143"
+  }
+}

@@ -46,7 +46,7 @@ function WorldLabSession() {
     <p role="status">{mode === "local" ? "Local preview · only you" : "Multiplayer room"} · {connection} · {snapshot?.players.length ?? 0} players</p>
     {error && <p role="alert">{error} <button onClick={clearError}>Dismiss</button></p>}
     {snapshot && <>
-      <div style={{ height: 440, margin: "16px 0" }}><WorldViewport environment={snapshot.environment} players={snapshot.players} npcs={snapshot.npcs} localPlayerId={localPlayerId} inputEnabled={!active && connection === "connected"} onMove={(direction, yaw) => send({ type: "move", direction, yaw, sequence: 0 })} onInteract={(npcId) => send({ type: "interact", npcId })} /></div>
+      <div style={{ height: 440, margin: "16px 0" }}><WorldViewport environment={snapshot.environment} players={snapshot.players} npcs={snapshot.npcs} localPlayerId={localPlayerId} inputEnabled={!active && connection === "connected"} onMove={(direction, yaw, sprint) => send({ type: "move", direction, yaw, sprint, sequence: 0 })} onEmote={(name) => send({ type: "emote", name })} onInteract={(npcId) => send({ type: "interact", npcId })} /></div>
       <p>Players: {snapshot.players.map((p) => `${p.name}${p.id === localPlayerId ? " (you)" : ""}`).join(", ")}</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
         {snapshot.npcs.map((npc) => {
