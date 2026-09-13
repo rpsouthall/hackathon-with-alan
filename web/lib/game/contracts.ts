@@ -29,7 +29,7 @@ export interface ConversationScore {
 
 // Presentation only. Positions, environment and encounter state come from useWorld().
 export const npcs: NpcDefinition[] = [
-  { id: "cafe_owner", name: "Aiko", nameJapanese: "愛子", role: "Tea house host", objective: "Order tea and ask for a recommendation", level: "N5", accent: "#f29b73" },
-  { id: "local_guide", name: "Haru", nameJapanese: "春", role: "Local resident", objective: "Ask for directions to the temple", level: "N4", accent: "#8db9a6" },
-  { id: "shopkeeper", name: "Mei", nameJapanese: "芽衣", role: "Market vendor", objective: "Ask a price and choose a gift", level: "N4", accent: "#e4bd68" },
+  { id: "cafe_owner", name: "Aiko", nameJapanese: "愛子", role: "Coffee shop host", objective: "Order a coffee and practise polite requests", level: "N5", accent: "#f29b73" },
+  { id: "local_guide", name: "Haru", nameJapanese: "春", role: "Restaurant host", objective: "Find a table, order a meal, and ask for the bill", level: "N4", accent: "#8db9a6" },
+  { id: "shopkeeper", name: "Mei", nameJapanese: "芽衣", role: "Fruit seller", objective: "Choose fruit, ask prices, and pay", level: "N4", accent: "#e4bd68" },
 ];

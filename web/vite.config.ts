@@ -52,6 +52,7 @@ export default defineConfig(async () => {
 
   return {
     server: {
+      proxy: { "/lesson-api": { target: "http://127.0.0.1:8790", ws: true } },
       ...(managedLinux ? { host: "0.0.0.0", allowedHosts: ["terminal.local"] } : {}),
       ...(isCodexSeatbeltSandbox ? { watch: { useFsEvents: false, usePolling: true } } : {}),
     },

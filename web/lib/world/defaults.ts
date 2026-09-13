@@ -12,7 +12,7 @@ export const DEFAULT_ENVIRONMENT = environmentSchema.parse({
 });
 
 export const DEFAULT_NPCS: NpcSnapshot[] = [
-  { id: "cafe_owner", name: "Aiko", role: "Café owner", scenarioId: "order-tea", interactionRadius: 2.5, avatarUrl: null, position: [-3, 0, 0] },
-  { id: "local_guide", name: "Haru", role: "Local guide", scenarioId: "ask-directions", interactionRadius: 2.5, avatarUrl: null, position: [3, 0, 0] },
-  { id: "shopkeeper", name: "Mei", role: "Shopkeeper", scenarioId: "buy-souvenir", interactionRadius: 2.5, avatarUrl: null, position: [0, 0, -5] },
+  { id: "cafe_owner", name: "Aiko", role: "Café owner", scenarioId: "coffee", interactionRadius: 2.5, avatarUrl: null, position: [-3, 0, 0] },
+  { id: "local_guide", name: "Haru", role: "Restaurant host", scenarioId: "restaurant", interactionRadius: 2.5, avatarUrl: null, position: [3, 0, 0] },
+  { id: "shopkeeper", name: "Mei", role: "Fruit seller", scenarioId: "market", interactionRadius: 2.5, avatarUrl: null, position: [0, 0, -5] },
 ];
