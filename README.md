@@ -12,7 +12,7 @@ npm ci
 npm run dev:game
 ```
 
-Open **http://127.0.0.1:5173**. Create your traveller in the welcome editor, enter a display name and room name, then choose **Join shared room**. Open another tab with a different name and the same room to explore together. **Play solo** runs the same city privately.
+Open **http://localhost:5173**. Create your traveller in the welcome editor, enter a display name and room name, then choose **Join shared room**. Open another tab with a different name and the same room to explore together. **Play solo** runs the same city privately.
 
 - Click the world, then use **WASD / arrows** or the on-screen walking buttons. Right-drag to orbit; scroll to zoom.
 - Walk near a resident and press **E**, click their label, or use **Start encounter**. Another nearby learner can join the encounter and take a speaking turn.

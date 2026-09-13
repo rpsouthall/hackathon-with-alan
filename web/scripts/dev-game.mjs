@@ -16,7 +16,7 @@ const services = [
     WORLD_PORT: worldPort,
     WORLD_ALLOWED_ORIGINS: `http://127.0.0.1:${port},http://localhost:${port}`,
   } },
-  { name: "frontend", args: ["scripts/run-framework.mjs", "dev", "--host", "127.0.0.1", "--port", port], env: { VITE_WORLD_SERVER_URL: url } },
+  { name: "frontend", args: ["scripts/run-framework.mjs", "dev", "--port", port], env: { VITE_WORLD_SERVER_URL: url } },
 ];
 for (const service of services) {
   const child = spawn(process.execPath, service.args, { stdio: "inherit", env: { ...process.env, ...service.env } });
@@ -26,4 +26,4 @@ for (const service of services) {
 }
 process.on("SIGINT", () => stop());
 process.on("SIGTERM", () => stop());
-console.log(`Komorebi game: http://127.0.0.1:${port} — shared rooms: ${url}`);
+console.log(`Komorebi game: http://localhost:${port} — shared rooms: ${url}`);

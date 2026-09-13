@@ -11,7 +11,7 @@ npm ci
 npm run dev:game
 ```
 
-Open **http://127.0.0.1:5173**. The welcome screen lets you choose a name, room and appearance, with a live 3D preview. **Join shared room** connects to the local room server; **Play solo** opens a private copy of the city. For multiplayer verification, use two tabs with different names and the same room name.
+Open **http://localhost:5173**. The welcome screen lets you choose a name, room and appearance, with a live 3D preview. **Join shared room** connects to the local room server; **Play solo** opens a private copy of the city. For multiplayer verification, use two tabs with different names and the same room name.
 
 | Control | Action |
 | --- | --- |
