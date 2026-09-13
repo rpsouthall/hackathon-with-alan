@@ -1,5 +1,5 @@
 const API = 'https://api.liveavatar.com/v1';
-const required = ['LIVEAVATAR_API_KEY', 'LIVEAVATAR_AVATAR_ID', 'LIVEAVATAR_ELEVENLABS_SECRET_ID', 'ELEVENLABS_AGENT_ID', 'DEMO_ACCESS_CODE'];
+const required = ['LIVEAVATAR_API_KEY', 'LIVEAVATAR_AVATAR_ID', 'INWORLD_API_KEY', 'DEMO_ACCESS_CODE'];
 
 // Standard Fetch handler: mount in the Sites starter's server route adapter.
 // No Node APIs, local filesystem, or in-memory session ownership required.
@@ -43,24 +43,20 @@ export function createHandler(env, fetchImpl = fetch) {
         await provider('/sessions/stop', { Authorization: bearer }, { reason: 'USER_CLOSED' });
         return reply(200, { stopped: true });
       }
-      const config = {
-        secret_id: env.LIVEAVATAR_ELEVENLABS_SECRET_ID,
-        agent_id: env.ELEVENLABS_AGENT_ID,
-        ...(env.ELEVENLABS_VOICE_ID ? { voice_id: env.ELEVENLABS_VOICE_ID } : {}),
-      };
       const minted = await provider('/sessions/token', { 'X-API-KEY': env.LIVEAVATAR_API_KEY }, {
         mode: 'LITE', avatar_id: env.LIVEAVATAR_AVATAR_ID,
-        max_session_duration: 300, elevenlabs_agent_config: config,
+        max_session_duration: 300,
       });
       token = minted?.session_token;
       if (!token) throw new Error('missing_token');
       const started = await provider('/sessions/start', { Authorization: `Bearer ${token}` });
-      if (!started?.session_id || !started.livekit_url || !started.livekit_client_token) throw new Error('invalid_session');
+      if (!started?.session_id || !started.livekit_url || !started.livekit_client_token || !started.ws_url) throw new Error('invalid_session');
       // Explicit allowlist: never return the provider's agent token or API credentials.
       return reply(201, {
         sessionId: started.session_id, roomId: started.session_id,
         sessionToken: token, livekitUrl: started.livekit_url,
         livekitClientToken: started.livekit_client_token,
+        avatarWebsocketUrl: started.ws_url, voiceProvider: "inworld",
         sourceLanguage: 'ja', targetLanguage: 'en',
       });
     } catch {

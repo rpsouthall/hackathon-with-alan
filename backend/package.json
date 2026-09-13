@@ -2,6 +2,14 @@
   "name": "worldtalk-voice-backend",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "node --env-file-if-exists=.env src/dev.mjs", "test": "node --test" },
-  "engines": { "node": ">=22" }
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env src/dev.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
+  }
 }

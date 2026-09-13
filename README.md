@@ -39,7 +39,7 @@ Project repository initialized. The project brief and first Blender scene are st
 ## Japanese → English voice milestone
 
 Alan owns backend/voice on `codex/alan-backend-voice`; Ryan owns frontend/3D.
-The initial interpreter uses ElevenLabs Agents with HeyGen LiveAvatar's official
-connector. See [voice setup and frontend contract](docs/VOICE-HANDOFF.md).
+The interpreter uses Inworld Realtime for Japanese recognition, English translation
+and voice, with HeyGen LiveAvatar LITE for avatar video. See [voice setup and frontend contract](docs/VOICE-HANDOFF.md).
 Run backend checks with `cd backend && npm test`. Live credentials and a Sites
 route wrapper are still required; this repository does not yet contain a deployed app.

@@ -14,30 +14,18 @@ export async function stopTranslationSession({ baseUrl = '', accessCode, session
 }
 export function textTranslationCommand(text) {
   if (typeof text !== 'string' || !text.trim() || text.length > 2000) throw new Error('Enter 1–2000 characters');
-  return new TextEncoder().encode(JSON.stringify({
-    event_type: 'elevenlabs_agent_command', elevenlabs_event_type: 'user_message', data: { text: text.trim() },
-  }));
+  return JSON.stringify({ type: 'text', text: text.trim() });
 }
-// Consume only raw passthrough transcripts, not both wrapper and FULL-mode duplicates.
-export function parseTranslationEvent(bytes, topic) {
-  if (topic !== 'agent-response') return null;
-  let event;
-  try { event = JSON.parse(new TextDecoder().decode(bytes)); } catch { return null; }
-  if (!event || typeof event !== 'object') return null;
-  if (event.event_type === 'session_stopped') return { type: 'session_stopped' };
-  if (event.event_type !== 'elevenlabs_agent_event') return null;
-  const data = event.data;
-  if (event.elevenlabs_event_type === 'user_transcript') {
-    const text = data?.user_transcription_event?.user_transcript;
-    return typeof text === 'string' ? { type: 'transcript', language: 'ja', text } : null;
-  }
-  if (event.elevenlabs_event_type === 'agent_response') {
-    const text = data?.agent_response_event?.agent_response;
-    return typeof text === 'string' ? { type: 'translation', language: 'en', text } : null;
-  }
-  if (event.elevenlabs_event_type === 'agent_response_correction') {
-    const text = data?.agent_response_correction_event?.corrected_agent_response;
-    return typeof text === 'string' ? { type: 'translation_correction', language: 'en', text } : null;
-  }
+// Send these commands to the avatar WebSocket AFTER its connected event.
+// Play only LiveKit avatar audio, not Inworld audio a second time.
+export function avatarCommand(event) {
+  if (event?.type === 'response.output_audio.delta') return { type: 'agent.speak', audio: event.delta };
+  if (event?.type === 'response.output_audio.done') return { type: 'agent.speak_end' };
+  if (event?.type === 'input_audio_buffer.speech_started') return { type: 'agent.interrupt' };
+  return null;
+}
+export function parseTranslationEvent(event) {
+  if (event?.type === 'conversation.item.input_audio_transcription.completed') return { type: 'transcript', language: 'ja', text: event.transcript, utteranceId: event.item_id };
+  if (event?.type === 'response.output_audio_transcript.delta') return { type: 'translation_delta', language: 'en', text: event.delta, responseId: event.response_id };
   return null;
 }
