@@ -36,10 +36,16 @@ Direct Blender control also requires the Blender MCP connection described in the
 
 Project repository initialized. The project brief and first Blender scene are still to be defined.
 
-## Japanese → English voice milestone
+## Live Japanese conversation milestone
 
 Alan owns backend/voice on `codex/alan-backend-voice`; Ryan owns frontend/3D.
-The interpreter uses Inworld Realtime for Japanese recognition, English translation
-and voice, with HeyGen LiveAvatar LITE for avatar video. See [voice setup and frontend contract](docs/VOICE-HANDOFF.md).
-Run backend checks with `cd backend && npm test`. Live credentials and a Sites
-route wrapper are still required; this repository does not yet contain a deployed app.
+The current voice test uses OpenAI GPT-Live 1 for a two-way spoken Japanese conversation
+with Aiko. See [local voice test and integration plan](docs/GPT-LIVE-TEST.md).
+Run it with `cd backend && npm ci && npm run dev:live`, then open http://localhost:8787/.
+The API key belongs only in the ignored `backend/.env` file as `OPENAI_API_KEY`.
+
+Ryan's game is on `codex/world-integration`. The voice test runs separately while
+NPC changes are in progress. Game dialogue integration, HeyGen video, and Sites
+deployment remain to be completed. The older Inworld/HeyGen prototype is retained
+in [the earlier handoff](docs/VOICE-HANDOFF.md); it is not used by `dev:live`.
+Run backend checks with `cd backend && npm test`.
