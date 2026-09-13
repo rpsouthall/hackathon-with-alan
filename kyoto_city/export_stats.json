@@ -1,0 +1,1035 @@
+{
+  "source_scene": "Kyoto_City",
+  "render_meshes": 257,
+  "triangles": 432717,
+  "buckets": [
+    {
+      "object": "SM_Architecture_Inn_lantern",
+      "triangles": 576
+    },
+    {
+      "object": "SM_Architecture_Inn_paper",
+      "triangles": 252
+    },
+    {
+      "object": "SM_Architecture_Inn_plaster",
+      "triangles": 14
+    },
+    {
+      "object": "SM_Architecture_Inn_plaster_warm",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Architecture_Inn_roof",
+      "triangles": 3448
+    },
+    {
+      "object": "SM_Architecture_Inn_roof_edge",
+      "triangles": 9548
+    },
+    {
+      "object": "SM_Architecture_Inn_sage",
+      "triangles": 120
+    },
+    {
+      "object": "SM_Architecture_Inn_stone",
+      "triangles": 88
+    },
+    {
+      "object": "SM_Architecture_Inn_stone_light",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Architecture_Inn_wood",
+      "triangles": 3720
+    },
+    {
+      "object": "SM_Architecture_Inn_wood_dark",
+      "triangles": 1492
+    },
+    {
+      "object": "SM_Architecture_Inn_wood_light",
+      "triangles": 780
+    },
+    {
+      "object": "SM_Architecture_Merchant_ceramic",
+      "triangles": 752
+    },
+    {
+      "object": "SM_Architecture_Merchant_lantern",
+      "triangles": 576
+    },
+    {
+      "object": "SM_Architecture_Merchant_paper",
+      "triangles": 252
+    },
+    {
+      "object": "SM_Architecture_Merchant_plaster",
+      "triangles": 14
+    },
+    {
+      "object": "SM_Architecture_Merchant_plaster_warm",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Architecture_Merchant_roof",
+      "triangles": 3440
+    },
+    {
+      "object": "SM_Architecture_Merchant_roof_edge",
+      "triangles": 9032
+    },
+    {
+      "object": "SM_Architecture_Merchant_sage",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Architecture_Merchant_stone",
+      "triangles": 88
+    },
+    {
+      "object": "SM_Architecture_Merchant_stone_light",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Architecture_Merchant_vermilion",
+      "triangles": 164
+    },
+    {
+      "object": "SM_Architecture_Merchant_wood",
+      "triangles": 3732
+    },
+    {
+      "object": "SM_Architecture_Merchant_wood_dark",
+      "triangles": 1680
+    },
+    {
+      "object": "SM_Architecture_Merchant_wood_light",
+      "triangles": 912
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_ceramic",
+      "triangles": 752
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_indigo",
+      "triangles": 120
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_lantern",
+      "triangles": 576
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_paper",
+      "triangles": 252
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_plaster",
+      "triangles": 14
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_plaster_warm",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_roof",
+      "triangles": 3440
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_roof_edge",
+      "triangles": 9032
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_sage",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_stone",
+      "triangles": 88
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_stone_light",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_vermilion",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_wood",
+      "triangles": 3732
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_wood_dark",
+      "triangles": 1680
+    },
+    {
+      "object": "SM_Architecture_TeaHouse_wood_light",
+      "triangles": 912
+    },
+    {
+      "object": "SM_Bridge_brass",
+      "triangles": 2160
+    },
+    {
+      "object": "SM_Bridge_stone_light",
+      "triangles": 88
+    },
+    {
+      "object": "SM_Bridge_vermilion",
+      "triangles": 5160
+    },
+    {
+      "object": "SM_Bridge_wood_dark",
+      "triangles": 1232
+    },
+    {
+      "object": "SM_Bridge_wood_light",
+      "triangles": 1848
+    },
+    {
+      "object": "SM_City_Gardens_blossom",
+      "triangles": 11160
+    },
+    {
+      "object": "SM_City_Gardens_blossom_dark",
+      "triangles": 2520
+    },
+    {
+      "object": "SM_City_Gardens_blossom_light",
+      "triangles": 9360
+    },
+    {
+      "object": "SM_City_Gardens_leaf",
+      "triangles": 1936
+    },
+    {
+      "object": "SM_City_Gardens_leaf_light",
+      "triangles": 1600
+    },
+    {
+      "object": "SM_City_Gardens_moss",
+      "triangles": 216
+    },
+    {
+      "object": "SM_City_Gardens_petal",
+      "triangles": 354
+    },
+    {
+      "object": "SM_City_Gardens_sage",
+      "triangles": 3248
+    },
+    {
+      "object": "SM_City_Gardens_sakura_canopy_vertex",
+      "triangles": 9240
+    },
+    {
+      "object": "SM_City_Gardens_stone",
+      "triangles": 1440
+    },
+    {
+      "object": "SM_City_Gardens_wood",
+      "triangles": 256
+    },
+    {
+      "object": "SM_City_Gardens_wood_dark",
+      "triangles": 3120
+    },
+    {
+      "object": "SM_City_Gardens_wood_light",
+      "triangles": 3360
+    },
+    {
+      "object": "SM_City_Ground_grass",
+      "triangles": 24
+    },
+    {
+      "object": "SM_City_Ground_soil",
+      "triangles": 24
+    },
+    {
+      "object": "SM_City_Ground_stone",
+      "triangles": 3008
+    },
+    {
+      "object": "SM_City_Ground_stone_dark",
+      "triangles": 56
+    },
+    {
+      "object": "SM_City_Ground_stone_light",
+      "triangles": 5392
+    },
+    {
+      "object": "SM_City_Ground_water",
+      "triangles": 4212
+    },
+    {
+      "object": "SM_City_Ground_water_light",
+      "triangles": 420
+    },
+    {
+      "object": "SM_City_Market_blossom_light",
+      "triangles": 384
+    },
+    {
+      "object": "SM_City_Market_brass",
+      "triangles": 72
+    },
+    {
+      "object": "SM_City_Market_ceramic",
+      "triangles": 180
+    },
+    {
+      "object": "SM_City_Market_indigo",
+      "triangles": 120
+    },
+    {
+      "object": "SM_City_Market_leaf_light",
+      "triangles": 664
+    },
+    {
+      "object": "SM_City_Market_paper",
+      "triangles": 1296
+    },
+    {
+      "object": "SM_City_Market_sage",
+      "triangles": 60
+    },
+    {
+      "object": "SM_City_Market_stone",
+      "triangles": 5
+    },
+    {
+      "object": "SM_City_Market_stone_light",
+      "triangles": 320
+    },
+    {
+      "object": "SM_City_Market_vermilion",
+      "triangles": 200
+    },
+    {
+      "object": "SM_City_Market_wood",
+      "triangles": 176
+    },
+    {
+      "object": "SM_City_Market_wood_dark",
+      "triangles": 2220
+    },
+    {
+      "object": "SM_City_Market_wood_light",
+      "triangles": 492
+    },
+    {
+      "object": "SM_City_Street_paper",
+      "triangles": 1000
+    },
+    {
+      "object": "SM_City_Street_paving",
+      "triangles": 22728
+    },
+    {
+      "object": "SM_City_Street_sand",
+      "triangles": 2100
+    },
+    {
+      "object": "SM_City_Street_stone",
+      "triangles": 1568
+    },
+    {
+      "object": "SM_City_Street_stone_light",
+      "triangles": 3448
+    },
+    {
+      "object": "SM_City_Street_wood",
+      "triangles": 4776
+    },
+    {
+      "object": "SM_City_Street_wood_dark",
+      "triangles": 2192
+    },
+    {
+      "object": "SM_City_Street_wood_light",
+      "triangles": 2152
+    },
+    {
+      "object": "SM_Gardens_leaf",
+      "triangles": 144
+    },
+    {
+      "object": "SM_Gardens_moss",
+      "triangles": 208
+    },
+    {
+      "object": "SM_Gardens_paving",
+      "triangles": 132
+    },
+    {
+      "object": "SM_Gardens_sage",
+      "triangles": 1392
+    },
+    {
+      "object": "SM_Gardens_sand",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Gardens_stone",
+      "triangles": 1920
+    },
+    {
+      "object": "SM_Gardens_stone_light",
+      "triangles": 7564
+    },
+    {
+      "object": "SM_Gardens_wood_light",
+      "triangles": 1440
+    },
+    {
+      "object": "SM_Ground_stone_light",
+      "triangles": 3740
+    },
+    {
+      "object": "SM_Nature_Ground_blossom_dark",
+      "triangles": 2400
+    },
+    {
+      "object": "SM_Nature_Ground_grass",
+      "triangles": 525
+    },
+    {
+      "object": "SM_Nature_Ground_leaf",
+      "triangles": 2160
+    },
+    {
+      "object": "SM_Nature_Ground_leaf_light",
+      "triangles": 1935
+    },
+    {
+      "object": "SM_Nature_Ground_moss",
+      "triangles": 1360
+    },
+    {
+      "object": "SM_Nature_Petals_petal",
+      "triangles": 530
+    },
+    {
+      "object": "SM_Nature_Stones_stone",
+      "triangles": 1600
+    },
+    {
+      "object": "SM_Nature_Stones_stone_light",
+      "triangles": 3200
+    },
+    {
+      "object": "SM_Nature_Trees_blossom",
+      "triangles": 21240
+    },
+    {
+      "object": "SM_Nature_Trees_blossom_dark",
+      "triangles": 3120
+    },
+    {
+      "object": "SM_Nature_Trees_blossom_light",
+      "triangles": 14040
+    },
+    {
+      "object": "SM_Nature_Trees_leaf",
+      "triangles": 1440
+    },
+    {
+      "object": "SM_Nature_Trees_leaf_light",
+      "triangles": 1040
+    },
+    {
+      "object": "SM_Nature_Trees_sakura_canopy_vertex",
+      "triangles": 15400
+    },
+    {
+      "object": "SM_Nature_Trees_wood",
+      "triangles": 228
+    },
+    {
+      "object": "SM_Nature_Trees_wood_dark",
+      "triangles": 5322
+    },
+    {
+      "object": "SM_Pagoda_brass",
+      "triangles": 1940
+    },
+    {
+      "object": "SM_Pagoda_plaster_warm",
+      "triangles": 48
+    },
+    {
+      "object": "SM_Pagoda_roof",
+      "triangles": 11200
+    },
+    {
+      "object": "SM_Pagoda_roof_edge",
+      "triangles": 17248
+    },
+    {
+      "object": "SM_Pagoda_stone",
+      "triangles": 88
+    },
+    {
+      "object": "SM_Pagoda_stone_light",
+      "triangles": 308
+    },
+    {
+      "object": "SM_Pagoda_vermilion",
+      "triangles": 4648
+    },
+    {
+      "object": "SM_Pagoda_wood_dark",
+      "triangles": 2684
+    },
+    {
+      "object": "SM_Pagoda_wood_light",
+      "triangles": 1056
+    },
+    {
+      "object": "SM_Street_lantern",
+      "triangles": 264
+    },
+    {
+      "object": "SM_Street_stone",
+      "triangles": 564
+    },
+    {
+      "object": "SM_Street_stone_dark",
+      "triangles": 88
+    },
+    {
+      "object": "SM_Street_stone_light",
+      "triangles": 1464
+    },
+    {
+      "object": "SM_Street_vermilion",
+      "triangles": 188
+    },
+    {
+      "object": "SM_Street_wood",
+      "triangles": 572
+    },
+    {
+      "object": "SM_Street_wood_dark",
+      "triangles": 268
+    },
+    {
+      "object": "SM_Street_wood_light",
+      "triangles": 88
+    },
+    {
+      "object": "SM_TeaGarden_ceramic",
+      "triangles": 432
+    },
+    {
+      "object": "SM_TeaGarden_indigo",
+      "triangles": 176
+    },
+    {
+      "object": "SM_TeaGarden_paper",
+      "triangles": 96
+    },
+    {
+      "object": "SM_TeaGarden_stone",
+      "triangles": 220
+    },
+    {
+      "object": "SM_TeaGarden_stone_light",
+      "triangles": 44
+    },
+    {
+      "object": "SM_TeaGarden_vermilion",
+      "triangles": 384
+    },
+    {
+      "object": "SM_TeaGarden_wood",
+      "triangles": 1140
+    },
+    {
+      "object": "SM_TeaGarden_wood_dark",
+      "triangles": 684
+    },
+    {
+      "object": "SM_TeaGarden_wood_light",
+      "triangles": 2056
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_indigo",
+      "triangles": 612
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_lantern",
+      "triangles": 488
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_paper",
+      "triangles": 4436
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_plaster",
+      "triangles": 62
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_roof",
+      "triangles": 832
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_sage",
+      "triangles": 628
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_stone_light",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_vermilion",
+      "triangles": 588
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_wood",
+      "triangles": 1968
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_wood_dark",
+      "triangles": 3959
+    },
+    {
+      "object": "SM_Venue_bookshop_tsuki_wood_light",
+      "triangles": 864
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_ceramic",
+      "triangles": 2460
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_indigo",
+      "triangles": 184
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_lantern",
+      "triangles": 488
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_paper",
+      "triangles": 1656
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_plaster",
+      "triangles": 62
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_roof",
+      "triangles": 832
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_sage",
+      "triangles": 2120
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_sand",
+      "triangles": 88
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_stone_light",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_vermilion",
+      "triangles": 96
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_wood",
+      "triangles": 1976
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_wood_dark",
+      "triangles": 5909
+    },
+    {
+      "object": "SM_Venue_izakaya_tomo_wood_light",
+      "triangles": 1872
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_blossom_dark",
+      "triangles": 48
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_brass",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_ceramic",
+      "triangles": 2080
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_indigo",
+      "triangles": 52
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_lantern",
+      "triangles": 488
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_paper",
+      "triangles": 848
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_plaster",
+      "triangles": 74
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_roof",
+      "triangles": 832
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_sand",
+      "triangles": 124
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_stone_dark",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_stone_light",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_wood",
+      "triangles": 1544
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_wood_dark",
+      "triangles": 3722
+    },
+    {
+      "object": "SM_Venue_kissa_aoi_wood_light",
+      "triangles": 340
+    },
+    {
+      "object": "SM_Venue_market_provisions_ceramic",
+      "triangles": 4400
+    },
+    {
+      "object": "SM_Venue_market_provisions_grass",
+      "triangles": 320
+    },
+    {
+      "object": "SM_Venue_market_provisions_lantern",
+      "triangles": 488
+    },
+    {
+      "object": "SM_Venue_market_provisions_paper",
+      "triangles": 1292
+    },
+    {
+      "object": "SM_Venue_market_provisions_plaster",
+      "triangles": 74
+    },
+    {
+      "object": "SM_Venue_market_provisions_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "object": "SM_Venue_market_provisions_roof",
+      "triangles": 832
+    },
+    {
+      "object": "SM_Venue_market_provisions_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "object": "SM_Venue_market_provisions_sage",
+      "triangles": 372
+    },
+    {
+      "object": "SM_Venue_market_provisions_sand",
+      "triangles": 496
+    },
+    {
+      "object": "SM_Venue_market_provisions_stone_light",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Venue_market_provisions_vermilion",
+      "triangles": 320
+    },
+    {
+      "object": "SM_Venue_market_provisions_wood",
+      "triangles": 1296
+    },
+    {
+      "object": "SM_Venue_market_provisions_wood_dark",
+      "triangles": 4460
+    },
+    {
+      "object": "SM_Venue_market_provisions_wood_light",
+      "triangles": 312
+    },
+    {
+      "object": "SM_Venue_ramen_akari_ceramic",
+      "triangles": 2762
+    },
+    {
+      "object": "SM_Venue_ramen_akari_lantern",
+      "triangles": 488
+    },
+    {
+      "object": "SM_Venue_ramen_akari_paper",
+      "triangles": 1172
+    },
+    {
+      "object": "SM_Venue_ramen_akari_plaster",
+      "triangles": 74
+    },
+    {
+      "object": "SM_Venue_ramen_akari_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "object": "SM_Venue_ramen_akari_roof",
+      "triangles": 832
+    },
+    {
+      "object": "SM_Venue_ramen_akari_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "object": "SM_Venue_ramen_akari_sage",
+      "triangles": 240
+    },
+    {
+      "object": "SM_Venue_ramen_akari_sand",
+      "triangles": 220
+    },
+    {
+      "object": "SM_Venue_ramen_akari_stone",
+      "triangles": 88
+    },
+    {
+      "object": "SM_Venue_ramen_akari_stone_dark",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Venue_ramen_akari_stone_light",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Venue_ramen_akari_vermilion",
+      "triangles": 424
+    },
+    {
+      "object": "SM_Venue_ramen_akari_wood",
+      "triangles": 1352
+    },
+    {
+      "object": "SM_Venue_ramen_akari_wood_dark",
+      "triangles": 3663
+    },
+    {
+      "object": "SM_Venue_ramen_akari_wood_light",
+      "triangles": 264
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_ceramic",
+      "triangles": 1398
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_lantern",
+      "triangles": 488
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_paper",
+      "triangles": 1276
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_plaster",
+      "triangles": 74
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_roof",
+      "triangles": 832
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_sage",
+      "triangles": 144
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_sand",
+      "triangles": 132
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_stone_dark",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_stone_light",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_vermilion",
+      "triangles": 372
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_wood",
+      "triangles": 1392
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_wood_dark",
+      "triangles": 3204
+    },
+    {
+      "object": "SM_Venue_restaurant_momiji_wood_light",
+      "triangles": 248
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_blossom_dark",
+      "triangles": 292
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_ceramic",
+      "triangles": 2112
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_lantern",
+      "triangles": 500
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_paper",
+      "triangles": 1592
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_plaster",
+      "triangles": 74
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_roof",
+      "triangles": 832
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_sand",
+      "triangles": 752
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_stone",
+      "triangles": 44
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_stone_light",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_wood",
+      "triangles": 1312
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_wood_dark",
+      "triangles": 3391
+    },
+    {
+      "object": "SM_Venue_sakura_bakery_wood_light",
+      "triangles": 392
+    },
+    {
+      "object": "SM_Venue_tea_hanami_blossom_dark",
+      "triangles": 144
+    },
+    {
+      "object": "SM_Venue_tea_hanami_ceramic",
+      "triangles": 2696
+    },
+    {
+      "object": "SM_Venue_tea_hanami_indigo",
+      "triangles": 224
+    },
+    {
+      "object": "SM_Venue_tea_hanami_lantern",
+      "triangles": 488
+    },
+    {
+      "object": "SM_Venue_tea_hanami_paper",
+      "triangles": 544
+    },
+    {
+      "object": "SM_Venue_tea_hanami_plaster",
+      "triangles": 74
+    },
+    {
+      "object": "SM_Venue_tea_hanami_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "object": "SM_Venue_tea_hanami_roof",
+      "triangles": 832
+    },
+    {
+      "object": "SM_Venue_tea_hanami_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "object": "SM_Venue_tea_hanami_sage",
+      "triangles": 252
+    },
+    {
+      "object": "SM_Venue_tea_hanami_stone_light",
+      "triangles": 12
+    },
+    {
+      "object": "SM_Venue_tea_hanami_wood",
+      "triangles": 1324
+    },
+    {
+      "object": "SM_Venue_tea_hanami_wood_dark",
+      "triangles": 3640
+    },
+    {
+      "object": "SM_Venue_tea_hanami_wood_light",
+      "triangles": 264
+    },
+    {
+      "object": "SM_Water_water_light",
+      "triangles": 660
+    }
+  ]
+}

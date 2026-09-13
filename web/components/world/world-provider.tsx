@@ -18,5 +18,5 @@ export function useWorld() {
   const store = useContext(WorldContext);
   if (!store) throw new Error("useWorld must be used inside WorldProvider");
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getServerSnapshot);
-  return { ...state, send: store.send, clearError: store.clearError };
+  return { ...state, send: store.send, clearError: store.clearError, sendVoice: store.sendVoice, subscribeVoice: store.subscribeVoice };
 }

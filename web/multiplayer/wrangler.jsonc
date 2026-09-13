@@ -1,6 +1,7 @@
 {
   "$schema": "../node_modules/wrangler/config-schema.json",
   "name": "kyoto-shared-world",
+  "account_id": "5d5e73fc5d7190a34fa1b136029bfb4f",
   "main": "worker.ts",
   "compatibility_date": "2026-05-15",
   "compatibility_flags": ["nodejs_compat"],

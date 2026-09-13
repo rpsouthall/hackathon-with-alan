@@ -1,14 +1,20 @@
 import * as THREE from "three";
 import { loadEnvironment } from "./load-environment";
 import { GameCameraRig, type CameraView } from "./camera-rig";
+import { PlayerInput } from "./player-input";
+import { WorldVehicles } from "./vehicle-visuals";
+import { VEHICLE_MOUNT_DISTANCE } from "./vehicle-contract";
+import { EMOTES } from "./player-actions";
 import { createAvatar, loadAvatarTemplate, disposeAvatarTemplate } from "../characters/avatar";
+import { updateSpeakingAnimation } from "../characters/speaking-animation";
 import { SceneryCutaway, setOcclusionRay, isOccludingScenery } from "./occlusion";
-import { addWorldLighting } from "./lighting";
+import { createWorldAtmosphere } from "./atmosphere";
+import type { WorldTime } from "./day-cycle";
 import { CHARACTER_PRESETS } from "../characters/presets";
-import type { EnvironmentManifest, NpcSnapshot, PlayerSnapshot, EncounterSnapshot } from "./schema";
+import type { EnvironmentManifest, NpcSnapshot, PlayerSnapshot, EncounterSnapshot, VehicleSnapshot } from "./schema";
 
-export interface SceneEntities { players: PlayerSnapshot[]; npcs: NpcSnapshot[]; localPlayerId: string | null; encounters?: EncounterSnapshot[]; selectedNpcId?: string }
-export interface SceneCallbacks { onMove: (direction: [number, number], yaw: number) => void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void; onToggleView?: () => void }
+export interface SceneEntities { speakingPlayerIds?: readonly string[]; speakingNpcIds?: readonly string[]; vehicles?: VehicleSnapshot[]; players: PlayerSnapshot[]; npcs: NpcSnapshot[]; localPlayerId: string | null; encounters?: EncounterSnapshot[]; selectedNpcId?: string }
+export interface SceneCallbacks { onMountVehicle?: (id: string) => void; onDismountVehicle?: () => void; onMove: (direction: [number, number], yaw: number, sprint?: boolean) => void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void; onToggleView?: () => void; onOpenEmotes?: () => void; onTime?: (time: WorldTime) => void }
 function disposeObject(root: THREE.Object3D) {
   const textures = new Set<THREE.Texture>(), materials = new Set<THREE.Material>(), geometries = new Set<THREE.BufferGeometry>();
   root.traverse((object) => { if (object instanceof THREE.Mesh) {
@@ -29,10 +35,12 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
   host.appendChild(renderer.domElement);
   const scene = new THREE.Scene();
-  addWorldLighting(scene, renderer, environment);
+  const vehicles = new WorldVehicles(scene);
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const atmosphere = createWorldAtmosphere(scene, renderer, environment, reducedMotion, callbacks.onTime);
   const spawn = new THREE.Vector3(...environment.spawn);
   const center = new THREE.Vector3((environment.bounds.min[0]+environment.bounds.max[0])/2,0,(environment.bounds.min[2]+environment.bounds.max[2])/2);
-  const cameraRig = new GameCameraRig(spawn, center, renderer.domElement, window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  const cameraRig = new GameCameraRig(spawn, center, renderer.domElement, reducedMotion);
   let camera = cameraRig.camera;
   const fallback = new THREE.Group();
   const debugMaterial = new THREE.MeshStandardMaterial({ color: "#9bab86" });
@@ -90,30 +98,36 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   if (environment.assetUrl) loadWorld(); else callbacks.onStatus("placeholder");
   let template: Awaited<ReturnType<typeof loadAvatarTemplate>> | null = null;
   const templateReady = loadAvatarTemplate().then((asset) => { if(stopped) { disposeAvatarTemplate(asset); return null; } template=asset; return asset; }).catch(()=>null);
-  type Actor = { root: THREE.Group; capsule: THREE.Mesh; target: THREE.Vector3; yaw: number; label: HTMLButtonElement; avatar?: ReturnType<typeof createAvatar>; appearanceKey?:string; npcId:string|null; previous:THREE.Vector3; labelBlocked?:boolean };
+  type Actor = { root: THREE.Group; capsule: THREE.Mesh; target: THREE.Vector3; yaw: number; label: HTMLButtonElement; labelText: HTMLSpanElement; speechMark: HTMLSpanElement; speaking?: boolean; avatar?: ReturnType<typeof createAvatar>; appearanceKey?:string; npcId:string|null; previous:THREE.Vector3; labelBlocked?:boolean; animation?:PlayerSnapshot["animation"]; emote?:PlayerSnapshot["emote"]; lastEmoteId?:number; vehicleId?:string|null };
   const actors = new Map<string, Actor>();
   let entities: SceneEntities = {players:[],npcs:[],localPlayerId:null};
   let enabled = true, overview = false, walkingYaw = 0;
-  const keys = new Set<string>(); let step: {direction:[number,number];until:number}|null=null;
-  const movementKeys = new Set(["w","a","s","d","arrowup","arrowleft","arrowdown","arrowright"]);
+  const input = new PlayerInput(); let step: {direction:[number,number];until:number;sprint:boolean}|null=null;
   const ring = new THREE.Mesh(new THREE.RingGeometry(.48,.55,32),new THREE.MeshBasicMaterial({color:"#bd624c",transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
   ring.rotation.x=-Math.PI/2; ring.visible=false; scene.add(ring);
-  function resetInput() {keys.clear();step=null;callbacks.onMove([0,0],walkingYaw);}
+  function resetInput() {input.clear();step=null;callbacks.onMove([0,0],walkingYaw,false);}
+  function visibility() {if(document.hidden)resetInput();}
   function keyDown(event:KeyboardEvent) {
-    const key=event.key.toLowerCase();
-    if(movementKeys.has(key)) {event.preventDefault();if(enabled)keys.add(key);}
-    if(key==="v"&&!event.repeat&&enabled) { event.preventDefault(); resetInput(); callbacks.onToggleView?.(); }
-    if(key==="e"&&!event.repeat&&enabled&&!cameraRig.isTransitioning) {
+    if(!enabled)return;
+    const action=input.keyDown(event);
+    if(action==="view") { resetInput(); callbacks.onToggleView?.(); }
+    if(action==="emotes"&&!entities.players.find(p=>p.id===entities.localPlayerId)?.vehicleId) { resetInput(); callbacks.onOpenEmotes?.(); }
+    if(action==="vehicle"&&!cameraRig.isTransitioning) {
       const player=entities.players.find(p=>p.id===entities.localPlayerId);
-      const nearby=player&&entities.npcs.filter(n=>new THREE.Vector3(...n.position).distanceTo(new THREE.Vector3(...player.position))<=n.interactionRadius).sort((a,b)=>new THREE.Vector3(...a.position).distanceToSquared(new THREE.Vector3(...player.position))-new THREE.Vector3(...b.position).distanceToSquared(new THREE.Vector3(...player.position)))[0];
+      if(player?.vehicleId){resetInput();callbacks.onDismountVehicle?.();}
+      else if(player){const nearby=(entities.vehicles??[]).filter(v=>!v.riderId&&new THREE.Vector3(...v.position).distanceTo(new THREE.Vector3(...player.position))<=VEHICLE_MOUNT_DISTANCE).sort((a,b)=>new THREE.Vector3(...a.position).distanceToSquared(new THREE.Vector3(...player.position))-new THREE.Vector3(...b.position).distanceToSquared(new THREE.Vector3(...player.position)))[0];if(nearby){resetInput();callbacks.onMountVehicle?.(nearby.id);}}
+    }
+    if(action==="interact"&&!cameraRig.isTransitioning) {
+      const player=entities.players.find(p=>p.id===entities.localPlayerId);
+      const nearby=player&&!player.vehicleId&&entities.npcs.filter(n=>new THREE.Vector3(...n.position).distanceTo(new THREE.Vector3(...player.position))<=n.interactionRadius).sort((a,b)=>new THREE.Vector3(...a.position).distanceToSquared(new THREE.Vector3(...player.position))-new THREE.Vector3(...b.position).distanceToSquared(new THREE.Vector3(...player.position)))[0];
       if(nearby)callbacks.onInteract(nearby.id);
     }
   }
-  function keyUp(event:KeyboardEvent){keys.delete(event.key.toLowerCase());}
+  function keyUp(event:KeyboardEvent){input.keyUp(event);}
   const raycaster=new THREE.Raycaster(); let pointerStart=[0,0];
   function pointerDown(event:PointerEvent){pointerStart=[event.clientX,event.clientY];}
   function click(event:MouseEvent) {
-    host.focus(); if(!enabled||cameraRig.isTransitioning||Math.hypot(event.clientX-pointerStart[0],event.clientY-pointerStart[1])>5)return;
+    host.focus(); if(!enabled||entities.players.find(p=>p.id===entities.localPlayerId)?.vehicleId||cameraRig.isTransitioning||Math.hypot(event.clientX-pointerStart[0],event.clientY-pointerStart[1])>5)return;
     const rect=renderer.domElement.getBoundingClientRect();
     raycaster.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);
     const hit=raycaster.intersectObjects([...actors.values()].filter(a=>a.npcId).map(a=>a.root),true).find(hit=>hit.object.visible);
@@ -121,16 +135,32 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     if(node?.userData.npcId)callbacks.onInteract(node.userData.npcId);
   }
   host.addEventListener("keydown",keyDown);host.addEventListener("keyup",keyUp);host.addEventListener("blur",resetInput);window.addEventListener("blur",resetInput);
+  document.addEventListener("visibilitychange",visibility);
   renderer.domElement.addEventListener("pointerdown",pointerDown);renderer.domElement.addEventListener("click",click);
   const resize=new ResizeObserver(()=>{const width=Math.max(host.clientWidth,1),height=Math.max(host.clientHeight,1);renderer.setSize(width,height);cameraRig.resize(width,height);});resize.observe(host);
   let frame=0,previous=performance.now(),lastInput=0,lastLabelCheck=0;
   const forward=new THREE.Vector3(),right=new THREE.Vector3(),velocity=new THREE.Vector3(), projected=new THREE.Vector3();
   const render=(now:number)=>{
     if(stopped)return; const dt=Math.min((now-previous)/1000,.1);previous=now;
+    atmosphere.update(dt);
+    vehicles.update(dt);
     for(const actor of actors.values()) {
       actor.previous.copy(actor.root.position);actor.root.position.lerp(actor.target,1-Math.exp(-18*dt));
       const turn=Math.atan2(Math.sin(actor.yaw-actor.root.rotation.y),Math.cos(actor.yaw-actor.root.rotation.y));actor.root.rotation.y+=turn*(1-Math.exp(-12*dt));
-      if(actor.avatar){velocity.subVectors(actor.root.position,actor.previous).divideScalar(Math.max(dt,.001));actor.avatar.setVelocity(velocity);actor.avatar.update(dt);}
+      const ride=actor.vehicleId?vehicles.items.get(actor.vehicleId):undefined;
+      if(ride){actor.root.position.copy(ride.root.position);actor.root.rotation.y=ride.root.rotation.y;}
+      if(actor.avatar){
+        actor.avatar.setRiding(ride?{kind:ride.snapshot.kind,speed:ride.snapshot.speed,lean:ride.lean}:null);
+        velocity.subVectors(actor.root.position,actor.previous).divideScalar(Math.max(dt,.001));
+        if(actor.emote){
+          if(actor.lastEmoteId!==actor.emote.id){actor.avatar.playEmote(actor.emote.name,actor.emote.elapsed);actor.lastEmoteId=actor.emote.id;}
+        }else{
+          if(actor.lastEmoteId!==undefined){actor.avatar.play("Idle");actor.lastEmoteId=undefined;}
+          actor.avatar.setVelocity(velocity,actor.npcId?undefined:actor.animation==="run"?"run":"walk");
+        }
+        updateSpeakingAnimation(actor.avatar, !!actor.speaking, { moving: Math.hypot(velocity.x, velocity.z) >= .025, emoting: !!actor.emote, listening: !!actor.npcId && !!entities.encounters?.some(e => e.npcId === actor.npcId) });
+        actor.avatar.update(dt);
+      }
 
     }
     const local=actors.get(`player:${entities.localPlayerId}`);
@@ -139,11 +169,12 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     host.dataset.cameraView = overview ? "overview" : cameraRig.view;
     host.dataset.cameraTransition = String(cameraRig.isTransitioning);
     if(now-lastInput>=50&&enabled&&!cameraRig.isTransitioning){
-      const x=Number(keys.has("d")||keys.has("arrowright"))-Number(keys.has("a")||keys.has("arrowleft"))||(step&&now<step.until?step.direction[0]:0);
-      const z=Number(keys.has("s")||keys.has("arrowdown"))-Number(keys.has("w")||keys.has("arrowup"))||(step&&now<step.until?step.direction[1]:0);
+      const [keyX,keyZ]=input.direction;
+      const x=keyX||(step&&now<step.until?step.direction[0]:0);
+      const z=keyZ||(step&&now<step.until?step.direction[1]:0);
       camera.getWorldDirection(forward);forward.y=0;forward.normalize();right.crossVectors(forward,THREE.Object3D.DEFAULT_UP).normalize();
       velocity.copy(right).multiplyScalar(x).addScaledVector(forward,-z);if(velocity.length()>1)velocity.normalize();
-      if(x||z)walkingYaw=Math.atan2(velocity.x,velocity.z);callbacks.onMove([velocity.x,velocity.z],walkingYaw);lastInput=now;
+      if(x||z)walkingYaw=Math.atan2(velocity.x,velocity.z);callbacks.onMove([velocity.x,velocity.z],walkingYaw,Boolean((x||z)&&(input.sprinting||(step&&now<step.until&&step.sprint))));lastInput=now;
     }
     // Ray tests are throttled; smoothing still runs every rendered frame.
     if(now-lastOcclusionCheck>=50) {
@@ -185,25 +216,35 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   };frame=requestAnimationFrame(render);
   return {
     retryEnvironment(){loadWorld();},
-    step(direction:[number,number]){if(enabled)step={direction,until:performance.now()+240};},
+    setHour(hours:number,animate=true){atmosphere.setHour(hours,animate);},
+    setTimePlaying(playing:boolean){atmosphere.setPlaying(playing);},
+    step(direction:[number,number],sprint=false){if(enabled)step={direction,until:performance.now()+240,sprint};},
     setView(value:CameraView){resetInput();overview=false;const local=actors.get(`player:${entities.localPlayerId}`);cameraRig.setView(value,local?.root.rotation.y??0);},
     setOverview(value:boolean){overview=value;resetInput();cameraRig.setOverview(value);},
     update(next:SceneEntities,inputEnabled:boolean){
-      entities=next;if(enabled&&!inputEnabled)resetInput();enabled=inputEnabled;cameraRig.setInputEnabled(inputEnabled);const present=new Set<string>();
-      const items=[...next.players.map(p=>({key:`player:${p.id}`,position:p.position,yaw:p.yaw,name:p.id===next.localPlayerId?`${p.name} · you`:p.name,npcId:null as string|null,appearance:p.appearance})),...next.npcs.map(n=>({key:`npc:${n.id}`,position:n.position,yaw:n.yaw??0,name:n.name,npcId:n.id,appearance:CHARACTER_PRESETS[n.id as keyof typeof CHARACTER_PRESETS]?.appearance??CHARACTER_PRESETS.local_guide.appearance}))];
+      entities=next;vehicles.sync(next.vehicles??[]);if(enabled&&!inputEnabled)resetInput();enabled=inputEnabled;cameraRig.setInputEnabled(inputEnabled);const present=new Set<string>();
+      const items=[...next.players.map(p=>({key:`player:${p.id}`,position:p.position,yaw:p.yaw,name:p.id===next.localPlayerId?`${p.name} · you`:p.name,npcId:null as string|null,appearance:p.appearance,animation:p.animation,emote:p.emote,vehicleId:p.vehicleId})),...next.npcs.map(n=>({key:`npc:${n.id}`,position:n.position,yaw:n.yaw??0,name:n.name,npcId:n.id,appearance:CHARACTER_PRESETS[n.id as keyof typeof CHARACTER_PRESETS]?.appearance??CHARACTER_PRESETS.local_guide.appearance,animation:"idle" as const,emote:null,vehicleId:null}))];
       for(const item of items){present.add(item.key);let actor=actors.get(item.key);
         if(!actor){const root=new THREE.Group();root.position.fromArray(item.position);root.userData.npcId=item.npcId;const capsule=new THREE.Mesh(new THREE.CapsuleGeometry(.28,1.14,4,8),new THREE.MeshStandardMaterial({color:item.npcId?"#bf7865":"#5c7f89"}));capsule.position.y=.85;root.add(capsule);scene.add(root);
-          const label=document.createElement("button");label.type="button";label.textContent=item.name;label.className="world-actor-label";label.style.cssText="position:absolute;transform:translate(-50%,-100%);white-space:nowrap;border:1px solid #d9ccb2;border-radius:5px;background:#fff9e8e8;color:#35404a;font:600 11px system-ui;padding:3px 7px;pointer-events:auto;cursor:pointer;";label.addEventListener("click",()=>{if(item.npcId&&enabled)callbacks.onInteract(item.npcId);});host.appendChild(label);
-          actor={root,capsule,target:new THREE.Vector3(...item.position),yaw:item.yaw,label,npcId:item.npcId,previous:new THREE.Vector3()};actors.set(item.key,actor);const owner=actor;
+          const label=document.createElement("button");label.type="button";label.textContent=item.name;label.className="world-actor-label";label.style.cssText="position:absolute;transform:translate(-50%,-100%);white-space:nowrap;border:1px solid #d9ccb2;border-radius:5px;background:#fff9e8e8;color:#35404a;font:600 11px system-ui;padding:3px 7px;pointer-events:auto;cursor:pointer;";label.addEventListener("click",()=>{if(item.npcId&&enabled&&!entities.players.find(p=>p.id===entities.localPlayerId)?.vehicleId)callbacks.onInteract(item.npcId);});host.appendChild(label);
+          const labelText=document.createElement("span");labelText.textContent=item.name;
+          const speechMark=document.createElement("span");speechMark.className="world-speaking-mark";speechMark.hidden=true;speechMark.setAttribute("aria-hidden","true");
+          speechMark.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg>';
+          label.replaceChildren(labelText,speechMark);
+          actor={root,capsule,labelText,speechMark,target:new THREE.Vector3(...item.position),yaw:item.yaw,label,npcId:item.npcId,previous:new THREE.Vector3()};actors.set(item.key,actor);const owner=actor;
           templateReady.then(asset=>{if(!asset||stopped||actors.get(item.key)!==owner)return;owner.avatar=createAvatar(asset,item.appearance);owner.root.add(owner.avatar.object);owner.capsule.visible=false;owner.appearanceKey=JSON.stringify(item.appearance);});
         }
-        actor.target.fromArray(item.position);actor.yaw=item.yaw;actor.label.textContent=item.name;
+        actor.target.fromArray(item.position);actor.yaw=item.yaw;actor.animation=item.animation;actor.emote=item.emote;actor.vehicleId=item.vehicleId;
+        actor.labelText.textContent=item.name+(item.emote?` · ${EMOTES[item.emote.name].label}`:item.animation==="run"?" · sprinting":"");
         if(actor.npcId){const local=next.players.find(p=>p.id===next.localPlayerId);if(local&&new THREE.Vector3(...local.position).distanceTo(actor.target)<4)actor.yaw=Math.atan2(local.position[0]-item.position[0],local.position[2]-item.position[2]);}
         const appearanceKey=JSON.stringify(item.appearance);if(actor.avatar&&appearanceKey!==actor.appearanceKey){actor.avatar.setAppearance(item.appearance);actor.appearanceKey=appearanceKey;}
-        if(actor.npcId&&actor.avatar){const active=next.encounters?.some(e=>e.npcId===actor.npcId);actor.avatar.play(active?"Listen":"Idle");}
+        actor.speaking = actor.npcId ? !!next.speakingNpcIds?.includes(actor.npcId) : !!next.speakingPlayerIds?.includes(item.key.slice(7));
+        actor.speechMark.hidden = !actor.speaking;
+        actor.label.dataset.speaking = String(actor.speaking);
+        actor.label.setAttribute("aria-label", `${actor.labelText.textContent}${actor.speaking ? " · speaking" : ""}`);
       }
       for(const [key,actor]of actors)if(!present.has(key)){actor.avatar?.dispose();scene.remove(actor.root);disposeObject(actor.root);actor.label.remove();actors.delete(key);}
     },
-    dispose(){stopped=true;environmentRequest.abort();cancelAnimationFrame(frame);resize.disconnect();resetInput();cameraRig.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
+    dispose(){stopped=true;environmentRequest.abort();cancelAnimationFrame(frame);resize.disconnect();resetInput();cameraRig.dispose();atmosphere.dispose();vehicles.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);document.removeEventListener("visibilitychange",visibility);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
   };
 }

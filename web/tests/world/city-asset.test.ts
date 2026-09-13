@@ -12,7 +12,10 @@ test("city geometry, collision data, markers and complete cast belong to the sam
   const gameplay = await readFile(new URL("../../lib/world/data/kyoto-city-gameplay.json", import.meta.url));
   assert.equal(createHash("sha256").update(asset).digest("hex"), release.files["kyoto_city_lod1.glb"].sha256);
   assert.equal(createHash("sha256").update(gameplay).digest("hex"), release.files["kyoto_city_gameplay.json"].sha256);
-  assert.equal(KYOTO_ENVIRONMENT.revision, release.revision);
+  // Gameplay adds the vehicle fleet while the frozen city geometry release stays intact.
+  assert.equal(KYOTO_ENVIRONMENT.revision, "kyoto-city-v3-vehicles-20260913");
+  assert.equal(release.revision, "kyoto-city-v2-final-20260913");
+  assert.equal(KYOTO_ENVIRONMENT.vehicleSpawns?.length, 6);
   assert.equal(KYOTO_ENVIRONMENT.physics?.colliders.length, 294);
   assert.equal(KYOTO_ENVIRONMENT.lights?.length, 16);
   assert.deepEqual(KYOTO_NPCS.map(n => n.id).sort(), [...release.npc_ids].sort());

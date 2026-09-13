@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "appearance": {
+    "id": "local_guide",
+    "name": "Haru",
+    "role": "Local guide",
+    "hair": "crop",
+    "outfit": "jacket",
+    "glasses": false,
+    "bag": true,
+    "height": 1.75,
+    "skin": "#dca477",
+    "hairColor": "#463b35",
+    "top": "#5c7f89",
+    "accent": "#d5af72",
+    "trousers": "#455563",
+    "shoes": "#353d43"
+  }
+}

@@ -24,4 +24,4 @@ export const MATERIAL_CHANNELS = {
 } as const;
 
 export const ANIMATIONS = ["Idle", "Walk", "Run", "Wave", "Bow", "Talk", "Listen"] as const;
-export type AvatarAnimation = typeof ANIMATIONS[number];
+export type AvatarAnimation = typeof ANIMATIONS[number] | "Cheer" | "Nod";

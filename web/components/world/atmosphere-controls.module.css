@@ -1,0 +1,21 @@
+.root { position: absolute; left: 16px; top: 56px; z-index: 5; font: 12px/1.5 system-ui, sans-serif; color: #f8f4e8; }
+.trigger { display: flex; align-items: center; gap: 9px; padding: 8px 12px; min-height: 36px; border: 1px solid #fff3da30; border-radius: 20px; background: #203331d9; color: inherit; backdrop-filter: blur(16px); cursor: pointer; box-shadow: 0 3px 18px #16262418; font: inherit; }
+.trigger > :first-child { font-size: 17px; color: #f1cf96; }
+.chevron { color: #c1cfc1; margin-left: 8px; }
+.panel { margin-top: 8px; padding: 16px; width: min(272px, calc(100vw - 80px)); border: 1px solid #fff3da24; border-radius: 14px; background: #203331f2; backdrop-filter: blur(20px); box-shadow: 0 12px 35px #0d1a2930; }
+.heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+.clock { color: #e6c491; font-variant-numeric: tabular-nums; }
+.sliderLabel { display: flex; flex-direction: column; gap: 8px; color: #ced6c9; font-size: 11px; }
+.sliderLabel input { accent-color: #ecbf9f; width: 100%; cursor: pointer; }
+.presets { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin-top: 12px; }
+.presets button, .play { padding: 7px 5px; min-height: 32px; border: 1px solid #d7debf30; border-radius: 6px; color: #f5eedb; background: #ffffff09; cursor: pointer; font: inherit; font-size: 11px; }
+.play { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 10px; background: #d8b99f1a; }
+.panel p { margin: 10px 0 0; color: #b2c0b1; font-size: 10px; text-align: center; }
+.root button:hover { background-color: #547069; }
+.root button:focus-visible, .root input:focus-visible { outline: 2px solid #f1c39d; outline-offset: 3px; }
+:global(.minimal-game-hud) .root { left: 50%; top: 24px; bottom: auto; transform: translateX(-50%); }
+:global(.minimal-game-hud) .panel { position: absolute; left: 50%; top: 44px; margin-top: 0; transform: translateX(-50%); }
+@media (max-width: 600px) {
+  :global(.minimal-game-hud) .root { left: auto; right: 16px; top: 66px; transform: none; }
+  :global(.minimal-game-hud) .panel { left: auto; right: 0; transform: none; }
+}

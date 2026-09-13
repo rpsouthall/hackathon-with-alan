@@ -1,6 +1,10 @@
-# vinext-starter
+# Kyoto Conversations web runtime
 
-A clean full-stack starter running on [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and Drizzle support.
+The consolidated Three.js game runs on [vinext](https://github.com/cloudflare/vinext) and ChatGPT Sites. It uses protocol 2 for shared movement, character appearances, emotes, sprinting and vehicles. The hosted Durable Object service supports 32-player rooms and opted-in player proximity voice. NPC voice, GPT/HeyGen sessions, lessons, grading and saved learner progress are not implemented.
+
+Start with [the project README](../README.md), [world contracts](lib/world/README.md), [hosted rooms and voice](multiplayer/README.md), and [the partner handoff](docs/partner-integration-handoff.md). `npm run dev:game` starts local gameplay; the direct Node development transport and solo mode do not support voice. The signed hosted transport supports player voice, including local testing against the Durable Object service. TURN and real cross-network decoded microphone audio remain unverified.
+
+The remaining sections describe the underlying Sites/Vinext tooling and optional identity/database features. Those helpers do not make the current guest-room identity a durable learner account.
 
 ## Prerequisites
 
@@ -15,7 +19,7 @@ The Sites initializer copies the shared starter and selects managed-linux only w
 
 Whenever reopening or moving a checkout, run `node <plugin-root>/scripts/configure-execution-profile.mjs` before project commands. Profile changes do not alter tracked source or require reinstalling otherwise-valid dependencies; restart an existing preview to use the new selection. Do not commit or upload `.sites-runtime/`.
 
-This starter does not use `wrangler.jsonc`.
+The Sites frontend generates its Worker configuration during the build. The separate multiplayer Worker uses `multiplayer/wrangler.jsonc`; deploying the frontend alone does not deploy that room service.
 
 `install:ci` runs `npm ci` once against the shared lockfile, disables parent-workspace discovery, and includes required dev/optional dependencies despite production/omit settings. Sharp defaults to prebuilt binaries unless explicitly configured otherwise. Do not overlap installers.
 

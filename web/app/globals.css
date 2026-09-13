@@ -746,6 +746,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
 }
 @media (max-width: 760px) { .character-editor-card .editor-actions { bottom: -22px; } }
 
+/* Player proximity voice remains available during exploration and encounters. */
+.iso-game-shell .proximity-voice { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; color: #fff6e8; font-size: 12px; }
+.proximity-voice-label { display: flex; flex-direction: column; min-width: 180px; }
+.proximity-voice-label small { opacity: .85; }
+.proximity-voice-help { opacity: .8; max-width: 380px; }
+@media (max-width: 760px) { .proximity-voice-help { flex-basis: 100%; text-align: center; } }
+
 /* Camera actions remain clear of the character card and the movement pad. */
 .world-camera-controls { position: absolute; top: 128px; right: 18px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; max-width: calc(100% - 36px); }
 .world-camera-controls button { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 8px 12px; border: 1px solid #d9ccb2; border-radius: 8px; background: #fff9e8f5; color: #35404a; font: 500 12px system-ui; box-shadow: 0 2px 8px #24372d14; cursor: pointer; }
@@ -757,7 +764,112 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 860px) { .world-camera-controls { top: auto; bottom: 250px; } }
 @media (max-width: 600px) { .world-camera-controls { right: 12px; max-width: calc(100% - 24px); } .world-camera-controls button { padding: 8px 10px; } }
 
-/* Shared-world room membership and invitation controls. */
+/* Native modal puts the wheel above the world and keeps background controls inert. */
+.emote-dialog { position: fixed; inset: 0; width: 100vw; max-width: none; height: 100dvh; max-height: none; margin: 0; padding: 20px; border: 0; background: transparent; color: #35404a; overflow: auto; }
+.emote-dialog[open] { display: grid; place-items: center; }
+.emote-dialog::backdrop { background: #182c36a8; backdrop-filter: blur(5px); }
+.emote-wheel-panel { width: min(410px, 100%); text-align: center; }
+.emote-eyebrow { color: #e5caa1; font: 600 10px system-ui; letter-spacing: .16em; margin: 0 0 10px; }
+.emote-wheel-panel h2 { color: #fff5e1; font: 400 32px Georgia, serif; margin: 0 0 26px; }
+.emote-wheel { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: 7px; width: min(344px, 100%); aspect-ratio: 1; margin: auto; padding: 8px; background: #f2d9ad28; border: 1px solid #f2d9ad80; border-radius: 50%; box-shadow: 0 18px 60px #0b182955; }
+.emote-choice { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; color: #3c665f; background: #f5eddc; border: 1px solid #fffaf0; cursor: pointer; transition: background .15s, color .15s; }
+.emote-choice:nth-child(1) { border-radius: 100% 9px 9px 9px; padding: 17px 0 5px 12px; }
+.emote-choice:nth-child(2) { border-radius: 9px 100% 9px 9px; padding: 17px 12px 5px 0; }
+.emote-choice:nth-child(3) { border-radius: 9px 9px 9px 100%; padding: 5px 0 17px 12px; }
+.emote-choice:nth-child(4) { border-radius: 9px 9px 100% 9px; padding: 5px 12px 17px 0; }
+.emote-choice:hover, .emote-choice:focus-visible { color: #fff8e8; background: #ae6553; outline: 3px solid #e6c798; outline-offset: -4px; }
+.emote-glyph { width: 42px; height: 42px; }
+.emote-choice strong { font: 600 15px system-ui; }
+.emote-choice > span { font: 11px system-ui; opacity: .75; }
+.emote-choice kbd { position: absolute; top: 14px; right: 14px; font: 10px system-ui; opacity: .6; }
+.emote-choice:nth-child(2) kbd, .emote-choice:nth-child(4) kbd { right: auto; left: 14px; }
+.emote-choice:nth-child(n+3) kbd { top: auto; bottom: 14px; }
+.emote-cancel { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); display: grid; place-content: center; width: 78px; height: 78px; border: 6px solid #40534f; border-radius: 50%; color: #fff4df; background: #354e4a; box-shadow: 0 2px 10px #142b3030; cursor: pointer; }
+.emote-cancel span { font: 26px/1 system-ui; }
+.emote-cancel small { font: 10px system-ui; }
+.emote-cancel:hover, .emote-cancel:focus-visible { background: #945b4d; outline: 2px solid #e6c798; }
+#emote-help { color: #f6e8ce; margin: 22px 0 10px; font: 12px system-ui; line-height: 1.8; }
+#emote-help kbd { font: 10px system-ui; padding: 2px 4px; border: 1px solid #f6e8ce66; border-radius: 3px; }
+.emote-footnote { color: #e9dbc2ad; font: 11px/1.6 system-ui; }
+@media (max-width: 600px) { .world-camera-controls { gap: 4px; } .world-camera-controls button { padding: 8px; gap: 5px; } .emote-dialog { padding: 16px; } }
+@media (max-height: 600px) { .emote-wheel { width: 280px; } .emote-wheel-panel h2 { margin-bottom: 12px; font-size: 26px; } .emote-eyebrow, .emote-footnote { display: none; } #emote-help { margin: 14px 0 0; } }
+
+/* Quiet in-world HUD. The scene owns the screen; controls live at its edges. */
+.minimal-game-hud { --hud-ink: #f7f5ef; --hud-dim: #d3d9d6; }
+.minimal-game-hud .world-stage::after { background: linear-gradient(180deg, #101d2620, transparent 22%, transparent 80%, #101d2638); pointer-events: none; }
+.hud-party { position: absolute; z-index: 20; top: 28px; left: 30px; width: 200px; color: var(--hud-ink); text-shadow: 0 1px 5px #000b; pointer-events: none; }
+.hud-party-heading { display: flex; align-items: center; gap: 8px; font: 600 10px/1.4 system-ui; letter-spacing: .18em; color: var(--hud-dim); }
+.hud-connection-dot { width: 5px; height: 5px; background: #e0ac7c; border-radius: 50%; }
+.hud-connection-dot.is-online { background: #aad6b0; }
+.hud-party ul { display: grid; gap: 7px; margin: 12px 0 0; padding: 0; list-style: none; }
+.hud-party li { display: flex; align-items: center; gap: 9px; font: 500 13px/1.4 system-ui; }
+.hud-party li > span:nth-child(2) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hud-party li small { font: 600 8px system-ui; letter-spacing: .08em; color: #d5d9d5; opacity: .75; }
+.hud-player-mark { width: 3px; height: 13px; border-radius: 2px; box-shadow: 0 0 2px #0008; flex: none; }
+.hud-connection-note { font-size: 11px; color: #efd2a6; }
+.hud-menu, .hud-audio { position: absolute; z-index: 35; color: var(--hud-ink); font: 500 12px system-ui; }
+.hud-menu { right: 28px; top: 25px; }
+.hud-audio { left: 28px; bottom: 27px; }
+.hud-menu > summary, .hud-audio > summary { display: flex; align-items: center; gap: 9px; min-height: 36px; cursor: pointer; list-style: none; padding: 6px 9px; border-radius: 4px; text-shadow: 0 1px 5px #000b; background: #17262d38; }
+.hud-menu summary::-webkit-details-marker, .hud-audio summary::-webkit-details-marker { display: none; }
+.hud-menu > summary:hover, .hud-audio > summary:hover { background: #17262d88; }
+.hud-menu > summary:focus-visible, .hud-audio > summary:focus-visible { outline: 2px solid #f3d4a1; outline-offset: 4px; }
+.hud-audio > summary svg { width: 15px; height: 15px; }
+.minimal-game-hud kbd { font: 500 10px system-ui; padding: 3px 5px; border: 1px solid #f2f3eb66; border-radius: 3px; color: inherit; }
+.hud-menu-content, .hud-audio-content { position: absolute; padding: 18px; border: 1px solid #d7e1d51c; border-radius: 7px; background: #14232bf2; box-shadow: 0 15px 50px #0005; backdrop-filter: blur(16px); }
+.hud-menu-content { right: 0; top: 46px; width: 255px; display: grid; gap: 6px; max-height: calc(100dvh - 115px); overflow: auto; }
+.hud-menu-content > small { color: #aab8b9; font-size: 9px; letter-spacing: .12em; padding: 2px 8px 12px; overflow-wrap: anywhere; }
+.hud-menu-content button, .hud-menu-content a { color: #f7f5ef; justify-content: flex-start; text-align: left; font-size: 12px; }
+.hud-menu-content > a { padding: 10px 12px; }
+.hud-directory { padding: 10px 12px; color: #d2dbd8; }
+.hud-directory summary { cursor: pointer; }
+.hud-directory > div { display: grid; margin-top: 10px; gap: 3px; }
+.hud-directory button { border: 0; background: none; padding: 8px 0; cursor: pointer; }
+.hud-directory button small { display: block; font-size: 10px; color: #9cacab; }
+.hud-audio-content { left: 0; bottom: 47px; width: min(390px, calc(100vw - 40px)); max-height: calc(100dvh - 150px); overflow: auto; }
+.minimal-game-hud .hud-audio .proximity-voice { justify-content: flex-start; color: #f7f5ef; text-align: left; padding: 0; gap: 10px; }
+.minimal-game-hud .hud-audio .proximity-voice + .proximity-voice { border-top: 1px solid #ffffff1c; margin-top: 20px; padding-top: 20px; }
+.minimal-game-hud .hud-audio .proximity-voice-label { width: 100%; gap: 5px; }
+.minimal-game-hud .hud-audio .proximity-voice-help { color: #aebbb9; font-size: 10px; line-height: 1.6; text-align: left; }
+.minimal-game-hud .hud-audio button { background: #ffffff0a; color: #eff2ed; border-color: #ffffff25; font-size: 11px; }
+.hud-interact { position: absolute; bottom: 83px; left: 50%; transform: translateX(-50%); z-index: 22; display: flex; align-items: center; gap: 12px; padding: 12px 20px; border: 0; border-radius: 4px; background: #15242be0; color: #f8f3e8; font: 400 14px system-ui; box-shadow: 0 4px 24px #0003; cursor: pointer; }
+.hud-interact strong { font-weight: 600; }
+.hud-interact kbd { background: #f4eddf; color: #22343a; padding: 5px 8px; }
+.hud-key-hints { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); display: flex; gap: 18px; white-space: nowrap; color: #f0f1e8c9; font: 11px system-ui; text-shadow: 0 1px 4px #000b; pointer-events: none; }
+.hud-key-hints span { display: flex; align-items: center; gap: 7px; }
+.minimal-game-hud .world-camera-controls { top: auto; right: 28px; bottom: 27px; max-width: 300px; }
+.minimal-game-hud .world-camera-controls button { color: #f4f4e9; border: 0; background: #17262d70; box-shadow: none; border-radius: 4px; font-size: 11px; min-height: 36px; padding: 6px 9px; }
+.minimal-game-hud .world-camera-controls button:hover:not(:disabled) { background: #17262dcc; }
+.minimal-game-hud .world-stage [role="status"] { top: auto !important; bottom: 80px; right: 28px; font-size: 11px; }
+.minimal-game-hud .appearance-notice { top: auto; bottom: 86px; left: 30px; right: auto; width: auto; background: #14232bd9; color: #eee; border: 0; font-size: 11px; }
+@media (pointer: fine) { .minimal-game-hud [aria-label="Walking controls"] { display: none; } }
+@media (max-width: 800px) { .hud-key-hints { display: none; } .hud-party { top: 18px; left: 18px; width: 160px; } .hud-menu { top: 15px; right: 15px; } .hud-audio { left: 16px; bottom: 18px; } .minimal-game-hud .world-camera-controls { right: 16px; bottom: 18px; max-width: min(250px, calc(100% - 136px)); } }
+@media (pointer: coarse) { .hud-audio { bottom: 145px; } .hud-interact { bottom: 150px; } }
+.minimal-game-hud .world-stage [data-world-ready="true"] { display: none; }
+.hud-audio.is-transmitting > summary { color: #b2ecc2; background: #163d32dc; }
+.hud-audio.hud-compact-voice > .hud-mic-toggle { width: 38px; height: 38px; min-height: 38px; padding: 0; justify-content: center; border: 1px solid #f4f5e528; border-radius: 50%; background: #17262d9c; transition: background-color .18s, color .18s; }
+.hud-audio.hud-compact-voice > .hud-mic-toggle svg { width: 17px; height: 17px; }
+.hud-audio.hud-compact-voice.is-transmitting > .hud-mic-toggle { color: #b2ecc2; background: #235541e8; border-color: #b2ecc28a; }
+.hud-speaking-mic { width: 13px; height: 13px; flex: none; color: #b2ecc2; }
+.world-speaking-mark:not([hidden]) { display: inline-flex; vertical-align: -2px; margin-left: 5px; color: #23804e; }
+.world-speaking-mark svg { width: 12px; height: 12px; }
+.world-actor-label[data-speaking="true"] { border-color: #71a681 !important; }
+@media (pointer: fine) { .minimal-game-hud [aria-label="Walking controls"] { display: none !important; } }
+
+/* Persistent player voice controls; independent of the game/settings menu. */
+.hud-voice-visible { width: min(350px, calc(100vw - 32px)); padding: 12px; border: 1px solid #ffffff25; border-radius: 10px; background: #14232bf2; backdrop-filter: blur(16px); }
+.hud-voice-visible.is-transmitting { border-color: #b2ecc2; }
+.hud-npc-audio { margin-top: 8px; }
+.hud-npc-audio > summary { cursor: pointer; color: #c5d1cb; font-size: 11px; }
+.hud-npc-audio[open] { max-height: 30dvh; overflow: auto; }
+.voice-welcome-stage { display: grid; place-items: center; padding: 24px; }
+.voice-welcome-card { width: min(440px, 100%); padding: 28px; border-radius: 18px; background: #14232bf5; color: #f7f5ef; box-shadow: 0 20px 60px #0005; display: grid; gap: 16px; }
+.voice-welcome-card h1 { font-size: 26px; }
+.voice-welcome-card p { font: 14px/1.6 system-ui; }
+.voice-welcome-card button { white-space: normal; }
+@media (max-width: 800px) and (pointer: fine) { .hud-voice-visible { bottom: 70px; } }
+
+
 .room-members { border-top: 1px solid var(--border); padding-top: 1rem; }
 .room-members ul { display: flex; flex-wrap: wrap; gap: .4rem .8rem; max-height: 7rem; overflow: auto; list-style: none; padding: 0; margin: .65rem 0 1rem; }
 .room-members li { font-size: .875rem; }

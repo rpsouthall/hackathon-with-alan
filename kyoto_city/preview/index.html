@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Komorebi — Kyoto City</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/","@dimforge/rapier3d-compat":"./node_modules/@dimforge/rapier3d-compat/rapier.mjs"}}</script>
+</head>
+<body>
+  <div class="hud">
+    <div class="eyebrow">A walk through the riverside city</div>
+    <h1>Komorebi · Kyoto</h1>
+    <p id="status" role="status">Opening the city…</p>
+    <div class="controls">
+      <button id="overview" aria-pressed="true">City view</button>
+      <button id="walk" aria-pressed="false" disabled>Walk</button>
+      <button id="market" disabled>Market</button>
+      <button id="detail">Detail: full</button>
+    </div>
+    <div class="visit"><label for="venue">Visit a place</label><select id="venue" aria-label="Visit a place" disabled><option value="">Choose a café or shop</option></select><button id="inside" disabled>Inside</button></div>
+  </div>
+  <div id="crosshair" hidden>+</div>
+  <div class="footer" id="help">Drag to orbit · Scroll to zoom</div>
+  <div id="error" role="alert"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

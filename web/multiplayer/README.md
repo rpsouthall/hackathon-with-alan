@@ -3,7 +3,9 @@
 The ChatGPT Site serves the Three.js game and issues a 60-second HMAC admission
 ticket from `POST /api/world/join`. The browser connects directly to this Cloudflare
 Worker using WebSockets. A room code selects one Durable Object, which owns the
-Rapier simulation, players, cosmetics, NPC encounters and speaking turns.
+Rapier simulation, players, cosmetics, vehicles, NPC encounters and speaking turns.
+Client and server use gameplay protocol 2. This Worker also authorizes and relays
+player proximity-voice signaling; media flows through browser WebRTC peers.
 
 The default room is `kyoto`. Friends can use another code or the Room → Copy room
 link button. Codes are case-insensitive, 1–48 letters, digits, dashes or underscores.
@@ -62,8 +64,11 @@ Node server. Local secrets are not deployed by Wrangler or Sites.
   at most 20 Hz. Only the initial welcome includes the static environment manifest.
 - Tickets bind the guest name, identity, room and Site origin. Single-use nonces
   are recorded in SQLite so replay protection survives Worker restarts.
-- Guests may send 80 messages per second, including at most 10 non-movement
-  actions. Oversized or malformed messages close the connection.
+- Gameplay permits 80 messages per second, including at most 10 non-movement
+  actions, with a 4,096-character message limit. Voice signaling has separate
+  limits: 120 ICE, 16 SDP and 10 opt-in/out messages per second. Combined ingress
+  is capped at 256 messages and 512 KiB per second. Voice envelopes are limited
+  to 20,000 characters; malformed or oversized traffic closes the connection.
 - Admission allows 120 valid-ticket attempts per minute per network and Cloudflare
   location. This deliberately permits a shared hackathon Wi-Fi. It is an abuse
   throttle, not a strict global quota or a substitute for durable user accounts.
@@ -72,9 +77,11 @@ Node server. Local secrets are not deployed by Wrangler or Sites.
 - Live simulation is in memory. Empty rooms stop their timers and release physics;
   restart/reconnect does not preserve positions, encounters or earned progress.
   An occupied room uses active WebSockets and a simulation timer, not hibernation.
-- Voice audio, GPT sessions and conversation ratings are not implemented in this
-  Worker. Current shared NPC turn state is ready for a separately validated voice
-  integration. Do not copy Node-only signaling or activate its UI without porting it.
+- NPC audio, GPT/HeyGen sessions, lessons and conversation ratings are not
+  implemented. Any encounter member may claim an available exclusive speaking
+  turn. Leaving clears that learner's turn and transfers ownership as needed; the
+  encounter ends when its final member leaves. These permissions do not open a
+  provider session. See [the partner handoff](../docs/partner-integration-handoff.md).
 
 The rate limiter is location-scoped and eventually consistent, as described in
 [Cloudflare's rate-limit documentation](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/).
@@ -95,21 +102,62 @@ Regenerate binding declarations after changing the config:
 node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js types multiplayer/bindings.d.ts --config multiplayer/wrangler.jsonc --env-interface KyotoWorkerEnv --include-runtime=false --strict-vars=false
 ```
 
+## Player voice and local capability
+
+Nearby player voice is available through `createHostedTransport()` and this
+Cloudflare room service. `npm run dev:game`, solo play and direct
+`createWebSocketTransport(url)` connections provide gameplay only by default.
+The local welcome skips microphone permission, and the voice panel reports voice
+unavailable without opening a microphone or sending voice envelopes. The explicit
+`supportsPlayerVoice` capability gates both UI and transport/store; it is not
+inferred merely from multiplayer mode. Only a verified voice-capable server should
+use the direct transport's explicit `{ playerVoice: true }` opt-in.
+
+Players explicitly enable voice and hold T or the talk button to transmit. The
+Worker derives signaling identity from the admitted socket, validates room/range
+and per-pair session IDs, and maintains at most seven mutual voice peers per
+opted-in player within 12 metres. It rebalances isolated newcomers while retaining
+eligible connections. This bounded graph does not guarantee every nearby player
+is audible. Clients that have not opted in receive no unsolicited voice roster.
+Audio activity, rather than an open microphone alone, drives speaking indicators.
+
+The default ICE configuration contains STUN. TURN is not provisioned. Real decoded
+microphone audio between computers on separate networks has not been verified;
+local tests do not establish restrictive-network connectivity. The Worker handles
+signaling, not media forwarding: media range enforcement also depends on the
+supplied browser client closing audio when the roster changes.
+
 ## Verification checkpoint
 
-On 2026-09-13, 70 game tests, TypeScript, ESLint, the Site production build and
-Wrangler dry-run passed. `npm run test:multiplayer` passed 14 checks in actual
-Miniflare/workerd: signed joins, appearance/movement replication, room isolation,
-forgery/expiry/replay, persistent replay rejection, shared NPC ownership, cleanup,
-32 simultaneous clients, capacity rejection, action floods and admission throttling.
-The load test sent 3,840 movement inputs and reported zero protocol errors. These
-are local correctness checks, not a production latency or sustained-capacity claim.
+On 2026-09-13, the combined release passed 146 world/controller/asset tests,
+14 multiplayer checks and nine hosted player-voice checks in Miniflare/workerd.
+The local capability gate adds four targeted regression tests. TypeScript and
+lint checks are run separately from production builds. Use these commands from
+`web/` to verify the current checkout:
 
-Two real browser tabs also joined through the Site API locally, rendered the full
-city and both named avatars, showed two members and copied a room invite link.
-Public end-to-end verification remains pending Cloudflare deployment authorization.
+```sh
+npm run test:world
+npm run test:multiplayer
+node scripts/prepare-rapier.mjs
+node scripts/verify-player-voice.mjs
+npx tsc --noEmit
+npm run lint
+npm run build
+npm run build:multiplayer
+```
 
-Current protocol is 1. Other development threads have protocol 2 sprint, emotes,
-vehicles and voice additions: merge their fields deliberately, preserve the
-32-player limits and signed transport, and release compatible client/server code
-together. Their Node voice server cannot be deployed as this Worker unchanged.
+Coverage includes signed joins, appearance/movement/vehicle replication, room
+isolation, forgery/expiry/replay, persistent replay rejection, shared encounter
+turns/ownership, cleanup, 32-player capacity, action/admission throttling, bounded
+voice graphs, isolated newcomers, signaling identity and legacy-client behavior.
+These are local correctness checks, not a production latency, sustained-capacity
+or WAN media claim. Public browser joins and real microphone audio must be assessed separately.
+
+Cloudflare authorization, email verification and server deployment are complete.
+The server at `https://kyoto-shared-world.hello-d5e.workers.dev` reports protocol 2
+and capacity 32. Three real remote WebSocket clients verified shared membership,
+room isolation, the 15-resident/six-vehicle snapshot, movement, cosmetics, voice
+signaling and disconnect cleanup. These checks did not transmit microphone audio.
+The public Site has the server URL and matching admission secret configured.
+Release matching protocol-2 frontend and backend code together. Do not copy the
+older Node prototype over this signed hosted service.

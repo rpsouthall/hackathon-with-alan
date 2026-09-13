@@ -1,9 +1,14 @@
+import { playerVoiceServerSchema, type PlayerVoiceClientMessage, type PlayerVoiceServerMessage } from "./player-voice-contract";
 import { WorldRoom } from "./room";
 import { initWorldPhysics } from "./physics";
 import { PROTOCOL_VERSION, serverMessageSchema, type ServerMessage, type WorldCommand, type EnvironmentManifest, type NpcSnapshot } from "./schema";
 
 export type ConnectionState = "connecting" | "connected" | "disconnected";
 export interface WorldTransport {
+  /** Explicit opt-in: the Node development server accepts gameplay messages only. */
+  readonly supportsPlayerVoice?: boolean;
+  sendVoice?(message: PlayerVoiceClientMessage): void;
+  subscribeVoice?(listener: (message: PlayerVoiceServerMessage) => void): () => void;
   readonly mode: "local" | "multiplayer";
   connect(options: { roomId: string; name: string; onMessage: (message: ServerMessage) => void; onConnection: (state: ConnectionState) => void }): () => void;
   send(command: WorldCommand): void;
@@ -67,17 +72,20 @@ export function createHostedTransport(): WorldTransport {
     });
     const result = await response.json() as { url?: string; ticket?: string; error?: string };
     if (!response.ok || !result.url || !result.ticket) throw new Error(result.error ?? "The shared world is unavailable. Please try again.");
-    return { url: result.url, protocols: ["kyoto-v1", result.ticket] };
-  }, true);
+    return { url: result.url, protocols: [`kyoto-v${PROTOCOL_VERSION}`, result.ticket] };
+  }, true, { playerVoice: true });
 }
 
 type SocketAddress = string | ((options: { roomId: string; name: string; signal: AbortSignal }) => Promise<{ url: string; protocols: string[] }>);
 
 /** No silent offline fallback. Reconnection is automatic and rejoins as a fresh guest. */
-export function createWebSocketTransport(address: SocketAddress, heartbeat = false): WorldTransport {
+export function createWebSocketTransport(address: SocketAddress, heartbeat = false, capabilities: { playerVoice?: boolean } = {}): WorldTransport {
   let socket: WebSocket | undefined;
+  const supportsPlayerVoice = capabilities.playerVoice === true;
+  const voiceListeners = new Set<(message: PlayerVoiceServerMessage) => void>();
   return {
     mode: "multiplayer",
+    supportsPlayerVoice,
     connect({ roomId, name, onMessage, onConnection }) {
       let stopped = false;
       let retry: ReturnType<typeof setTimeout> | undefined;
@@ -113,7 +121,15 @@ export function createWebSocketTransport(address: SocketAddress, heartbeat = fal
           lastMessage = Date.now();
           if (heartbeat && event.data === "pong") return;
           try {
-            const parsed = serverMessageSchema.safeParse(JSON.parse(event.data));
+            const data: unknown = JSON.parse(event.data);
+            const voice = playerVoiceServerSchema.safeParse(data);
+            if (voice.success) {
+              for (const listener of voiceListeners) {
+                try { listener(voice.data); } catch { console.warn("A voice listener could not process an update"); }
+              }
+              return;
+            }
+            const parsed = serverMessageSchema.safeParse(data);
             if (!parsed.success) throw new Error("protocol");
             if (parsed.data.type === "welcome") { clearTimeout(welcomeTimeout); attempts = 0; onConnection("connected"); }
             onMessage(parsed.data);
@@ -134,6 +150,8 @@ export function createWebSocketTransport(address: SocketAddress, heartbeat = fal
       void open();
       return () => { stopped = true; lifecycle.abort(); clearTimeout(retry); socket?.close(); socket = undefined; };
     },
+    subscribeVoice(listener) { if (!supportsPlayerVoice) return () => {}; voiceListeners.add(listener); return () => { voiceListeners.delete(listener); }; },
+    sendVoice(message) { if (supportsPlayerVoice && socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify(message)); },
     send(command) { if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "command", command })); },
   };
 }

@@ -1,0 +1,23 @@
+{
+  "verdict": "PASS",
+  "presets": [
+    {
+      "id": "local_guide",
+      "objects": 22,
+      "mesh_count": 16,
+      "armatures": 1
+    },
+    {
+      "id": "cafe_owner",
+      "objects": 18,
+      "mesh_count": 13,
+      "armatures": 1
+    },
+    {
+      "id": "inn_host",
+      "objects": 21,
+      "mesh_count": 15,
+      "armatures": 1
+    }
+  ]
+}

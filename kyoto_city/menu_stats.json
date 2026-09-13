@@ -1,0 +1,63 @@
+{
+  "panels": [
+    {
+      "venue_id": "kissa_aoi",
+      "heading": "\u55ab\u8336\u3042\u304a\u3044",
+      "items": "\u73c8\u7432\u3000\u304a\u8336",
+      "panel_y_local": 3.34,
+      "triangles": 490
+    },
+    {
+      "venue_id": "ramen_akari",
+      "heading": "\u3089\u30fc\u3081\u3093",
+      "items": "\u91a4\u6cb9\u3000\u5473\u564c\u3000\u5869",
+      "panel_y_local": 2.83,
+      "triangles": 471
+    },
+    {
+      "venue_id": "bookshop_tsuki",
+      "heading": "\u672c\u3068\u66ae\u3089\u3057",
+      "items": "\u6587\u5b66\u3000\u65c5\u3000\u6b74\u53f2",
+      "panel_y_local": 2.83,
+      "triangles": 435
+    },
+    {
+      "venue_id": "sakura_bakery",
+      "heading": "\u713c\u304d\u305f\u3066\u30d1\u30f3",
+      "items": "\u3042\u3093\u30d1\u30f3\u3000\u98df\u30d1\u30f3",
+      "panel_y_local": 2.83,
+      "triangles": 435
+    },
+    {
+      "venue_id": "izakaya_tomo",
+      "heading": "\u304a\u3057\u306a\u304c\u304d",
+      "items": "\u713c\u304d\u9b5a\u3000\u679d\u8c46\u3000\u304a\u9152",
+      "panel_y_local": 2.83,
+      "triangles": 561
+    },
+    {
+      "venue_id": "tea_hanami",
+      "heading": "\u65e5\u672c\u8336",
+      "items": "\u714e\u8336\u3000\u62b9\u8336\u3000\u307b\u3046\u3058\u8336",
+      "panel_y_local": 3.34,
+      "triangles": 488
+    },
+    {
+      "venue_id": "market_provisions",
+      "heading": "\u5b63\u7bc0\u306e\u98df\u6750",
+      "items": "\u91ce\u83dc\u3000\u679c\u7269\u3000\u304a\u7c73",
+      "panel_y_local": 3.34,
+      "triangles": 588
+    },
+    {
+      "venue_id": "restaurant_momiji",
+      "heading": "\u304a\u98df\u4e8b",
+      "items": "\u5929\u3077\u3089\u3000\u305d\u3070\u3000\u3046\u3069\u3093",
+      "panel_y_local": 3.34,
+      "triangles": 440
+    }
+  ],
+  "total_triangles": 3908,
+  "font_embedded_as_meshes": true,
+  "floor_or_collision_changes": false
+}

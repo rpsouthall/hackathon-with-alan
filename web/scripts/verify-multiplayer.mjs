@@ -29,7 +29,7 @@ await build({ entryPoints: [join(web, 'multiplayer/worker.ts')], outfile: worker
 } }] });
 await copyFile(join(web, 'multiplayer/generated-rapier/rapier_wasm3d_bg.wasm'), wasmPath);
 await build({ stdin: { contents: `export * from ${JSON.stringify(join(web, 'lib/world/hosted-ticket.ts'))}; export * from ${JSON.stringify(join(web, 'lib/world/schema.ts'))};`, sourcefile: 'ticket-client.ts', resolveDir: web, loader: 'ts' }, outfile: join(out, 'client-contracts.mjs'), bundle: true, format: 'esm', platform: 'node', target: 'es2022' });
-const { signWorldTicket, appearanceSchema, serverMessageSchema } = await import(pathToFileURL(join(out, 'client-contracts.mjs')));
+const { PROTOCOL_VERSION, signWorldTicket, appearanceSchema, serverMessageSchema } = await import(pathToFileURL(join(out, 'client-contracts.mjs')));
 const options = {
   compatibilityDate: '2026-05-15', compatibilityFlags: ['nodejs_compat'],
   modulesRoot: out, modules: [{ type: 'ESModule', path: workerPath }, { type: 'CompiledWasm', path: wasmPath }],
@@ -51,7 +51,7 @@ async function ticket(roomId, name, overrides = {}) {
   return { claims, token: await signWorldTicket(claims, secret) };
 }
 async function handshake(admission, overrides = {}) {
-  const headers = { Upgrade: 'websocket', Origin: origin, 'Sec-WebSocket-Protocol': `kyoto-v1, ${admission.token}`, ...overrides };
+  const headers = { Upgrade: 'websocket', Origin: origin, 'Sec-WebSocket-Protocol': `kyoto-v${PROTOCOL_VERSION}, ${admission.token}`, ...overrides };
   if (headers.Upgrade === 'http') delete headers.Upgrade;
   return mf.dispatchFetch('https://backend.local/world', { headers });
 }
@@ -65,7 +65,7 @@ async function connect(roomId, name, admission = undefined) {
   const started = performance.now();
   const response = await handshake(admission);
   assert.equal(response.status, 101, `Expected admission for ${name}: ${response.status}`);
-  assert.equal(response.headers.get('sec-websocket-protocol'), 'kyoto-v1');
+  assert.equal(response.headers.get('sec-websocket-protocol'), `kyoto-v${PROTOCOL_VERSION}`);
   const socket = response.webSocket;
   assert.ok(socket);
   const client = { roomId, name, admission, socket, joinedAt: started, playerId: undefined, latest: undefined, welcomes: [], states: [], errors: [], parseErrors: [], closed: undefined, bytes: 0, stateCount: 0, onState: undefined };
@@ -84,7 +84,7 @@ async function connect(roomId, name, admission = undefined) {
   socket.addEventListener('close', (event) => { client.closed = { code: event.code, reason: event.reason }; });
   socket.addEventListener('error', (event) => client.errors.push(`socket:${event.message ?? 'error'}`));
   socket.accept();
-  socket.send(JSON.stringify({ type: 'join', protocol: 1, roomId, name }));
+  socket.send(JSON.stringify({ type: 'join', protocol: PROTOCOL_VERSION, roomId, name }));
   await until(() => client.playerId || client.closed, `welcome ${name}`);
   assert.ok(client.playerId, JSON.stringify(client.closed));
   return client;
@@ -109,15 +109,15 @@ async function follow(client, points) {
 
 let alice, bob, charlie;
 try {
-  await check('health exposes protocol 1 and room capacity 32', async () => {
-    const response = await mf.dispatchFetch('https://backend.local/health'); const body = await response.json(); assert.equal(response.status, 200); assert.equal(body.capacity, 32); assert.equal(body.protocol, 1); return body;
+  await check(`health exposes protocol ${PROTOCOL_VERSION} and room capacity 32`, async () => {
+    const response = await mf.dispatchFetch('https://backend.local/health'); const body = await response.json(); assert.equal(response.status, 200); assert.equal(body.capacity, 32); assert.equal(body.protocol, PROTOCOL_VERSION); return body;
   });
   await check('invalid, expired, future and wrong-origin tickets are rejected', async () => {
     const valid = await ticket(`${prefix}_invalid`, 'Admission');
     const cases = [
       ['wrong origin', valid, { Origin: 'https://attacker.invalid' }, 403],
       ['missing upgrade', valid, { Upgrade: 'http' }, 426],
-      ['missing ticket protocol', valid, { 'Sec-WebSocket-Protocol': 'kyoto-v1' }, 401],
+      ['missing ticket protocol', valid, { 'Sec-WebSocket-Protocol': `kyoto-v${PROTOCOL_VERSION}` }, 401],
       ['malformed token', { token: 'malformed' }, {}, 401],
       ['tampered signature', { token: valid.token.slice(0, valid.token.lastIndexOf('.') + 1) + 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' }, {}, 401],
       ['expired', await ticket(`${prefix}_invalid`, 'Expired', { expiresAt: Date.now() - 1 }), {}, 401],
@@ -164,7 +164,7 @@ try {
     const response = await handshake(admission, { 'x-kyoto-claims': JSON.stringify({ ...admission.claims, name: 'Forged', roomId: `${prefix}_shared` }) });
     assert.equal(response.status, 101); const socket = response.webSocket; socket.accept();
     const messages = []; socket.addEventListener('message', e => { if (e.data !== 'pong') messages.push(JSON.parse(e.data)); });
-    socket.send(JSON.stringify({ type: 'join', protocol: 1, roomId: `${prefix}_shared`, name: 'Forged' }));
+    socket.send(JSON.stringify({ type: 'join', protocol: PROTOCOL_VERSION, roomId: `${prefix}_shared`, name: 'Forged' }));
     await until(() => messages.some(m => m.type === 'error'), 'forged identity rejection');
     assert.ok(!messages.some(m => m.type === 'welcome')); socket.close(1000, 'QA cleanup');
   });

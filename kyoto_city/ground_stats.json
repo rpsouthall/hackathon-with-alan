@@ -1,0 +1,216 @@
+{
+  "new_render_objects": 1753,
+  "new_render_triangles": 107099,
+  "new_collision_boxes": 70,
+  "cherry_copies": 3,
+  "market_stalls": 4,
+  "bridge_deck_top": 0.42,
+  "max_bridge_approach_step": 0.106,
+  "removed_by_prefix": {
+    "SM_District_Foundation": 1,
+    "SM_Land_Bank": 2,
+    "SM_Paving_Bank": 2,
+    "SM_Canal_Bed": 1,
+    "SM_Quay_Masonry": 162,
+    "SM_Quay_Coping": 62,
+    "SM_Promenade_Slab": 264,
+    "SM_Garden_Edge": 4,
+    "SM_Canal_Water": 1,
+    "SM_Water_WaveSurface": 1,
+    "SM_Canal_FenceRail": 8,
+    "SM_Canal_FencePost": 38,
+    "SM_COL_WestGround": 1,
+    "SM_COL_EastGround": 1,
+    "SM_COL_OuterBoundary": 6,
+    "SM_COL_CanalEdge": 4,
+    "SM_Boundary_Azalea": 46
+  },
+  "routes": [
+    {
+      "name": "Canal promenade",
+      "bounds": [
+        -5.53,
+        -3.37,
+        -25.0,
+        27.0
+      ]
+    },
+    {
+      "name": "Outer street",
+      "bounds": [
+        -21.75,
+        -18.25,
+        -24.6,
+        25.8
+      ]
+    },
+    {
+      "name": "Canal promenade",
+      "bounds": [
+        3.37,
+        5.53,
+        -25.0,
+        27.0
+      ]
+    },
+    {
+      "name": "Outer street",
+      "bounds": [
+        18.25,
+        21.75,
+        -24.6,
+        25.8
+      ]
+    },
+    {
+      "name": "Cross street",
+      "bounds": [
+        -31.0,
+        -3.4,
+        -20.0,
+        -16.799999999999997
+      ]
+    },
+    {
+      "name": "Cross street",
+      "bounds": [
+        3.4,
+        31.0,
+        -20.0,
+        -16.799999999999997
+      ]
+    },
+    {
+      "name": "Cross street",
+      "bounds": [
+        -31.0,
+        -3.4,
+        16.599999999999998,
+        19.8
+      ]
+    },
+    {
+      "name": "Cross street",
+      "bounds": [
+        3.4,
+        31.0,
+        16.599999999999998,
+        19.8
+      ]
+    },
+    {
+      "name": "Venue entrance path",
+      "bounds": [
+        -23.7,
+        -20.0,
+        -13.9,
+        -12.1
+      ]
+    },
+    {
+      "name": "Venue entrance path",
+      "bounds": [
+        -23.7,
+        -20.0,
+        -2.9,
+        -1.1
+      ]
+    },
+    {
+      "name": "Venue entrance path",
+      "bounds": [
+        -23.7,
+        -20.0,
+        9.1,
+        10.9
+      ]
+    },
+    {
+      "name": "North venue court",
+      "bounds": [
+        -15.2,
+        -10.8,
+        17.0,
+        20.0
+      ]
+    },
+    {
+      "name": "South market plaza",
+      "bounds": [
+        -19.1,
+        -4.9,
+        -24.1,
+        -20.0
+      ]
+    },
+    {
+      "name": "Central south garden connection",
+      "bounds": [
+        -13,
+        -11,
+        -18.4,
+        -13.9
+      ]
+    },
+    {
+      "name": "Venue entrance path",
+      "bounds": [
+        20.0,
+        23.7,
+        -13.9,
+        -12.1
+      ]
+    },
+    {
+      "name": "Venue entrance path",
+      "bounds": [
+        20.0,
+        23.7,
+        -2.9,
+        -1.1
+      ]
+    },
+    {
+      "name": "Venue entrance path",
+      "bounds": [
+        20.0,
+        23.7,
+        9.1,
+        10.9
+      ]
+    },
+    {
+      "name": "North venue court",
+      "bounds": [
+        10.8,
+        15.2,
+        17.0,
+        20.0
+      ]
+    },
+    {
+      "name": "South market plaza",
+      "bounds": [
+        4.9,
+        19.1,
+        -24.1,
+        -20.0
+      ]
+    },
+    {
+      "name": "Central south garden connection",
+      "bounds": [
+        11,
+        13,
+        -18.4,
+        -13.9
+      ]
+    }
+  ],
+  "bounds": [
+    -34,
+    34,
+    -26,
+    28
+  ]
+}
