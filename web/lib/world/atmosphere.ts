@@ -4,6 +4,7 @@ import { DayCycle, daylightAtHour, type WorldTime } from "./day-cycle";
 import { addWorldLighting } from "./lighting";
 import { createSkyEnvironment } from "./sky-environment";
 import { createSakuraPetals } from "./sakura-petals";
+import type { WorldClockAnchor } from "./world-clock";
 
 export function createWorldAtmosphere(scene: THREE.Scene, renderer: THREE.WebGLRenderer, environment: EnvironmentManifest, reducedMotion: boolean, onTime?: (time: WorldTime) => void) {
   const clock = new DayCycle(reducedMotion);
@@ -21,11 +22,13 @@ export function createWorldAtmosphere(scene: THREE.Scene, renderer: THREE.WebGLR
     lights.update(clock.hours, daylight, sunDirection);
     sky.update(clock.hours, daylight, sunDirection, reducedMotion ? 0 : elapsed);
     petals.update(dt, daylight);
-    if (elapsed - lastNotice >= .5) { onTime?.({ hours: clock.hours, playing: clock.playing }); lastNotice = elapsed; }
+    if (elapsed - lastNotice >= .5) { onTime?.({ hours: clock.hours, playing: clock.playing, source: clock.source }); lastNotice = elapsed; }
   }
   update(0);
   return {
     update,
+    syncWorldClock(anchor: WorldClockAnchor | null) { const previous = clock.source; clock.syncWorldClock(anchor); if (clock.source !== previous) { lastNotice = -Infinity; update(0); } },
+    returnToSharedTime() { clock.returnToSharedTime(); lastNotice = -Infinity; update(0); },
     setHour(hours: number, animate = true) { clock.setHour(hours, animate); lastNotice = -Infinity; update(0); },
     setPlaying(playing: boolean) { clock.setPlaying(playing); lastNotice = -Infinity; update(0); },
     dispose() { petals.dispose(); sky.dispose(); lights.dispose(); },

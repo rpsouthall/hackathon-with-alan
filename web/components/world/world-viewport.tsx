@@ -27,7 +27,7 @@ export interface WorldViewportProps {
   encounterNpcId?: string;
   walkingRequest?: { npcId: string; sequence: number } | null;
   onWalking?: (walking: boolean, message: string) => void;
-  onMove: (direction: [number, number], yaw: number, sprint?: boolean) => void;
+  onMove: (direction: [number, number], yaw: number, sprint?: boolean) => number | void;
   onEmote: (name: EmoteName) => void;
   onInteract: (npcId: string) => void;
   inputEnabled?: boolean;
@@ -36,7 +36,7 @@ export interface WorldViewportProps {
 }
 
 export function WorldViewport(props: WorldViewportProps) {
-  const { snapshot, send } = useWorld();
+  const { snapshot, worldClock, send } = useWorld();
   const host = useRef<HTMLDivElement>(null);
   const runtime = useRef<ReturnType<typeof mountWorldScene> | null>(null);
   const vehicles = props.vehicles ?? snapshot?.vehicles ?? EMPTY_VEHICLES;
@@ -44,7 +44,7 @@ export function WorldViewport(props: WorldViewportProps) {
   const localPlayer = props.players.find((player) => player.id === props.localPlayerId);
   const blocked = props.inputEnabled === false || !!encounters?.some((encounter) => encounter.participantIds.includes(props.localPlayerId ?? ""));
   const mountedVehicle = !!localPlayer?.vehicleId;
-  const sceneState = useMemo(() => ({ ...props, vehicles, encounters, inputEnabled: !blocked }), [props, vehicles, encounters, blocked]);
+  const sceneState = useMemo(() => ({ ...props, vehicles, encounters, worldClock, inputEnabled: !blocked }), [props, vehicles, encounters, worldClock, blocked]);
   const latest = useRef(sceneState);
   const [emoteOwner, setEmoteOwner] = useState<string | null>(null);
   const emotesOpen = !!emoteOwner && emoteOwner === props.localPlayerId && !blocked && !mountedVehicle;
@@ -78,7 +78,7 @@ export function WorldViewport(props: WorldViewportProps) {
     send({ type: "dismount-vehicle" }); host.current?.focus();
   }, [send]);
   const [status, setStatus] = useState({ phase: "loading", error: "" });
-  const [time, setTime] = useState<WorldTime>({ hours: INITIAL_HOUR, playing: true });
+  const [time, setTime] = useState<WorldTime>({ hours: INITIAL_HOUR, playing: true, source: "local" });
   const [overview, setOverview] = useState(false);
   const [view, setView] = useState<CameraView>("isometric");
   const cameraState = useRef({ view, overview });
@@ -129,7 +129,7 @@ export function WorldViewport(props: WorldViewportProps) {
   }, [manifest, toggleView, openEmotes, mountVehicle, dismountVehicle]);
   return <div className={props.className} style={{ position: "relative", minHeight: 320, height: "100%" }}>
     <div ref={host} tabIndex={0} role="application" aria-label="3D world. WASD or arrow keys to walk or ride. Hold Shift to sprint on foot. Press F to mount or dismount a vehicle, G for emotes, V to change view, E to interact." style={{ position: "absolute", inset: 0, outlineOffset: -3 }} />
-    <AtmosphereControls time={time} onHour={(hours, animate) => runtime.current?.setHour(hours, animate)} onPlaying={playing => runtime.current?.setTimePlaying(playing)} />
+    <AtmosphereControls time={time} onHour={(hours, animate) => runtime.current?.setHour(hours, animate)} onPlaying={playing => runtime.current?.setTimePlaying(playing)} onSharedTime={() => runtime.current?.returnToSharedTime()} />
     <nav aria-label="Walking controls" style={{ position: "absolute", right: 16, top: "45%", display: "grid", gridTemplateColumns: "repeat(3, 32px)", gap: 3 }}>
       {([{ label: "Move forward", direction: [0, -1], symbol: "↑", column: 2 }, { label: "Move left", direction: [-1, 0], symbol: "←", column: 1 }, { label: "Move backward", direction: [0, 1], symbol: "↓", column: 2 }, { label: "Move right", direction: [1, 0], symbol: "→", column: 3 }] as const).map((control, index) => <button key={control.label} type="button" aria-label={control.label} disabled={blocked || emotesOpen} onClick={(event) => runtime.current?.step([...control.direction], event.shiftKey)} style={{ gridColumn: control.column, gridRow: index === 0 ? 1 : 2, height: 32, color: "#203c30", background: "#ffffffe8", borderRadius: 6, border: "1px solid #849c8d" }}>{control.symbol}</button>)}
     </nav>

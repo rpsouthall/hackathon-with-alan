@@ -4,8 +4,8 @@ import { WorldRoom } from "../../lib/world/room";
 import { DEFAULT_ENVIRONMENT, DEFAULT_NPCS } from "../../lib/world/defaults";
 import { MAX_ROOM_PLAYERS, PROTOCOL_VERSION, clientMessageSchema, roomSchema, roomStateSchema, serverMessageSchema } from "../../lib/world/schema";
 
-test("gameplay protocol 2 keeps voice envelopes outside its parser", () => {
-  assert.equal(PROTOCOL_VERSION, 2);
+test("gameplay protocol 3 keeps voice envelopes outside its parser", () => {
+  assert.equal(PROTOCOL_VERSION, 3);
   const join = { type: "join", protocol: PROTOCOL_VERSION, roomId: "gameplay", name: "Learner" };
   assert.equal(clientMessageSchema.safeParse(join).success, true);
   assert.equal(clientMessageSchema.safeParse({ ...join, protocol: 1 }).success, false);

@@ -9,10 +9,18 @@ export class PlayerVoiceRoom {
   private optedIn = new Set<string>();
   private pairs = new Map<string, string>();
   private rosters = new Map<string, string>();
+  private playerIce = new Map<string, VoiceIceServer[]>();
   constructor(private iceServers: VoiceIceServer[] = [{ urls: "stun:stun.l.google.com:19302" }], private sessionId: () => string = () => crypto.randomUUID()) {}
   remove(id: string) {
-    this.optedIn.delete(id); this.rosters.delete(id);
+    this.optedIn.delete(id); this.rosters.delete(id); this.playerIce.delete(id);
     for (const key of this.pairs.keys()) if ((JSON.parse(key) as string[]).includes(id)) this.pairs.delete(key);
+  }
+  setIceServers(id: string, iceServers: VoiceIceServer[]) {
+    if (!this.optedIn.has(id) || JSON.stringify(this.playerIce.get(id) ?? this.iceServers) === JSON.stringify(iceServers)) return;
+    this.playerIce.set(id, iceServers);
+    // Both endpoints must discard old SDP/ICE when credentials rotate. Updating
+    // only one client's RTCPeerConnection would leave the other on a stale session.
+    for (const key of this.pairs.keys()) if ((JSON.parse(key) as string[]).includes(id)) this.pairs.set(key, this.sessionId());
   }
   refresh(players: readonly Player[]): Delivery[] {
     const members = new Set(players.map(p => p.id));
@@ -71,16 +79,17 @@ export class PlayerVoiceRoom {
     for (const p of players) {
       if (!this.optedIn.has(p.id)) continue;
       const peers=lists.get(p.id)!.sort((a,b)=>a.playerId.localeCompare(b.playerId));
-      const optedIn=this.optedIn.has(p.id), key=JSON.stringify([optedIn,peers]);
+      const iceServers = this.playerIce.get(p.id) ?? this.iceServers;
+      const key=JSON.stringify([peers,iceServers]);
       if (this.rosters.get(p.id) === key) continue;
       this.rosters.set(p.id,key);
-      deliveries.push({to:p.id,message:{type:"voice-peers",peers,iceServers:optedIn ? this.iceServers : [],radius:VOICE_RADIUS}});
+      deliveries.push({to:p.id,message:{type:"voice-peers",peers,iceServers,radius:VOICE_RADIUS}});
     }
     return deliveries;
   }
-  handle(from: string, message: PlayerVoiceClientMessage, players: readonly Player[]): Delivery[] {
+  handle(from: string, message: PlayerVoiceClientMessage, players: readonly Player[], initialIce?: VoiceIceServer[]): Delivery[] {
     if (!players.some(p=>p.id===from)) return [];
-    if (message.type === "voice-join") this.optedIn.add(from);
+    if (message.type === "voice-join") { this.optedIn.add(from); if (initialIce) this.playerIce.set(from, initialIce); }
     if (message.type === "voice-leave") this.remove(from);
     const updates=this.refresh(players);
     if (message.type === "voice-leave") updates.push({to:from,message:{type:"voice-peers",peers:[],iceServers:[],radius:VOICE_RADIUS}});

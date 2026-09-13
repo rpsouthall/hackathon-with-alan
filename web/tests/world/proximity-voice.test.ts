@@ -1,9 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { ProximityVoice, proximityGain, type VoiceDependencies, type VoiceState } from "../../lib/voice/proximity";
+import { ProximityVoice, proximityGain, resumeVoiceAudio, VoiceAudioSession, type VoiceDependencies, type VoiceState } from "../../lib/voice/proximity";
 import type { PlayerVoiceClientMessage as VoiceClientMessage, PlayerVoiceServerMessage as VoiceServerMessage } from "../../lib/world/player-voice-contract";
 class FakePeer {
   connectionState = "new"; remoteDescription: unknown = null;
+  iceConnectionState = "new";
+  stats = new Map<string, Record<string, unknown>>();
+  configurations: RTCConfiguration[] = [];
   localDescription: { type: string; sdp: string } | null = null;
   onicecandidate: ((event: unknown) => void) | null = null;
   ontrack: ((event: unknown) => void) | null = null;
@@ -14,6 +17,8 @@ class FakePeer {
   async setLocalDescription(value: { type: string; sdp: string }) { this.localDescription = value; }
   async setRemoteDescription(value: unknown) { this.remoteDescription = value; }
   async addIceCandidate(value: unknown) { this.candidates.push(value); }
+  async getStats() { return this.stats; }
+  setConfiguration(configuration: RTCConfiguration) { this.configurations.push(configuration); }
   addTrack() {}
   close() { this.closed = true; }
 }
@@ -43,22 +48,29 @@ class FakeAudio {
   destination = new FakeAudioNode();
   analysers: FakeAnalyser[] = []; sources: FakeAudioNode[] = []; gains: FakeGain[] = [];
   async resume() {}
-  async close() { this.closed = true; }
+  async close() { this.closed = true; this.state = "closed"; }
   createAnalyser() { const analyser = new FakeAnalyser(); this.analysers.push(analyser); return analyser; }
   createGain() { const gain = new FakeGain(); this.gains.push(gain); return gain; }
   createMediaStreamSource() { const source = new FakeAudioNode(); this.sources.push(source); return source; }
+}
+class FakeRemoteAudio {
+  autoplay = false; muted = false; volume = 1; srcObject: MediaStream | null = null; paused = true; plays = 0;
+  async play() { this.plays++; this.paused = false; }
+  pause() { this.paused = true; }
 }
 const trackStream = (track: FakeTrack) => ({ getTracks: () => [track], getAudioTracks: () => [track] }) as unknown as MediaStream;
 function fixture(id = "a", getUserMedia?: VoiceDependencies["getUserMedia"], overrides: Partial<VoiceDependencies> = {}) {
   const sent: VoiceClientMessage[] = [], peers: FakePeer[] = [], states: VoiceState[] = [];
   const track = new FakeTrack(), stream = trackStream(track), audio = new FakeAudio();
+  const remoteAudio: FakeRemoteAudio[] = [];
   const controller = new ProximityVoice(id, (message) => sent.push(message), (state) => states.push(state), {
     getUserMedia: getUserMedia ?? (async () => stream),
     createPeer() { const peer = new FakePeer(); peers.push(peer); return peer as unknown as RTCPeerConnection; },
     createAudio: () => audio as unknown as AudioContext,
+    createRemoteAudio: () => { const output = new FakeRemoteAudio(); remoteAudio.push(output); return output as unknown as HTMLAudioElement; },
     ...overrides,
   });
-  return { controller, sent, peers, states, track, stream, audio, audioClosed: () => audio.closed };
+  return { controller, sent, peers, states, track, stream, audio, remoteAudio, audioClosed: () => audio.closed };
 }
 const roster = (playerId = "b", sessionId = "first"): VoiceServerMessage => ({ type: "voice-peers", peers: [{ playerId, sessionId }], iceServers: [], radius: 12 });
 const flush = () => new Promise((resolve) => setImmediate(resolve));
@@ -237,4 +249,98 @@ test("suspended audio and microphone disconnection clear speaking immediately", 
   assert.deepEqual(f.states.at(-1)?.speakingPlayerIds, ["a"]);
   f.track.end(); assert.deepEqual(f.states.at(-1)?.speakingPlayerIds, []);
   assert.equal(f.states.at(-1)?.status, "error"); assert.equal(f.audio.closed, true);
+});
+
+test("the welcome click's unlocked context is reused by the later room controller", async () => {
+  const audio = new FakeAudio(); let creates = 0;
+  const session = new VoiceAudioSession(() => { creates++; return audio as unknown as AudioContext; });
+  await resumeVoiceAudio(session.getContext());
+  const f = fixture("a", undefined, { createAudio: session.getContext });
+  await f.controller.enable();
+  assert.equal(creates, 1, "joining must not create a new, gesture-less context");
+  assert.equal(f.states.at(-1)?.status, "enabled"); f.controller.disable();
+  assert.equal(audio.closed, true);
+  session.getContext(); assert.equal(creates, 2, "an explicit later enable can replace a closed context"); session.close();
+});
+
+test("a browser that never resolves resume leaves Starting with an actionable error and no microphone", async (t) => {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  let requested = false;
+  const audio = new FakeAudio(); audio.state = "suspended"; audio.resume = () => new Promise(() => {});
+  const f = fixture("a", async () => { requested = true; return trackStream(new FakeTrack()); }, { createAudio: () => audio as unknown as AudioContext });
+  const pending = f.controller.enable();
+  t.mock.timers.tick(2500); await pending;
+  assert.equal(requested, false); assert.equal(audio.closed, true); assert.deepEqual(f.sent, []);
+  assert.equal(f.states.at(-1)?.status, "error"); assert.match(f.states.at(-1)!.message, /playback is blocked/);
+});
+
+test("resume playback restores listening without reopening microphone or changing push-to-talk", async () => {
+  let captures = 0;
+  const track = new FakeTrack();
+  const f = fixture("a", async () => { captures++; return trackStream(track); });
+  await f.controller.enable(); f.controller.setTalking(true);
+  f.audio.state = "suspended"; f.audio.onstatechange?.();
+  assert.equal(f.states.at(-1)?.playbackBlocked, true);
+  f.audio.resume = async () => { f.audio.state = "running"; };
+  await f.controller.resumePlayback();
+  assert.equal(f.states.at(-1)?.playbackBlocked, false); assert.equal(captures, 1); assert.equal(track.enabled, true);
+  assert.deepEqual(f.sent.map((message) => message.type), ["voice-join"]); f.controller.disable();
+});
+
+test("remote audio has a silent decoding sink and releases it on disconnect, replacement and disable", async () => {
+  const f = fixture("z"); await f.controller.enable(); f.controller.receive(roster("a"));
+  const peer = f.peers[0], track = new FakeTrack(), stream = trackStream(track);
+  peer.ontrack?.({ streams: [stream], track }); await flush();
+  const output = f.remoteAudio[0];
+  assert.equal(output.srcObject, stream); assert.equal(output.plays, 1);
+  assert.equal(output.muted, true); assert.equal(output.volume, 0, "the media sink must never bypass distance attenuation");
+  peer.connectionState = "disconnected"; peer.onconnectionstatechange?.();
+  assert.equal(output.paused, true); assert.equal(output.srcObject, null);
+  peer.connectionState = "connected"; peer.onconnectionstatechange?.(); await flush();
+  assert.equal(f.remoteAudio.length, 2); assert.equal(f.remoteAudio[1].srcObject, stream);
+  const replacement = new FakeTrack(); peer.ontrack?.({ streams: [trackStream(replacement)], track: replacement });
+  assert.equal(f.remoteAudio[1].srcObject, null); f.controller.disable();
+  assert.ok(f.remoteAudio.every((element) => element.paused && element.srcObject === null));
+});
+
+test("a blocked remote media sink can be resumed by a later user gesture", async () => {
+  const output = new FakeRemoteAudio();
+  output.play = async () => { throw new Error("NotAllowedError"); };
+  const f = fixture("z", undefined, { createRemoteAudio: () => output as unknown as HTMLAudioElement });
+  await f.controller.enable(); f.controller.receive(roster("a"));
+  const track = new FakeTrack(); f.peers[0].ontrack?.({ streams: [trackStream(track)], track }); await flush();
+  assert.equal(f.states.at(-1)?.playbackBlocked, true);
+  output.play = async () => { output.paused = false; }; await f.controller.resumePlayback();
+  assert.equal(f.states.at(-1)?.playbackBlocked, false); assert.equal(f.track.enabled, false);
+  f.controller.disable();
+});
+
+test("audio diagnostics distinguish packets from decoded audio without exposing ICE addresses or credentials", async () => {
+  const f = fixture("z"); await f.controller.enable(); f.controller.receive(roster("a"));
+  const peer = f.peers[0]; peer.connectionState = "connected"; peer.iceConnectionState = "connected";
+  peer.stats = new Map([
+    ["transport", { id: "transport", type: "transport", selectedCandidatePairId: "pair" }],
+    ["pair", { id: "pair", type: "candidate-pair", localCandidateId: "local", remoteCandidateId: "remote" }],
+    ["local", { id: "local", type: "local-candidate", candidateType: "relay", address: "secret-address", usernameFragment: "secret-credential" }],
+    ["remote", { id: "remote", type: "remote-candidate", candidateType: "host", address: "other-address" }],
+    ["inbound", { id: "inbound", type: "inbound-rtp", kind: "audio", packetsReceived: 84, totalSamplesReceived: 0, totalAudioEnergy: 0 }],
+    ["outbound", { id: "outbound", type: "outbound-rtp", kind: "audio", packetsSent: 36 }],
+  ]);
+  const report = (await f.controller.diagnostics()).join("\n");
+  assert.match(report, /Route: relay/); assert.match(report, /Sent 36 \/ received 84 packets; decoded 0 samples/);
+  assert.doesNotMatch(report, /secret|other-address/); assert.equal(f.track.enabled, false, "checking must never open transmission");
+  f.controller.disable();
+});
+
+test("credential-only roster updates refresh retained WebRTC configurations and direct-only status", async () => {
+  const f = fixture(); await f.controller.enable(); f.controller.receive(roster()); await flush();
+  assert.match(f.states.at(-1)!.message, /Direct voice only/);
+  const iceServers = [{ urls: "turns:turn.cloudflare.com:443?transport=tcp", username: "fake-user", credential: "fake-credential" }];
+  const update = { ...roster(), iceServers };
+  f.controller.receive(update); await flush();
+  assert.equal(f.peers.length, 1, "unchanged sessions retain their connection");
+  assert.deepEqual(f.peers[0].configurations, [{ iceServers }]);
+  assert.doesNotMatch(f.states.at(-1)!.message, /Direct voice only/);
+  f.controller.receive(update); assert.equal(f.peers[0].configurations.length, 1);
+  f.controller.disable();
 });
