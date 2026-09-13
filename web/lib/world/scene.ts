@@ -2,6 +2,8 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { createAvatar, loadAvatarTemplate, disposeAvatarTemplate } from "../characters/avatar";
+import { SceneryCutaway, setOcclusionRay, isOccludingScenery } from "./occlusion";
+import { addWorldLighting } from "./lighting";
 import { CHARACTER_PRESETS } from "../characters/presets";
 import type { EnvironmentManifest, NpcSnapshot, PlayerSnapshot, EncounterSnapshot } from "./schema";
 
@@ -25,15 +27,9 @@ function disposeObject(root: THREE.Object3D) {
 export function mountWorldScene(host: HTMLElement, environment: EnvironmentManifest, callbacks: SceneCallbacks) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
-  renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   host.appendChild(renderer.domElement);
-  const scene = new THREE.Scene(); scene.background = new THREE.Color("#d7ddd4"); scene.fog = new THREE.Fog("#d7ddd4", 65, 140);
-  scene.add(new THREE.HemisphereLight("#fff5df", "#728575", 2));
-  const sun = new THREE.DirectionalLight("#fff1dc", 2.6); sun.position.set(-16, 30, 18); sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048); sun.shadow.camera.left = -35; sun.shadow.camera.right = 35; sun.shadow.camera.top = 35; sun.shadow.camera.bottom = -35;
-  sun.shadow.normalBias = 0.04; sun.shadow.camera.far = 100; scene.add(sun); scene.add(sun.target);
-  for(const light of environment.lights ?? []) { const point = new THREE.PointLight(new THREE.Color(...light.color), light.intensity, light.range, 2); point.position.fromArray(light.position); scene.add(point); }
+  const scene = new THREE.Scene();
+  addWorldLighting(scene, renderer, environment);
   const camera = new THREE.OrthographicCamera(-12,12,12,-12,.1,250);
   let viewSpan = 24;
   const focus = new THREE.Vector3(...environment.spawn).add(new THREE.Vector3(0, 1, 0));
@@ -60,8 +56,9 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   scene.add(fallback);
   let stopped = false, loaded: THREE.Object3D | null = null;
   const surfaces: THREE.Mesh[] = [];
-  const originalMaterial = new Map<THREE.Material, {opacity:number; transparent:boolean; depthWrite:boolean}>();
-  let faded = new Set<THREE.Mesh>();
+  const cutaway = new SceneryCutaway();
+  let occlusionHits = new Set<THREE.Mesh>();
+  let lastOcclusionCheck = -Infinity;
   if (environment.assetUrl) {
     callbacks.onStatus("loading");
     new GLTFLoader().load(environment.assetUrl, (gltf) => {
@@ -72,25 +69,26 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
         if (/^(COLLIDER_|SPAWN_|MARK_|SM_COL_)/.test(object.name)) object.visible = false;
         if (object instanceof THREE.Mesh) {
           object.castShadow = true; object.receiveShadow = true;
-          // Per-mesh copies let a blocking roof fade without fading every roof in town.
-          const copy = (material: THREE.Material) => { sourceMaterials.add(material); const clone = material.clone(); originalMaterial.set(clone, {opacity:clone.opacity,transparent:clone.transparent,depthWrite:clone.depthWrite}); return clone; };
+          object.geometry.computeBoundingBox();
+          // Each mesh owns its cutaway uniforms; unrelated venues keep their materials.
+          const copy = (material: THREE.Material) => { sourceMaterials.add(material); const clone = material.clone(); clone.dithering = true; return clone; };
           object.material = Array.isArray(object.material) ? object.material.map(copy) : copy(object.material);
-          if(object.visible) surfaces.push(object);
+          if(object.visible && isOccludingScenery(object)) { surfaces.push(object); cutaway.register(object); }
         }
       });
       sourceMaterials.forEach((material)=>material.dispose());
       scene.add(loaded); fallback.visible = false; callbacks.onStatus("ready");
-    }, undefined, () => { if (!stopped) callbacks.onStatus("fallback", "Environment could not load. Showing the walkable collision layout."); });
+    }, undefined, (error) => { if (!stopped) { console.error("City asset loading failed", error); callbacks.onStatus("fallback", "Environment could not load. Showing the walkable collision layout."); } });
   } else callbacks.onStatus("placeholder");
   let template: Awaited<ReturnType<typeof loadAvatarTemplate>> | null = null;
   const templateReady = loadAvatarTemplate().then((asset) => { if(stopped) { disposeAvatarTemplate(asset); return null; } template=asset; return asset; }).catch(()=>null);
-  type Actor = { root: THREE.Group; capsule: THREE.Mesh; target: THREE.Vector3; yaw: number; label: HTMLButtonElement; avatar?: ReturnType<typeof createAvatar>; appearanceKey?:string; npcId:string|null; previous:THREE.Vector3 };
+  type Actor = { root: THREE.Group; capsule: THREE.Mesh; target: THREE.Vector3; yaw: number; label: HTMLButtonElement; avatar?: ReturnType<typeof createAvatar>; appearanceKey?:string; npcId:string|null; previous:THREE.Vector3; labelBlocked?:boolean };
   const actors = new Map<string, Actor>();
   let entities: SceneEntities = {players:[],npcs:[],localPlayerId:null};
   let enabled = true, overview = false, walkingYaw = 0;
   const keys = new Set<string>(); let step: {direction:[number,number];until:number}|null=null;
   const movementKeys = new Set(["w","a","s","d","arrowup","arrowleft","arrowdown","arrowright"]);
-  const ring = new THREE.Mesh(new THREE.RingGeometry(.48,.55,32),new THREE.MeshBasicMaterial({color:"#bd624c",transparent:true,opacity:.8,side:THREE.DoubleSide}));
+  const ring = new THREE.Mesh(new THREE.RingGeometry(.48,.55,32),new THREE.MeshBasicMaterial({color:"#bd624c",transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
   ring.rotation.x=-Math.PI/2; ring.visible=false; scene.add(ring);
   function resetInput() {keys.clear();step=null;callbacks.onMove([0,0],walkingYaw);}
   function keyDown(event:KeyboardEvent) {
@@ -116,7 +114,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   host.addEventListener("keydown",keyDown);host.addEventListener("keyup",keyUp);host.addEventListener("blur",resetInput);window.addEventListener("blur",resetInput);
   renderer.domElement.addEventListener("pointerdown",pointerDown);renderer.domElement.addEventListener("click",click);
   const resize=new ResizeObserver(()=>{const width=Math.max(host.clientWidth,1),height=Math.max(host.clientHeight,1);renderer.setSize(width,height);camera.left=-viewSpan*width/height/2;camera.right=-camera.left;camera.top=viewSpan/2;camera.bottom=-viewSpan/2;camera.updateProjectionMatrix();});resize.observe(host);
-  let frame=0,previous=performance.now(),lastInput=0;
+  let frame=0,previous=performance.now(),lastInput=0,lastLabelCheck=0;
   const desiredFocus=new THREE.Vector3(), forward=new THREE.Vector3(),right=new THREE.Vector3(),velocity=new THREE.Vector3(), projected=new THREE.Vector3();
   const render=(now:number)=>{
     if(stopped)return; const dt=Math.min((now-previous)/1000,.1);previous=now;
@@ -124,13 +122,12 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       actor.previous.copy(actor.root.position);actor.root.position.lerp(actor.target,1-Math.exp(-18*dt));
       const turn=Math.atan2(Math.sin(actor.yaw-actor.root.rotation.y),Math.cos(actor.yaw-actor.root.rotation.y));actor.root.rotation.y+=turn*(1-Math.exp(-12*dt));
       if(actor.avatar){velocity.subVectors(actor.root.position,actor.previous).divideScalar(Math.max(dt,.001));actor.avatar.setVelocity(velocity);actor.avatar.update(dt);}
-      projected.copy(actor.root.position).add(new THREE.Vector3(0,2.1,0)).project(camera);
-      actor.label.style.display=projected.z>1||projected.z< -1||Math.abs(projected.x)>1.05||Math.abs(projected.y)>1.05?"none":"block";
-      actor.label.style.left=`${(projected.x*.5+.5)*host.clientWidth}px`;actor.label.style.top=`${(-projected.y*.5+.5)*host.clientHeight}px`;
+
     }
     const local=actors.get(`player:${entities.localPlayerId}`);
     if(local&&!overview){desiredFocus.copy(local.root.position).add(new THREE.Vector3(0,1,0));const delta=desiredFocus.clone().sub(controls.target).multiplyScalar(1-Math.exp(-8*dt));camera.position.add(delta);controls.target.add(delta);}
     controls.update();
+    camera.updateMatrixWorld(true);
     if(now-lastInput>=50&&enabled){
       const x=Number(keys.has("d")||keys.has("arrowright"))-Number(keys.has("a")||keys.has("arrowleft"))||(step&&now<step.until?step.direction[0]:0);
       const z=Number(keys.has("s")||keys.has("arrowdown"))-Number(keys.has("w")||keys.has("arrowup"))||(step&&now<step.until?step.direction[1]:0);
@@ -138,18 +135,41 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       velocity.copy(right).multiplyScalar(x).addScaledVector(forward,-z);if(velocity.length()>1)velocity.normalize();
       if(x||z)walkingYaw=Math.atan2(velocity.x,velocity.z);callbacks.onMove([velocity.x,velocity.z],walkingYaw);lastInput=now;
     }
-    const nextFaded=new Set<THREE.Mesh>();
-    if(local&&!overview&&surfaces.length){
-      const target=local.root.position.clone().add(new THREE.Vector3(0,1,0));const direction=target.clone().sub(camera.position);raycaster.set(camera.position,direction.clone().normalize());raycaster.far=direction.length()-.3;
-      for(const hit of raycaster.intersectObjects(surfaces,false))if(hit.object instanceof THREE.Mesh)nextFaded.add(hit.object);
-      raycaster.far=Infinity;
+    // Ray tests are throttled; smoothing still runs every rendered frame.
+    if(now-lastOcclusionCheck>=50) {
+      occlusionHits = new Set<THREE.Mesh>();
+      if(local&&!overview&&surfaces.length) {
+        const target=local.root.position.clone().add(new THREE.Vector3(0,1.2,0));
+        const shoulder=new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld,0).multiplyScalar(.22);
+        scene.updateMatrixWorld(true);
+        for(const offset of [-1,0,1]) {
+          setOcclusionRay(raycaster,camera,target.clone().addScaledVector(shoulder,offset));
+          for(const hit of raycaster.intersectObjects(surfaces,false)) {
+            let visible=true;
+            for(let node:THREE.Object3D|null=hit.object;node;node=node.parent) if(!node.visible) visible=false;
+            if(visible&&hit.object instanceof THREE.Mesh) occlusionHits.add(hit.object);
+          }
+        }
+        raycaster.near=0; raycaster.far=Infinity;
+      }
+      lastOcclusionCheck=now;
     }
-    for(const mesh of new Set([...faded,...nextFaded]))for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material]){
-      const original=originalMaterial.get(material);if(!original)continue;const hidden=nextFaded.has(mesh);
-      const transparent=hidden||original.transparent;if(material.transparent!==transparent){material.transparent=transparent;material.needsUpdate=true;}
-      material.opacity=hidden ? .12 : original.opacity;material.depthWrite=hidden?false:original.depthWrite;
+    cutaway.update(occlusionHits,now,dt,(local?.root.position??focus).clone().add(new THREE.Vector3(0,1.2,0)),camera);
+    const checkLabels=now-lastLabelCheck>=120;
+    for (const actor of actors.values()) {
+      const head=actor.root.position.clone().add(new THREE.Vector3(0,2.1,0));
+      projected.copy(head).project(camera);
+      const outside=projected.z>1||projected.z< -1||Math.abs(projected.x)>1.05||Math.abs(projected.y)>1.05;
+      if(checkLabels&&!outside&&actor.npcId) {
+        setOcclusionRay(raycaster,camera,head);
+        actor.labelBlocked=raycaster.intersectObjects(surfaces,false).some(hit=>hit.object.visible&&hit.object instanceof THREE.Mesh&&!cutaway.isCutAway(hit.object,hit.point));
+        raycaster.near=0;raycaster.far=Infinity;
+      }
+      actor.label.style.display=outside||actor.labelBlocked?"none":"block";
+      actor.label.style.left=`${(projected.x*.5+.5)*host.clientWidth}px`;
+      actor.label.style.top=`${(-projected.y*.5+.5)*host.clientHeight}px`;
     }
-    faded=nextFaded;
+    if(checkLabels)lastLabelCheck=now;
     const selected=entities.npcs.find(n=>n.id===entities.selectedNpcId);ring.visible=Boolean(selected);if(selected)ring.position.set(selected.position[0],selected.position[1]+.04,selected.position[2]);
     renderer.render(scene,camera);frame=requestAnimationFrame(render);
   };frame=requestAnimationFrame(render);
@@ -172,6 +192,6 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       }
       for(const [key,actor]of actors)if(!present.has(key)){actor.avatar?.dispose();scene.remove(actor.root);disposeObject(actor.root);actor.label.remove();actors.delete(key);}
     },
-    dispose(){stopped=true;cancelAnimationFrame(frame);resize.disconnect();resetInput();controls.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
+    dispose(){stopped=true;cancelAnimationFrame(frame);resize.disconnect();resetInput();controls.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
   };
 }
