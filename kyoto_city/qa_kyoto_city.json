@@ -1,0 +1,4758 @@
+{
+  "path": "/Users/ryansouthall/Documents/ChatGPT/Hackathon with Alan/kyoto_city/exports/kyoto_city.glb",
+  "verdict": "PASS",
+  "issues": [],
+  "checks": {
+    "header_lengths": true,
+    "accessors_decoded": 710,
+    "active_scene": 0,
+    "reachable_nodes": 298
+  },
+  "file_bytes": 22392928,
+  "asset": {
+    "generator": "Khronos glTF Blender I/O v5.2.40",
+    "version": "2.0"
+  },
+  "chunk_bytes": [
+    {
+      "kind": "0x4e4f534a",
+      "bytes": 205060
+    },
+    {
+      "kind": "0x4e4942",
+      "bytes": 22187840
+    }
+  ],
+  "counts": {
+    "buffers": 1,
+    "bufferViews": 710,
+    "accessors": 710,
+    "meshes": 257,
+    "materials": 31,
+    "nodes": 298,
+    "scenes": 1,
+    "textures": 0,
+    "images": 0,
+    "samplers": 0,
+    "cameras": 0,
+    "skins": 0
+  },
+  "triangles_unique_mesh_data": 432717,
+  "triangles_active_scene_with_instances": 432717,
+  "mesh_triangles": [
+    {
+      "mesh": 0,
+      "name": "SM_Architecture_Inn_lantern",
+      "triangles": 576
+    },
+    {
+      "mesh": 1,
+      "name": "SM_Architecture_Inn_paper",
+      "triangles": 252
+    },
+    {
+      "mesh": 2,
+      "name": "SM_Architecture_Inn_plaster",
+      "triangles": 14
+    },
+    {
+      "mesh": 3,
+      "name": "SM_Architecture_Inn_plaster_warm",
+      "triangles": 12
+    },
+    {
+      "mesh": 4,
+      "name": "SM_Architecture_Inn_roof",
+      "triangles": 3448
+    },
+    {
+      "mesh": 5,
+      "name": "SM_Architecture_Inn_roof_edge",
+      "triangles": 9548
+    },
+    {
+      "mesh": 6,
+      "name": "SM_Architecture_Inn_sage",
+      "triangles": 120
+    },
+    {
+      "mesh": 7,
+      "name": "SM_Architecture_Inn_stone",
+      "triangles": 88
+    },
+    {
+      "mesh": 8,
+      "name": "SM_Architecture_Inn_stone_light",
+      "triangles": 44
+    },
+    {
+      "mesh": 9,
+      "name": "SM_Architecture_Inn_wood",
+      "triangles": 3720
+    },
+    {
+      "mesh": 10,
+      "name": "SM_Architecture_Inn_wood_dark",
+      "triangles": 1492
+    },
+    {
+      "mesh": 11,
+      "name": "SM_Architecture_Inn_wood_light",
+      "triangles": 780
+    },
+    {
+      "mesh": 12,
+      "name": "SM_Architecture_Merchant_ceramic",
+      "triangles": 752
+    },
+    {
+      "mesh": 13,
+      "name": "SM_Architecture_Merchant_lantern",
+      "triangles": 576
+    },
+    {
+      "mesh": 14,
+      "name": "SM_Architecture_Merchant_paper",
+      "triangles": 252
+    },
+    {
+      "mesh": 15,
+      "name": "SM_Architecture_Merchant_plaster",
+      "triangles": 14
+    },
+    {
+      "mesh": 16,
+      "name": "SM_Architecture_Merchant_plaster_warm",
+      "triangles": 12
+    },
+    {
+      "mesh": 17,
+      "name": "SM_Architecture_Merchant_roof",
+      "triangles": 3440
+    },
+    {
+      "mesh": 18,
+      "name": "SM_Architecture_Merchant_roof_edge",
+      "triangles": 9032
+    },
+    {
+      "mesh": 19,
+      "name": "SM_Architecture_Merchant_sage",
+      "triangles": 44
+    },
+    {
+      "mesh": 20,
+      "name": "SM_Architecture_Merchant_stone",
+      "triangles": 88
+    },
+    {
+      "mesh": 21,
+      "name": "SM_Architecture_Merchant_stone_light",
+      "triangles": 44
+    },
+    {
+      "mesh": 22,
+      "name": "SM_Architecture_Merchant_vermilion",
+      "triangles": 164
+    },
+    {
+      "mesh": 23,
+      "name": "SM_Architecture_Merchant_wood",
+      "triangles": 3732
+    },
+    {
+      "mesh": 24,
+      "name": "SM_Architecture_Merchant_wood_dark",
+      "triangles": 1680
+    },
+    {
+      "mesh": 25,
+      "name": "SM_Architecture_Merchant_wood_light",
+      "triangles": 912
+    },
+    {
+      "mesh": 26,
+      "name": "SM_Architecture_TeaHouse_ceramic",
+      "triangles": 752
+    },
+    {
+      "mesh": 27,
+      "name": "SM_Architecture_TeaHouse_indigo",
+      "triangles": 120
+    },
+    {
+      "mesh": 28,
+      "name": "SM_Architecture_TeaHouse_lantern",
+      "triangles": 576
+    },
+    {
+      "mesh": 29,
+      "name": "SM_Architecture_TeaHouse_paper",
+      "triangles": 252
+    },
+    {
+      "mesh": 30,
+      "name": "SM_Architecture_TeaHouse_plaster",
+      "triangles": 14
+    },
+    {
+      "mesh": 31,
+      "name": "SM_Architecture_TeaHouse_plaster_warm",
+      "triangles": 12
+    },
+    {
+      "mesh": 32,
+      "name": "SM_Architecture_TeaHouse_roof",
+      "triangles": 3440
+    },
+    {
+      "mesh": 33,
+      "name": "SM_Architecture_TeaHouse_roof_edge",
+      "triangles": 9032
+    },
+    {
+      "mesh": 34,
+      "name": "SM_Architecture_TeaHouse_sage",
+      "triangles": 44
+    },
+    {
+      "mesh": 35,
+      "name": "SM_Architecture_TeaHouse_stone",
+      "triangles": 88
+    },
+    {
+      "mesh": 36,
+      "name": "SM_Architecture_TeaHouse_stone_light",
+      "triangles": 44
+    },
+    {
+      "mesh": 37,
+      "name": "SM_Architecture_TeaHouse_vermilion",
+      "triangles": 44
+    },
+    {
+      "mesh": 38,
+      "name": "SM_Architecture_TeaHouse_wood",
+      "triangles": 3732
+    },
+    {
+      "mesh": 39,
+      "name": "SM_Architecture_TeaHouse_wood_dark",
+      "triangles": 1680
+    },
+    {
+      "mesh": 40,
+      "name": "SM_Architecture_TeaHouse_wood_light",
+      "triangles": 912
+    },
+    {
+      "mesh": 41,
+      "name": "SM_Bridge_brass",
+      "triangles": 2160
+    },
+    {
+      "mesh": 42,
+      "name": "SM_Bridge_stone_light",
+      "triangles": 88
+    },
+    {
+      "mesh": 43,
+      "name": "SM_Bridge_vermilion",
+      "triangles": 5160
+    },
+    {
+      "mesh": 44,
+      "name": "SM_Bridge_wood_dark",
+      "triangles": 1232
+    },
+    {
+      "mesh": 45,
+      "name": "SM_Bridge_wood_light",
+      "triangles": 1848
+    },
+    {
+      "mesh": 46,
+      "name": "SM_City_Gardens_blossom",
+      "triangles": 11160
+    },
+    {
+      "mesh": 47,
+      "name": "SM_City_Gardens_blossom_dark",
+      "triangles": 2520
+    },
+    {
+      "mesh": 48,
+      "name": "SM_City_Gardens_blossom_light",
+      "triangles": 9360
+    },
+    {
+      "mesh": 49,
+      "name": "SM_City_Gardens_leaf",
+      "triangles": 1936
+    },
+    {
+      "mesh": 50,
+      "name": "SM_City_Gardens_leaf_light",
+      "triangles": 1600
+    },
+    {
+      "mesh": 51,
+      "name": "SM_City_Gardens_moss",
+      "triangles": 216
+    },
+    {
+      "mesh": 52,
+      "name": "SM_City_Gardens_petal",
+      "triangles": 354
+    },
+    {
+      "mesh": 53,
+      "name": "SM_City_Gardens_sage",
+      "triangles": 3248
+    },
+    {
+      "mesh": 54,
+      "name": "SM_City_Gardens_sakura_canopy_vertex",
+      "triangles": 9240
+    },
+    {
+      "mesh": 55,
+      "name": "SM_City_Gardens_stone",
+      "triangles": 1440
+    },
+    {
+      "mesh": 56,
+      "name": "SM_City_Gardens_wood",
+      "triangles": 256
+    },
+    {
+      "mesh": 57,
+      "name": "SM_City_Gardens_wood_dark",
+      "triangles": 3120
+    },
+    {
+      "mesh": 58,
+      "name": "SM_City_Gardens_wood_light",
+      "triangles": 3360
+    },
+    {
+      "mesh": 59,
+      "name": "SM_City_Ground_grass",
+      "triangles": 24
+    },
+    {
+      "mesh": 60,
+      "name": "SM_City_Ground_soil",
+      "triangles": 24
+    },
+    {
+      "mesh": 61,
+      "name": "SM_City_Ground_stone",
+      "triangles": 3008
+    },
+    {
+      "mesh": 62,
+      "name": "SM_City_Ground_stone_dark",
+      "triangles": 56
+    },
+    {
+      "mesh": 63,
+      "name": "SM_City_Ground_stone_light",
+      "triangles": 5392
+    },
+    {
+      "mesh": 64,
+      "name": "SM_City_Ground_water",
+      "triangles": 4212
+    },
+    {
+      "mesh": 65,
+      "name": "SM_City_Ground_water_light",
+      "triangles": 420
+    },
+    {
+      "mesh": 66,
+      "name": "SM_City_Market_blossom_light",
+      "triangles": 384
+    },
+    {
+      "mesh": 67,
+      "name": "SM_City_Market_brass",
+      "triangles": 72
+    },
+    {
+      "mesh": 68,
+      "name": "SM_City_Market_ceramic",
+      "triangles": 180
+    },
+    {
+      "mesh": 69,
+      "name": "SM_City_Market_indigo",
+      "triangles": 120
+    },
+    {
+      "mesh": 70,
+      "name": "SM_City_Market_leaf_light",
+      "triangles": 664
+    },
+    {
+      "mesh": 71,
+      "name": "SM_City_Market_paper",
+      "triangles": 1296
+    },
+    {
+      "mesh": 72,
+      "name": "SM_City_Market_sage",
+      "triangles": 60
+    },
+    {
+      "mesh": 73,
+      "name": "SM_City_Market_stone",
+      "triangles": 5
+    },
+    {
+      "mesh": 74,
+      "name": "SM_City_Market_stone_light",
+      "triangles": 320
+    },
+    {
+      "mesh": 75,
+      "name": "SM_City_Market_vermilion",
+      "triangles": 200
+    },
+    {
+      "mesh": 76,
+      "name": "SM_City_Market_wood",
+      "triangles": 176
+    },
+    {
+      "mesh": 77,
+      "name": "SM_City_Market_wood_dark",
+      "triangles": 2220
+    },
+    {
+      "mesh": 78,
+      "name": "SM_City_Market_wood_light",
+      "triangles": 492
+    },
+    {
+      "mesh": 79,
+      "name": "SM_City_Street_paper",
+      "triangles": 1000
+    },
+    {
+      "mesh": 80,
+      "name": "SM_City_Street_paving",
+      "triangles": 22728
+    },
+    {
+      "mesh": 81,
+      "name": "SM_City_Street_sand",
+      "triangles": 2100
+    },
+    {
+      "mesh": 82,
+      "name": "SM_City_Street_stone",
+      "triangles": 1568
+    },
+    {
+      "mesh": 83,
+      "name": "SM_City_Street_stone_light",
+      "triangles": 3448
+    },
+    {
+      "mesh": 84,
+      "name": "SM_City_Street_wood",
+      "triangles": 4776
+    },
+    {
+      "mesh": 85,
+      "name": "SM_City_Street_wood_dark",
+      "triangles": 2192
+    },
+    {
+      "mesh": 86,
+      "name": "SM_City_Street_wood_light",
+      "triangles": 2152
+    },
+    {
+      "mesh": 87,
+      "name": "SM_Gardens_leaf",
+      "triangles": 144
+    },
+    {
+      "mesh": 88,
+      "name": "SM_Gardens_moss",
+      "triangles": 208
+    },
+    {
+      "mesh": 89,
+      "name": "SM_Gardens_paving",
+      "triangles": 132
+    },
+    {
+      "mesh": 90,
+      "name": "SM_Gardens_sage",
+      "triangles": 1392
+    },
+    {
+      "mesh": 91,
+      "name": "SM_Gardens_sand",
+      "triangles": 44
+    },
+    {
+      "mesh": 92,
+      "name": "SM_Gardens_stone",
+      "triangles": 1920
+    },
+    {
+      "mesh": 93,
+      "name": "SM_Gardens_stone_light",
+      "triangles": 7564
+    },
+    {
+      "mesh": 94,
+      "name": "SM_Gardens_wood_light",
+      "triangles": 1440
+    },
+    {
+      "mesh": 95,
+      "name": "SM_Ground_stone_light",
+      "triangles": 3740
+    },
+    {
+      "mesh": 96,
+      "name": "SM_Nature_Ground_blossom_dark",
+      "triangles": 2400
+    },
+    {
+      "mesh": 97,
+      "name": "SM_Nature_Ground_grass",
+      "triangles": 525
+    },
+    {
+      "mesh": 98,
+      "name": "SM_Nature_Ground_leaf",
+      "triangles": 2160
+    },
+    {
+      "mesh": 99,
+      "name": "SM_Nature_Ground_leaf_light",
+      "triangles": 1935
+    },
+    {
+      "mesh": 100,
+      "name": "SM_Nature_Ground_moss",
+      "triangles": 1360
+    },
+    {
+      "mesh": 101,
+      "name": "SM_Nature_Petals_petal",
+      "triangles": 530
+    },
+    {
+      "mesh": 102,
+      "name": "SM_Nature_Stones_stone",
+      "triangles": 1600
+    },
+    {
+      "mesh": 103,
+      "name": "SM_Nature_Stones_stone_light",
+      "triangles": 3200
+    },
+    {
+      "mesh": 104,
+      "name": "SM_Nature_Trees_blossom",
+      "triangles": 21240
+    },
+    {
+      "mesh": 105,
+      "name": "SM_Nature_Trees_blossom_dark",
+      "triangles": 3120
+    },
+    {
+      "mesh": 106,
+      "name": "SM_Nature_Trees_blossom_light",
+      "triangles": 14040
+    },
+    {
+      "mesh": 107,
+      "name": "SM_Nature_Trees_leaf",
+      "triangles": 1440
+    },
+    {
+      "mesh": 108,
+      "name": "SM_Nature_Trees_leaf_light",
+      "triangles": 1040
+    },
+    {
+      "mesh": 109,
+      "name": "SM_Nature_Trees_sakura_canopy_vertex",
+      "triangles": 15400
+    },
+    {
+      "mesh": 110,
+      "name": "SM_Nature_Trees_wood",
+      "triangles": 228
+    },
+    {
+      "mesh": 111,
+      "name": "SM_Nature_Trees_wood_dark",
+      "triangles": 5322
+    },
+    {
+      "mesh": 112,
+      "name": "SM_Pagoda_brass",
+      "triangles": 1940
+    },
+    {
+      "mesh": 113,
+      "name": "SM_Pagoda_plaster_warm",
+      "triangles": 48
+    },
+    {
+      "mesh": 114,
+      "name": "SM_Pagoda_roof",
+      "triangles": 11200
+    },
+    {
+      "mesh": 115,
+      "name": "SM_Pagoda_roof_edge",
+      "triangles": 17248
+    },
+    {
+      "mesh": 116,
+      "name": "SM_Pagoda_stone",
+      "triangles": 88
+    },
+    {
+      "mesh": 117,
+      "name": "SM_Pagoda_stone_light",
+      "triangles": 308
+    },
+    {
+      "mesh": 118,
+      "name": "SM_Pagoda_vermilion",
+      "triangles": 4648
+    },
+    {
+      "mesh": 119,
+      "name": "SM_Pagoda_wood_dark",
+      "triangles": 2684
+    },
+    {
+      "mesh": 120,
+      "name": "SM_Pagoda_wood_light",
+      "triangles": 1056
+    },
+    {
+      "mesh": 121,
+      "name": "SM_Street_lantern",
+      "triangles": 264
+    },
+    {
+      "mesh": 122,
+      "name": "SM_Street_stone",
+      "triangles": 564
+    },
+    {
+      "mesh": 123,
+      "name": "SM_Street_stone_dark",
+      "triangles": 88
+    },
+    {
+      "mesh": 124,
+      "name": "SM_Street_stone_light",
+      "triangles": 1464
+    },
+    {
+      "mesh": 125,
+      "name": "SM_Street_vermilion",
+      "triangles": 188
+    },
+    {
+      "mesh": 126,
+      "name": "SM_Street_wood",
+      "triangles": 572
+    },
+    {
+      "mesh": 127,
+      "name": "SM_Street_wood_dark",
+      "triangles": 268
+    },
+    {
+      "mesh": 128,
+      "name": "SM_Street_wood_light",
+      "triangles": 88
+    },
+    {
+      "mesh": 129,
+      "name": "SM_TeaGarden_ceramic",
+      "triangles": 432
+    },
+    {
+      "mesh": 130,
+      "name": "SM_TeaGarden_indigo",
+      "triangles": 176
+    },
+    {
+      "mesh": 131,
+      "name": "SM_TeaGarden_paper",
+      "triangles": 96
+    },
+    {
+      "mesh": 132,
+      "name": "SM_TeaGarden_stone",
+      "triangles": 220
+    },
+    {
+      "mesh": 133,
+      "name": "SM_TeaGarden_stone_light",
+      "triangles": 44
+    },
+    {
+      "mesh": 134,
+      "name": "SM_TeaGarden_vermilion",
+      "triangles": 384
+    },
+    {
+      "mesh": 135,
+      "name": "SM_TeaGarden_wood",
+      "triangles": 1140
+    },
+    {
+      "mesh": 136,
+      "name": "SM_TeaGarden_wood_dark",
+      "triangles": 684
+    },
+    {
+      "mesh": 137,
+      "name": "SM_TeaGarden_wood_light",
+      "triangles": 2056
+    },
+    {
+      "mesh": 138,
+      "name": "SM_Venue_bookshop_tsuki_indigo",
+      "triangles": 612
+    },
+    {
+      "mesh": 139,
+      "name": "SM_Venue_bookshop_tsuki_lantern",
+      "triangles": 488
+    },
+    {
+      "mesh": 140,
+      "name": "SM_Venue_bookshop_tsuki_paper",
+      "triangles": 4436
+    },
+    {
+      "mesh": 141,
+      "name": "SM_Venue_bookshop_tsuki_plaster",
+      "triangles": 62
+    },
+    {
+      "mesh": 142,
+      "name": "SM_Venue_bookshop_tsuki_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "mesh": 143,
+      "name": "SM_Venue_bookshop_tsuki_roof",
+      "triangles": 832
+    },
+    {
+      "mesh": 144,
+      "name": "SM_Venue_bookshop_tsuki_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "mesh": 145,
+      "name": "SM_Venue_bookshop_tsuki_sage",
+      "triangles": 628
+    },
+    {
+      "mesh": 146,
+      "name": "SM_Venue_bookshop_tsuki_stone_light",
+      "triangles": 12
+    },
+    {
+      "mesh": 147,
+      "name": "SM_Venue_bookshop_tsuki_vermilion",
+      "triangles": 588
+    },
+    {
+      "mesh": 148,
+      "name": "SM_Venue_bookshop_tsuki_wood",
+      "triangles": 1968
+    },
+    {
+      "mesh": 149,
+      "name": "SM_Venue_bookshop_tsuki_wood_dark",
+      "triangles": 3959
+    },
+    {
+      "mesh": 150,
+      "name": "SM_Venue_bookshop_tsuki_wood_light",
+      "triangles": 864
+    },
+    {
+      "mesh": 151,
+      "name": "SM_Venue_izakaya_tomo_ceramic",
+      "triangles": 2460
+    },
+    {
+      "mesh": 152,
+      "name": "SM_Venue_izakaya_tomo_indigo",
+      "triangles": 184
+    },
+    {
+      "mesh": 153,
+      "name": "SM_Venue_izakaya_tomo_lantern",
+      "triangles": 488
+    },
+    {
+      "mesh": 154,
+      "name": "SM_Venue_izakaya_tomo_paper",
+      "triangles": 1656
+    },
+    {
+      "mesh": 155,
+      "name": "SM_Venue_izakaya_tomo_plaster",
+      "triangles": 62
+    },
+    {
+      "mesh": 156,
+      "name": "SM_Venue_izakaya_tomo_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "mesh": 157,
+      "name": "SM_Venue_izakaya_tomo_roof",
+      "triangles": 832
+    },
+    {
+      "mesh": 158,
+      "name": "SM_Venue_izakaya_tomo_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "mesh": 159,
+      "name": "SM_Venue_izakaya_tomo_sage",
+      "triangles": 2120
+    },
+    {
+      "mesh": 160,
+      "name": "SM_Venue_izakaya_tomo_sand",
+      "triangles": 88
+    },
+    {
+      "mesh": 161,
+      "name": "SM_Venue_izakaya_tomo_stone_light",
+      "triangles": 12
+    },
+    {
+      "mesh": 162,
+      "name": "SM_Venue_izakaya_tomo_vermilion",
+      "triangles": 96
+    },
+    {
+      "mesh": 163,
+      "name": "SM_Venue_izakaya_tomo_wood",
+      "triangles": 1976
+    },
+    {
+      "mesh": 164,
+      "name": "SM_Venue_izakaya_tomo_wood_dark",
+      "triangles": 5909
+    },
+    {
+      "mesh": 165,
+      "name": "SM_Venue_izakaya_tomo_wood_light",
+      "triangles": 1872
+    },
+    {
+      "mesh": 166,
+      "name": "SM_Venue_kissa_aoi_blossom_dark",
+      "triangles": 48
+    },
+    {
+      "mesh": 167,
+      "name": "SM_Venue_kissa_aoi_brass",
+      "triangles": 12
+    },
+    {
+      "mesh": 168,
+      "name": "SM_Venue_kissa_aoi_ceramic",
+      "triangles": 2080
+    },
+    {
+      "mesh": 169,
+      "name": "SM_Venue_kissa_aoi_indigo",
+      "triangles": 52
+    },
+    {
+      "mesh": 170,
+      "name": "SM_Venue_kissa_aoi_lantern",
+      "triangles": 488
+    },
+    {
+      "mesh": 171,
+      "name": "SM_Venue_kissa_aoi_paper",
+      "triangles": 848
+    },
+    {
+      "mesh": 172,
+      "name": "SM_Venue_kissa_aoi_plaster",
+      "triangles": 74
+    },
+    {
+      "mesh": 173,
+      "name": "SM_Venue_kissa_aoi_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "mesh": 174,
+      "name": "SM_Venue_kissa_aoi_roof",
+      "triangles": 832
+    },
+    {
+      "mesh": 175,
+      "name": "SM_Venue_kissa_aoi_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "mesh": 176,
+      "name": "SM_Venue_kissa_aoi_sand",
+      "triangles": 124
+    },
+    {
+      "mesh": 177,
+      "name": "SM_Venue_kissa_aoi_stone_dark",
+      "triangles": 44
+    },
+    {
+      "mesh": 178,
+      "name": "SM_Venue_kissa_aoi_stone_light",
+      "triangles": 12
+    },
+    {
+      "mesh": 179,
+      "name": "SM_Venue_kissa_aoi_wood",
+      "triangles": 1544
+    },
+    {
+      "mesh": 180,
+      "name": "SM_Venue_kissa_aoi_wood_dark",
+      "triangles": 3722
+    },
+    {
+      "mesh": 181,
+      "name": "SM_Venue_kissa_aoi_wood_light",
+      "triangles": 340
+    },
+    {
+      "mesh": 182,
+      "name": "SM_Venue_market_provisions_ceramic",
+      "triangles": 4400
+    },
+    {
+      "mesh": 183,
+      "name": "SM_Venue_market_provisions_grass",
+      "triangles": 320
+    },
+    {
+      "mesh": 184,
+      "name": "SM_Venue_market_provisions_lantern",
+      "triangles": 488
+    },
+    {
+      "mesh": 185,
+      "name": "SM_Venue_market_provisions_paper",
+      "triangles": 1292
+    },
+    {
+      "mesh": 186,
+      "name": "SM_Venue_market_provisions_plaster",
+      "triangles": 74
+    },
+    {
+      "mesh": 187,
+      "name": "SM_Venue_market_provisions_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "mesh": 188,
+      "name": "SM_Venue_market_provisions_roof",
+      "triangles": 832
+    },
+    {
+      "mesh": 189,
+      "name": "SM_Venue_market_provisions_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "mesh": 190,
+      "name": "SM_Venue_market_provisions_sage",
+      "triangles": 372
+    },
+    {
+      "mesh": 191,
+      "name": "SM_Venue_market_provisions_sand",
+      "triangles": 496
+    },
+    {
+      "mesh": 192,
+      "name": "SM_Venue_market_provisions_stone_light",
+      "triangles": 12
+    },
+    {
+      "mesh": 193,
+      "name": "SM_Venue_market_provisions_vermilion",
+      "triangles": 320
+    },
+    {
+      "mesh": 194,
+      "name": "SM_Venue_market_provisions_wood",
+      "triangles": 1296
+    },
+    {
+      "mesh": 195,
+      "name": "SM_Venue_market_provisions_wood_dark",
+      "triangles": 4460
+    },
+    {
+      "mesh": 196,
+      "name": "SM_Venue_market_provisions_wood_light",
+      "triangles": 312
+    },
+    {
+      "mesh": 197,
+      "name": "SM_Venue_ramen_akari_ceramic",
+      "triangles": 2762
+    },
+    {
+      "mesh": 198,
+      "name": "SM_Venue_ramen_akari_lantern",
+      "triangles": 488
+    },
+    {
+      "mesh": 199,
+      "name": "SM_Venue_ramen_akari_paper",
+      "triangles": 1172
+    },
+    {
+      "mesh": 200,
+      "name": "SM_Venue_ramen_akari_plaster",
+      "triangles": 74
+    },
+    {
+      "mesh": 201,
+      "name": "SM_Venue_ramen_akari_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "mesh": 202,
+      "name": "SM_Venue_ramen_akari_roof",
+      "triangles": 832
+    },
+    {
+      "mesh": 203,
+      "name": "SM_Venue_ramen_akari_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "mesh": 204,
+      "name": "SM_Venue_ramen_akari_sage",
+      "triangles": 240
+    },
+    {
+      "mesh": 205,
+      "name": "SM_Venue_ramen_akari_sand",
+      "triangles": 220
+    },
+    {
+      "mesh": 206,
+      "name": "SM_Venue_ramen_akari_stone",
+      "triangles": 88
+    },
+    {
+      "mesh": 207,
+      "name": "SM_Venue_ramen_akari_stone_dark",
+      "triangles": 44
+    },
+    {
+      "mesh": 208,
+      "name": "SM_Venue_ramen_akari_stone_light",
+      "triangles": 12
+    },
+    {
+      "mesh": 209,
+      "name": "SM_Venue_ramen_akari_vermilion",
+      "triangles": 424
+    },
+    {
+      "mesh": 210,
+      "name": "SM_Venue_ramen_akari_wood",
+      "triangles": 1352
+    },
+    {
+      "mesh": 211,
+      "name": "SM_Venue_ramen_akari_wood_dark",
+      "triangles": 3663
+    },
+    {
+      "mesh": 212,
+      "name": "SM_Venue_ramen_akari_wood_light",
+      "triangles": 264
+    },
+    {
+      "mesh": 213,
+      "name": "SM_Venue_restaurant_momiji_ceramic",
+      "triangles": 1398
+    },
+    {
+      "mesh": 214,
+      "name": "SM_Venue_restaurant_momiji_lantern",
+      "triangles": 488
+    },
+    {
+      "mesh": 215,
+      "name": "SM_Venue_restaurant_momiji_paper",
+      "triangles": 1276
+    },
+    {
+      "mesh": 216,
+      "name": "SM_Venue_restaurant_momiji_plaster",
+      "triangles": 74
+    },
+    {
+      "mesh": 217,
+      "name": "SM_Venue_restaurant_momiji_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "mesh": 218,
+      "name": "SM_Venue_restaurant_momiji_roof",
+      "triangles": 832
+    },
+    {
+      "mesh": 219,
+      "name": "SM_Venue_restaurant_momiji_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "mesh": 220,
+      "name": "SM_Venue_restaurant_momiji_sage",
+      "triangles": 144
+    },
+    {
+      "mesh": 221,
+      "name": "SM_Venue_restaurant_momiji_sand",
+      "triangles": 132
+    },
+    {
+      "mesh": 222,
+      "name": "SM_Venue_restaurant_momiji_stone_dark",
+      "triangles": 44
+    },
+    {
+      "mesh": 223,
+      "name": "SM_Venue_restaurant_momiji_stone_light",
+      "triangles": 12
+    },
+    {
+      "mesh": 224,
+      "name": "SM_Venue_restaurant_momiji_vermilion",
+      "triangles": 372
+    },
+    {
+      "mesh": 225,
+      "name": "SM_Venue_restaurant_momiji_wood",
+      "triangles": 1392
+    },
+    {
+      "mesh": 226,
+      "name": "SM_Venue_restaurant_momiji_wood_dark",
+      "triangles": 3204
+    },
+    {
+      "mesh": 227,
+      "name": "SM_Venue_restaurant_momiji_wood_light",
+      "triangles": 248
+    },
+    {
+      "mesh": 228,
+      "name": "SM_Venue_sakura_bakery_blossom_dark",
+      "triangles": 292
+    },
+    {
+      "mesh": 229,
+      "name": "SM_Venue_sakura_bakery_ceramic",
+      "triangles": 2112
+    },
+    {
+      "mesh": 230,
+      "name": "SM_Venue_sakura_bakery_lantern",
+      "triangles": 500
+    },
+    {
+      "mesh": 231,
+      "name": "SM_Venue_sakura_bakery_paper",
+      "triangles": 1592
+    },
+    {
+      "mesh": 232,
+      "name": "SM_Venue_sakura_bakery_plaster",
+      "triangles": 74
+    },
+    {
+      "mesh": 233,
+      "name": "SM_Venue_sakura_bakery_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "mesh": 234,
+      "name": "SM_Venue_sakura_bakery_roof",
+      "triangles": 832
+    },
+    {
+      "mesh": 235,
+      "name": "SM_Venue_sakura_bakery_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "mesh": 236,
+      "name": "SM_Venue_sakura_bakery_sand",
+      "triangles": 752
+    },
+    {
+      "mesh": 237,
+      "name": "SM_Venue_sakura_bakery_stone",
+      "triangles": 44
+    },
+    {
+      "mesh": 238,
+      "name": "SM_Venue_sakura_bakery_stone_light",
+      "triangles": 12
+    },
+    {
+      "mesh": 239,
+      "name": "SM_Venue_sakura_bakery_wood",
+      "triangles": 1312
+    },
+    {
+      "mesh": 240,
+      "name": "SM_Venue_sakura_bakery_wood_dark",
+      "triangles": 3391
+    },
+    {
+      "mesh": 241,
+      "name": "SM_Venue_sakura_bakery_wood_light",
+      "triangles": 392
+    },
+    {
+      "mesh": 242,
+      "name": "SM_Venue_tea_hanami_blossom_dark",
+      "triangles": 144
+    },
+    {
+      "mesh": 243,
+      "name": "SM_Venue_tea_hanami_ceramic",
+      "triangles": 2696
+    },
+    {
+      "mesh": 244,
+      "name": "SM_Venue_tea_hanami_indigo",
+      "triangles": 224
+    },
+    {
+      "mesh": 245,
+      "name": "SM_Venue_tea_hanami_lantern",
+      "triangles": 488
+    },
+    {
+      "mesh": 246,
+      "name": "SM_Venue_tea_hanami_paper",
+      "triangles": 544
+    },
+    {
+      "mesh": 247,
+      "name": "SM_Venue_tea_hanami_plaster",
+      "triangles": 74
+    },
+    {
+      "mesh": 248,
+      "name": "SM_Venue_tea_hanami_plaster_warm",
+      "triangles": 24
+    },
+    {
+      "mesh": 249,
+      "name": "SM_Venue_tea_hanami_roof",
+      "triangles": 832
+    },
+    {
+      "mesh": 250,
+      "name": "SM_Venue_tea_hanami_roof_edge",
+      "triangles": 1560
+    },
+    {
+      "mesh": 251,
+      "name": "SM_Venue_tea_hanami_sage",
+      "triangles": 252
+    },
+    {
+      "mesh": 252,
+      "name": "SM_Venue_tea_hanami_stone_light",
+      "triangles": 12
+    },
+    {
+      "mesh": 253,
+      "name": "SM_Venue_tea_hanami_wood",
+      "triangles": 1324
+    },
+    {
+      "mesh": 254,
+      "name": "SM_Venue_tea_hanami_wood_dark",
+      "triangles": 3640
+    },
+    {
+      "mesh": 255,
+      "name": "SM_Venue_tea_hanami_wood_light",
+      "triangles": 264
+    },
+    {
+      "mesh": 256,
+      "name": "SM_Water_water_light",
+      "triangles": 660
+    }
+  ],
+  "position_accessor_bounds": {
+    "0": {
+      "count": 292,
+      "min": [
+        9.010000228881836,
+        2.306500196456909,
+        -7.920000076293945
+      ],
+      "max": [
+        11.989999771118164,
+        2.9735000133514404,
+        -7.460000038146973
+      ]
+    },
+    "3": {
+      "count": 408,
+      "min": [
+        7.347499847412109,
+        0.690000057220459,
+        -14.103499412536621
+      ],
+      "max": [
+        14.193499565124512,
+        5.612400054931641,
+        -7.998000144958496
+      ]
+    },
+    "6": {
+      "count": 30,
+      "min": [
+        7.0,
+        3.5199999809265137,
+        -13.949999809265137
+      ],
+      "max": [
+        14.0,
+        7.769999980926514,
+        -8.449999809265137
+      ]
+    },
+    "9": {
+      "count": 24,
+      "min": [
+        7.050000190734863,
+        0.619999885559082,
+        -13.899999618530273
+      ],
+      "max": [
+        13.949999809265137,
+        3.5199999809265137,
+        -8.5
+      ]
+    },
+    "12": {
+      "count": 3668,
+      "min": [
+        6.400000095367432,
+        2.6500000953674316,
+        -15.010000228881836
+      ],
+      "max": [
+        15.494999885559082,
+        7.980000019073486,
+        -7.150000095367432
+      ]
+    },
+    "15": {
+      "count": 18312,
+      "min": [
+        6.319999694824219,
+        2.6421260833740234,
+        -15.015606880187988
+      ],
+      "max": [
+        15.523578643798828,
+        8.184999465942383,
+        -7.1453328132629395
+      ]
+    },
+    "18": {
+      "count": 240,
+      "min": [
+        9.46500015258789,
+        2.390000104904175,
+        -8.062267303466797
+      ],
+      "max": [
+        11.53499984741211,
+        3.0199999809265137,
+        -8.007923126220703
+      ]
+    },
+    "21": {
+      "count": 192,
+      "min": [
+        6.859999656677246,
+        0.23999999463558197,
+        -14.09000015258789
+      ],
+      "max": [
+        14.140000343322754,
+        0.6399999856948853,
+        -7.0
+      ]
+    },
+    "24": {
+      "count": 96,
+      "min": [
+        9.369999885559082,
+        0.25999999046325684,
+        -7.840000152587891
+      ],
+      "max": [
+        11.630000114440918,
+        0.5799999833106995,
+        -7.220000267028809
+      ]
+    },
+    "27": {
+      "count": 7296,
+      "min": [
+        6.78000020980835,
+        0.2399998903274536,
+        -15.043540954589844
+      ],
+      "max": [
+        15.405000686645508,
+        7.75,
+        -7.121294975280762
+      ]
+    },
+    "30": {
+      "count": 2880,
+      "min": [
+        6.349999904632568,
+        0.5850000381469727,
+        -15.09000015258789
+      ],
+      "max": [
+        15.519999504089355,
+        6.575000286102295,
+        -7.070000171661377
+      ]
+    },
+    "33": {
+      "count": 1568,
+      "min": [
+        7.00600004196167,
+        0.5349999666213989,
+        -14.260000228881836
+      ],
+      "max": [
+        14.350000381469727,
+        4.450000286102295,
+        -7.409999847412109
+      ]
+    },
+    "36": {
+      "count": 1440,
+      "min": [
+        -14.012999534606934,
+        0.28999999165534973,
+        4.899499893188477
+      ],
+      "max": [
+        -6.679500102996826,
+        1.8224999904632568,
+        8.003000259399414
+      ]
+    },
+    "39": {
+      "count": 292,
+      "min": [
+        -12.489999771118164,
+        2.306500196456909,
+        7.53000020980835
+      ],
+      "max": [
+        -9.510000228881836,
+        2.9735000133514404,
+        7.990000247955322
+      ]
+    },
+    "41": {
+      "count": 408,
+      "min": [
+        -14.15250015258789,
+        0.690000057220459,
+        0.846500039100647
+      ],
+      "max": [
+        -7.30649995803833,
+        5.355000019073486,
+        7.452000141143799
+      ]
+    },
+    "43": {
+      "count": 30,
+      "min": [
+        -14.5,
+        3.5199999809265137,
+        1.0
+      ],
+      "max": [
+        -7.5,
+        6.570000171661377,
+        7.0
+      ]
+    },
+    "45": {
+      "count": 24,
+      "min": [
+        -14.449999809265137,
+        0.619999885559082,
+        1.0499999523162842
+      ],
+      "max": [
+        -7.550000190734863,
+        3.5199999809265137,
+        6.949999809265137
+      ]
+    },
+    "47": {
+      "count": 3568,
+      "min": [
+        -15.100000381469727,
+        3.1500000953674316,
+        -0.05999999865889549
+      ],
+      "max": [
+        -6.900000095367432,
+        6.78000020980835,
+        8.300000190734863
+      ]
+    },
+    "50": {
+      "count": 17376,
+      "min": [
+        -15.180000305175781,
+        3.142331600189209,
+        -0.06560689955949783
+      ],
+      "max": [
+        -6.819999694824219,
+        6.985000133514404,
+        8.304666519165039
+      ]
+    },
+    "53": {
+      "count": 96,
+      "min": [
+        -8.97499942779541,
+        0.8649999499320984,
+        7.679999828338623
+      ],
+      "max": [
+        -8.335000038146973,
+        0.9350000023841858,
+        8.180000305175781
+      ]
+    },
+    "55": {
+      "count": 192,
+      "min": [
+        -14.640000343322754,
+        0.23999999463558197,
+        0.8599998950958252
+      ],
+      "max": [
+        -7.359999656677246,
+        0.6399999856948853,
+        8.449999809265137
+      ]
+    },
+    "57": {
+      "count": 96,
+      "min": [
+        -12.130000114440918,
+        0.25999999046325684,
+        7.610000133514404
+      ],
+      "max": [
+        -9.869999885559082,
+        0.5799999833106995,
+        8.230000495910645
+      ]
+    },
+    "59": {
+      "count": 336,
+      "min": [
+        -12.03499984741211,
+        0.7649999856948853,
+        7.387732028961182
+      ],
+      "max": [
+        -7.814999580383301,
+        3.0199999809265137,
+        8.25
+      ]
+    },
+    "62": {
+      "count": 7344,
+      "min": [
+        -14.720000267028809,
+        0.4724999964237213,
+        -0.09354090690612793
+      ],
+      "max": [
+        -6.625,
+        6.550000190734863,
+        8.328705787658691
+      ]
+    },
+    "65": {
+      "count": 3192,
+      "min": [
+        -15.149999618530273,
+        0.3449999988079071,
+        -0.14000000059604645
+      ],
+      "max": [
+        -6.849999904632568,
+        5.605000019073486,
+        8.380000114440918
+      ]
+    },
+    "68": {
+      "count": 1856,
+      "min": [
+        -14.493999481201172,
+        0.39500001072883606,
+        0.6899999976158142
+      ],
+      "max": [
+        -6.630000114440918,
+        4.450000286102295,
+        8.255000114440918
+      ]
+    },
+    "71": {
+      "count": 1440,
+      "min": [
+        6.986999988555908,
+        0.28999999165534973,
+        -2.1005001068115234
+      ],
+      "max": [
+        14.320500373840332,
+        1.8224999904632568,
+        1.003000020980835
+      ]
+    },
+    "73": {
+      "count": 240,
+      "min": [
+        8.96500015258789,
+        2.390000104904175,
+        0.38773226737976074
+      ],
+      "max": [
+        11.03499984741211,
+        3.0199999809265137,
+        0.4420766830444336
+      ]
+    },
+    "75": {
+      "count": 292,
+      "min": [
+        8.510000228881836,
+        2.306500196456909,
+        0.5299999713897705
+      ],
+      "max": [
+        11.489999771118164,
+        2.9735000133514404,
+        0.9900000095367432
+      ]
+    },
+    "77": {
+      "count": 408,
+      "min": [
+        6.847499847412109,
+        0.690000057220459,
+        -6.153499603271484
+      ],
+      "max": [
+        13.693499565124512,
+        5.478000164031982,
+        0.4519999921321869
+      ]
+    },
+    "79": {
+      "count": 30,
+      "min": [
+        6.5,
+        3.5200002193450928,
+        -6.0
+      ],
+      "max": [
+        13.5,
+        7.510000228881836,
+        -0.0
+      ]
+    },
+    "81": {
+      "count": 24,
+      "min": [
+        6.550000190734863,
+        0.619999885559082,
+        -5.949999809265137
+      ],
+      "max": [
+        13.449999809265137,
+        3.5199999809265137,
+        -0.04999995231628418
+      ]
+    },
+    "83": {
+      "count": 3568,
+      "min": [
+        5.900000095367432,
+        3.1500000953674316,
+        -7.059999942779541
+      ],
+      "max": [
+        14.100000381469727,
+        7.71999979019165,
+        1.2999999523162842
+      ]
+    },
+    "85": {
+      "count": 17376,
+      "min": [
+        5.819999694824219,
+        3.142331600189209,
+        -7.065607070922852
+      ],
+      "max": [
+        14.180000305175781,
+        7.925000190734863,
+        1.3046668767929077
+      ]
+    },
+    "87": {
+      "count": 96,
+      "min": [
+        12.02500057220459,
+        0.8649999499320984,
+        0.6800000071525574
+      ],
+      "max": [
+        12.664999961853027,
+        0.9350000023841858,
+        1.1800000667572021
+      ]
+    },
+    "89": {
+      "count": 192,
+      "min": [
+        6.359999656677246,
+        0.23999999463558197,
+        -6.140000343322754
+      ],
+      "max": [
+        13.640000343322754,
+        0.6399999856948853,
+        1.4500000476837158
+      ]
+    },
+    "91": {
+      "count": 96,
+      "min": [
+        8.869999885559082,
+        0.25999999046325684,
+        0.6100000143051147
+      ],
+      "max": [
+        11.130000114440918,
+        0.5799999833106995,
+        1.2300000190734863
+      ]
+    },
+    "93": {
+      "count": 96,
+      "min": [
+        11.505000114440918,
+        0.7649999856948853,
+        0.6100000143051147
+      ],
+      "max": [
+        13.1850004196167,
+        0.875,
+        1.25
+      ]
+    },
+    "95": {
+      "count": 7344,
+      "min": [
+        6.28000020980835,
+        0.4724999964237213,
+        -7.093541145324707
+      ],
+      "max": [
+        14.375,
+        7.489999771118164,
+        1.3287054300308228
+      ]
+    },
+    "98": {
+      "count": 3192,
+      "min": [
+        5.849999904632568,
+        0.3449999988079071,
+        -7.139999866485596
+      ],
+      "max": [
+        14.149999618530273,
+        6.295000076293945,
+        1.3799999952316284
+      ]
+    },
+    "100": {
+      "count": 1856,
+      "min": [
+        6.50600004196167,
+        0.39500001072883606,
+        -6.309999942779541
+      ],
+      "max": [
+        14.369999885559082,
+        4.450000286102295,
+        1.2549999952316284
+      ]
+    },
+    "102": {
+      "count": 1116,
+      "min": [
+        -3.7950000762939453,
+        1.4900000095367432,
+        2.0850000381469727
+      ],
+      "max": [
+        3.7950000762939453,
+        2.609999895095825,
+        5.914999961853027
+      ]
+    },
+    "105": {
+      "count": 192,
+      "min": [
+        -4.275000095367432,
+        0.0950000137090683,
+        2.0
+      ],
+      "max": [
+        4.275000095367432,
+        0.4449999928474426,
+        6.0
+      ]
+    },
+    "107": {
+      "count": 9216,
+      "min": [
+        -3.7350001335144043,
+        0.27000004053115845,
+        2.119999885559082
+      ],
+      "max": [
+        3.7350001335144043,
+        2.4499998092651367,
+        5.880000114440918
+      ]
+    },
+    "110": {
+      "count": 2112,
+      "min": [
+        -3.71689772605896,
+        -0.035343363881111145,
+        2.3399999141693115
+      ],
+      "max": [
+        3.71689772605896,
+        1.1499615907669067,
+        5.659999847412109
+      ]
+    },
+    "113": {
+      "count": 4032,
+      "min": [
+        -3.6659274101257324,
+        0.24288377165794373,
+        2.299999952316284
+      ],
+      "max": [
+        3.6659274101257324,
+        1.255322813987732,
+        5.699999809265137
+      ]
+    },
+    "116": {
+      "count": 33480,
+      "min": [
+        -31.78445816040039,
+        3.262235164642334,
+        -24.969274520874023
+      ],
+      "max": [
+        32.21891784667969,
+        4.959086894989014,
+        17.045068740844727
+      ]
+    },
+    "119": {
+      "count": 7560,
+      "min": [
+        -32.38848114013672,
+        3.2429606914520264,
+        -23.3482608795166
+      ],
+      "max": [
+        31.473356246948242,
+        4.304753303527832,
+        16.95499610900879
+      ]
+    },
+    "122": {
+      "count": 28080,
+      "min": [
+        -32.388954162597656,
+        3.3784236907958984,
+        -25.27592658996582
+      ],
+      "max": [
+        32.38631820678711,
+        5.0482330322265625,
+        17.272008895874023
+      ]
+    },
+    "125": {
+      "count": 1512,
+      "min": [
+        -32.966575622558594,
+        1.6858155727386475,
+        -15.758251190185547
+      ],
+      "max": [
+        33.280147552490234,
+        4.230000019073486,
+        21.148542404174805
+      ]
+    },
+    "128": {
+      "count": 840,
+      "min": [
+        -33.131507873535156,
+        1.7699999809265137,
+        -4.908981800079346
+      ],
+      "max": [
+        33.52014923095703,
+        4.230000019073486,
+        -2.570056676864624
+      ]
+    },
+    "131": {
+      "count": 640,
+      "min": [
+        -32.971092224121094,
+        0.27900001406669617,
+        -25.250825881958008
+      ],
+      "max": [
+        32.961883544921875,
+        0.28299999237060547,
+        21.79290771484375
+      ]
+    },
+    "134": {
+      "count": 708,
+      "min": [
+        -31.937652587890625,
+        0.2673799991607666,
+        -24.818119049072266
+      ],
+      "max": [
+        31.60390853881836,
+        0.26759999990463257,
+        16.999528884887695
+      ]
+    },
+    "137": {
+      "count": 6048,
+      "min": [
+        -32.57142639160156,
+        0.2483386993408203,
+        -15.707016944885254
+      ],
+      "max": [
+        32.46460723876953,
+        3.654026985168457,
+        21.221450805664062
+      ]
+    },
+    "140": {
+      "count": 5544,
+      "min": [
+        -32.29341125488281,
+        3.0230793952941895,
+        -25.27166748046875
+      ],
+      "max": [
+        32.58106231689453,
+        5.070401191711426,
+        17.233232498168945
+      ]
+    },
+    "144": {
+      "count": 4320,
+      "min": [
+        -33.12888717651367,
+        0.20000001788139343,
+        -25.3446102142334
+      ],
+      "max": [
+        33.12888717651367,
+        0.46000000834465027,
+        21.944608688354492
+      ]
+    },
+    "147": {
+      "count": 456,
+      "min": [
+        -32.352725982666016,
+        0.2401663362979889,
+        -4.459977149963379
+      ],
+      "max": [
+        32.71406936645508,
+        4.409833908081055,
+        -3.041494369506836
+      ]
+    },
+    "150": {
+      "count": 1722,
+      "min": [
+        -31.606477737426758,
+        0.21524694561958313,
+        -24.761075973510742
+      ],
+      "max": [
+        31.748401641845703,
+        4.355502605438232,
+        16.62066650390625
+      ]
+    },
+    "153": {
+      "count": 6048,
+      "min": [
+        -32.255592346191406,
+        0.5614538192749023,
+        -15.6482515335083
+      ],
+      "max": [
+        32.248775482177734,
+        3.181781053543091,
+        21.238540649414062
+      ]
+    },
+    "156": {
+      "count": 48,
+      "min": [
+        -34.0,
+        0.12999999523162842,
+        -28.0
+      ],
+      "max": [
+        34.0,
+        0.25,
+        26.0
+      ]
+    },
+    "159": {
+      "count": 48,
+      "min": [
+        -34.0,
+        -0.7799999713897705,
+        -28.0
+      ],
+      "max": [
+        34.0,
+        0.20000001788139343,
+        26.0
+      ]
+    },
+    "161": {
+      "count": 6048,
+      "min": [
+        -33.81999969482422,
+        -0.8025000095367432,
+        -28.0
+      ],
+      "max": [
+        33.81999969482422,
+        0.5899999737739563,
+        26.0
+      ]
+    },
+    "164": {
+      "count": 120,
+      "min": [
+        -34.0,
+        -1.850000023841858,
+        -28.0
+      ],
+      "max": [
+        34.0,
+        -0.5550000071525574,
+        26.0
+      ]
+    },
+    "167": {
+      "count": 11664,
+      "min": [
+        -3.315000057220459,
+        -0.8025000095367432,
+        -27.2549991607666
+      ],
+      "max": [
+        3.315000057220459,
+        0.32499998807907104,
+        24.971359252929688
+      ]
+    },
+    "170": {
+      "count": 2289,
+      "min": [
+        -2.690000057220459,
+        -0.21250000596046448,
+        -27.0
+      ],
+      "max": [
+        2.690000057220459,
+        -0.1280263215303421,
+        25.0
+      ]
+    },
+    "173": {
+      "count": 840,
+      "min": [
+        -2.2236552238464355,
+        -0.1600000113248825,
+        -25.79039192199707
+      ],
+      "max": [
+        2.503995418548584,
+        -0.15600000321865082,
+        24.493589401245117
+      ]
+    },
+    "176": {
+      "count": 204,
+      "min": [
+        14.570138931274414,
+        1.284999966621399,
+        22.610137939453125
+      ],
+      "max": [
+        16.41986083984375,
+        1.475000023841858,
+        22.809860229492188
+      ]
+    },
+    "179": {
+      "count": 120,
+      "min": [
+        -9.691190719604492,
+        1.587499976158142,
+        22.369998931884766
+      ],
+      "max": [
+        -7.708809852600098,
+        1.6325000524520874,
+        22.729999542236328
+      ]
+    },
+    "182": {
+      "count": 300,
+      "min": [
+        -9.67216968536377,
+        1.1999999284744263,
+        21.975000381469727
+      ],
+      "max": [
+        -7.72783088684082,
+        1.5950000286102295,
+        22.709999084472656
+      ]
+    },
+    "185": {
+      "count": 240,
+      "min": [
+        -10.279999732971191,
+        2.509999990463257,
+        21.732500076293945
+      ],
+      "max": [
+        10.279999732971191,
+        2.9800000190734863,
+        23.75
+      ]
+    },
+    "188": {
+      "count": 1044,
+      "min": [
+        -15.746705055236816,
+        1.284999966621399,
+        22.21013832092285
+      ],
+      "max": [
+        16.41986083984375,
+        1.670296311378479,
+        22.835277557373047
+      ]
+    },
+    "191": {
+      "count": 900,
+      "min": [
+        -16.621429443359375,
+        1.284999966621399,
+        21.57685089111328
+      ],
+      "max": [
+        16.61142921447754,
+        2.9800000190734863,
+        23.75
+      ]
+    },
+    "194": {
+      "count": 120,
+      "min": [
+        -17.079999923706055,
+        2.509999990463257,
+        21.732500076293945
+      ],
+      "max": [
+        -13.920000076293945,
+        2.9800000190734863,
+        23.75
+      ]
+    },
+    "197": {
+      "count": 15,
+      "min": [
+        7.659999847412109,
+        1.3899999856948853,
+        22.780000686645508
+      ],
+      "max": [
+        9.739999771118164,
+        1.3899999856948853,
+        22.950000762939453
+      ]
+    },
+    "200": {
+      "count": 170,
+      "min": [
+        7.685873508453369,
+        1.3250000476837158,
+        22.263704299926758
+      ],
+      "max": [
+        9.714127540588379,
+        1.4549999237060547,
+        22.796297073364258
+      ]
+    },
+    "203": {
+      "count": 540,
+      "min": [
+        -16.55211639404297,
+        1.3822746276855469,
+        21.732500076293945
+      ],
+      "max": [
+        17.079999923706055,
+        2.9800000190734863,
+        23.75
+      ]
+    },
+    "206": {
+      "count": 384,
+      "min": [
+        -16.799999237060547,
+        0.33500003814697266,
+        22.110000610351562
+      ],
+      "max": [
+        16.799999237060547,
+        1.1050000190734863,
+        23.389999389648438
+      ]
+    },
+    "209": {
+      "count": 4058,
+      "min": [
+        -24.19499969482422,
+        0.23999997973442078,
+        21.692501068115234
+      ],
+      "max": [
+        24.19499969482422,
+        2.950000047683716,
+        23.40999984741211
+      ]
+    },
+    "212": {
+      "count": 996,
+      "min": [
+        -24.579999923706055,
+        0.8700000047683716,
+        21.774999618530273
+      ],
+      "max": [
+        24.579999923706055,
+        1.4249999523162842,
+        23.479999542236328
+      ]
+    },
+    "215": {
+      "count": 520,
+      "min": [
+        -17.227764129638672,
+        2.3299999237060547,
+        -24.450000762939453
+      ],
+      "max": [
+        18.247764587402344,
+        3.0900001525878906,
+        21.25
+      ]
+    },
+    "218": {
+      "count": 45456,
+      "min": [
+        -30.989999771118164,
+        0.2524999976158142,
+        -26.989999771118164
+      ],
+      "max": [
+        30.989999771118164,
+        0.29750001430511475,
+        24.989999771118164
+      ]
+    },
+    "221": {
+      "count": 4200,
+      "min": [
+        -30.989999771118164,
+        0.2524999976158142,
+        -26.989999771118164
+      ],
+      "max": [
+        30.940000534057617,
+        0.29750001430511475,
+        24.59000015258789
+      ]
+    },
+    "224": {
+      "count": 3144,
+      "min": [
+        -4.144999980926514,
+        -0.6299999952316284,
+        -20.100000381469727
+      ],
+      "max": [
+        4.144999980926514,
+        1.3199999332427979,
+        -16.30000114440918
+      ]
+    },
+    "227": {
+      "count": 7128,
+      "min": [
+        -30.989999771118164,
+        0.10999998450279236,
+        -25.790000915527344
+      ],
+      "max": [
+        30.989999771118164,
+        1.2400000095367432,
+        24.59000015258789
+      ]
+    },
+    "230": {
+      "count": 10176,
+      "min": [
+        -33.744998931884766,
+        0.23499995470046997,
+        -27.7450008392334
+      ],
+      "max": [
+        33.744998931884766,
+        1.3050000667572021,
+        25.7450008392334
+      ]
+    },
+    "233": {
+      "count": 4224,
+      "min": [
+        -33.732913970947266,
+        0.2499999850988388,
+        -27.732912063598633
+      ],
+      "max": [
+        33.732913970947266,
+        3.1500000953674316,
+        25.732912063598633
+      ]
+    },
+    "236": {
+      "count": 3768,
+      "min": [
+        -23.42500114440918,
+        0.6449999809265137,
+        -24.454999923706055
+      ],
+      "max": [
+        23.42500114440918,
+        2.92900013923645,
+        23.270000457763672
+      ]
+    },
+    "239": {
+      "count": 288,
+      "min": [
+        -18.234981536865234,
+        1.508082389831543,
+        -12.494553565979004
+      ],
+      "max": [
+        -15.757993698120117,
+        2.9539387226104736,
+        -10.427641868591309
+      ]
+    },
+    "242": {
+      "count": 622,
+      "min": [
+        -17.873943328857422,
+        0.2770000100135803,
+        -15.459303855895996
+      ],
+      "max": [
+        17.91615867614746,
+        0.2849999964237213,
+        13.379364967346191
+      ]
+    },
+    "245": {
+      "count": 288,
+      "min": [
+        -15.300000190734863,
+        0.24049998819828033,
+        -14.65000057220459
+      ],
+      "max": [
+        14.899999618530273,
+        0.2654999792575836,
+        8.100000381469727
+      ]
+    },
+    "248": {
+      "count": 2592,
+      "min": [
+        -17.78258514404297,
+        0.247309148311615,
+        -12.460330963134766
+      ],
+      "max": [
+        -16.21038818359375,
+        3.068049907684326,
+        -10.286267280578613
+      ]
+    },
+    "251": {
+      "count": 96,
+      "min": [
+        -16.149999618530273,
+        0.24049998819828033,
+        -13.149999618530273
+      ],
+      "max": [
+        -5.849999904632568,
+        0.2654999792575836,
+        -2.8499999046325684
+      ]
+    },
+    "253": {
+      "count": 5760,
+      "min": [
+        -18.07888412475586,
+        0.20000001788139343,
+        -15.544608116149902
+      ],
+      "max": [
+        18.07888412475586,
+        0.46000000834465027,
+        13.544608116149902
+      ]
+    },
+    "256": {
+      "count": 16256,
+      "min": [
+        -16.036409378051758,
+        0.2510000169277191,
+        -14.623281478881836
+      ],
+      "max": [
+        14.897528648376465,
+        0.32100000977516174,
+        9.02757740020752
+      ]
+    },
+    "259": {
+      "count": 2592,
+      "min": [
+        -17.429800033569336,
+        0.5000206232070923,
+        -12.359553337097168
+      ],
+      "max": [
+        -16.443174362182617,
+        2.680938720703125,
+        -10.262640953063965
+      ]
+    },
+    "262": {
+      "count": 8160,
+      "min": [
+        -12.25,
+        0.242000013589859,
+        -2.884999990463257
+      ],
+      "max": [
+        10.579999923706055,
+        0.3100000023841858,
+        5.855000019073486
+      ]
+    },
+    "265": {
+      "count": 7200,
+      "min": [
+        -15.987987518310547,
+        0.564940869808197,
+        -14.84704875946045
+      ],
+      "max": [
+        16.097476959228516,
+        0.9165536761283875,
+        12.3255615234375
+      ]
+    },
+    "268": {
+      "count": 1225,
+      "min": [
+        -16.87763023376465,
+        0.25999999046325684,
+        -14.18077278137207
+      ],
+      "max": [
+        16.21246910095215,
+        0.6077826619148254,
+        13.179762840270996
+      ]
+    },
+    "271": {
+      "count": 6480,
+      "min": [
+        -16.747926712036133,
+        0.11054185032844543,
+        -15.167400360107422
+      ],
+      "max": [
+        16.619855880737305,
+        0.9695219993591309,
+        13.413920402526855
+      ]
+    },
+    "274": {
+      "count": 5475,
+      "min": [
+        -16.76795768737793,
+        0.09500083327293396,
+        -15.035001754760742
+      ],
+      "max": [
+        16.864444732666016,
+        0.9067519903182983,
+        13.299066543579102
+      ]
+    },
+    "277": {
+      "count": 3760,
+      "min": [
+        -17.114551544189453,
+        0.25999999046325684,
+        -15.10714340209961
+      ],
+      "max": [
+        16.674551010131836,
+        0.6800000071525574,
+        13.169901847839355
+      ]
+    },
+    "280": {
+      "count": 1060,
+      "min": [
+        -17.57291030883789,
+        0.2720000147819519,
+        -15.543795585632324
+      ],
+      "max": [
+        17.604883193969727,
+        0.2720000147819519,
+        13.345640182495117
+      ]
+    },
+    "283": {
+      "count": 4800,
+      "min": [
+        -16.98293113708496,
+        -0.2761819362640381,
+        -14.885207176208496
+      ],
+      "max": [
+        16.862640380859375,
+        0.7635179162025452,
+        13.25643539428711
+      ]
+    },
+    "286": {
+      "count": 9600,
+      "min": [
+        -17.242956161499023,
+        -0.2716596722602844,
+        -15.126518249511719
+      ],
+      "max": [
+        17.267009735107422,
+        0.6116596460342407,
+        12.87246036529541
+      ]
+    },
+    "289": {
+      "count": 63720,
+      "min": [
+        -18.15665054321289,
+        3.3845436573028564,
+        -16.942941665649414
+      ],
+      "max": [
+        18.37364959716797,
+        6.136358261108398,
+        13.420252799987793
+      ]
+    },
+    "292": {
+      "count": 9360,
+      "min": [
+        -16.272430419921875,
+        3.513535261154175,
+        -15.814659118652344
+      ],
+      "max": [
+        17.441696166992188,
+        5.739165782928467,
+        12.992612838745117
+      ]
+    },
+    "295": {
+      "count": 42120,
+      "min": [
+        -17.972476959228516,
+        3.518939733505249,
+        -17.13587188720703
+      ],
+      "max": [
+        18.58289337158203,
+        6.247790813446045,
+        13.403604507446289
+      ]
+    },
+    "298": {
+      "count": 756,
+      "min": [
+        -18.911582946777344,
+        2.374141216278076,
+        -3.7979788780212402
+      ],
+      "max": [
+        -13.645023345947266,
+        5.497037887573242,
+        -0.10941525548696518
+      ]
+    },
+    "301": {
+      "count": 546,
+      "min": [
+        -17.957887649536133,
+        2.228275775909424,
+        -4.01237678527832
+      ],
+      "max": [
+        -13.764228820800781,
+        5.684691429138184,
+        0.1769113689661026
+      ]
+    },
+    "304": {
+      "count": 9240,
+      "min": [
+        -17.896881103515625,
+        3.169024705886841,
+        -17.36652374267578
+      ],
+      "max": [
+        18.826324462890625,
+        6.275501251220703,
+        13.618826866149902
+      ]
+    },
+    "308": {
+      "count": 126,
+      "min": [
+        -17.281818389892578,
+        2.499525785446167,
+        -2.880584716796875
+      ],
+      "max": [
+        -14.709861755371094,
+        5.038243293762207,
+        -0.9379138350486755
+      ]
+    },
+    "311": {
+      "count": 2933,
+      "min": [
+        -17.048110961914062,
+        0.19472253322601318,
+        -16.629737854003906
+      ],
+      "max": [
+        17.785499572753906,
+        5.381877899169922,
+        13.018797874450684
+      ]
+    },
+    "314": {
+      "count": 3038,
+      "min": [
+        -11.375,
+        10.930000305175781,
+        -8.375
+      ],
+      "max": [
+        -10.625,
+        13.920000076293945,
+        -7.625
+      ]
+    },
+    "317": {
+      "count": 96,
+      "min": [
+        -13.800000190734863,
+        0.8499999642372131,
+        -10.600000381469727
+      ],
+      "max": [
+        -8.199999809265137,
+        9.800000190734863,
+        -5.400000095367432
+      ]
+    },
+    "320": {
+      "count": 11766,
+      "min": [
+        -15.100000381469727,
+        2.592430830001831,
+        -11.899999618530273
+      ],
+      "max": [
+        -6.900000095367432,
+        10.930000305175781,
+        -4.099999904632568
+      ]
+    },
+    "323": {
+      "count": 34656,
+      "min": [
+        -15.180000305175781,
+        2.7473466396331787,
+        -11.899999618530273
+      ],
+      "max": [
+        -6.819999694824219,
+        11.135000228881836,
+        -4.099999904632568
+      ]
+    },
+    "326": {
+      "count": 192,
+      "min": [
+        -15.25,
+        0.2900000214576721,
+        -12.25
+      ],
+      "max": [
+        -6.75,
+        0.7100000381469727,
+        -3.75
+      ]
+    },
+    "328": {
+      "count": 672,
+      "min": [
+        -14.800000190734863,
+        0.22499999403953552,
+        -11.800000190734863
+      ],
+      "max": [
+        -7.199999809265137,
+        0.9100000262260437,
+        -3.0
+      ]
+    },
+    "331": {
+      "count": 9984,
+      "min": [
+        -14.360000610351562,
+        0.8050000071525574,
+        -11.114999771118164
+      ],
+      "max": [
+        -7.640000343322754,
+        10.005000114440918,
+        -4.884999752044678
+      ]
+    },
+    "334": {
+      "count": 5472,
+      "min": [
+        -15.149999618530273,
+        0.7300000190734863,
+        -11.984999656677246
+      ],
+      "max": [
+        -6.849999904632568,
+        10.105000495910645,
+        -4.014999866485596
+      ]
+    },
+    "337": {
+      "count": 2304,
+      "min": [
+        -14.49000072479248,
+        2.544999837875366,
+        -11.1899995803833
+      ],
+      "max": [
+        -7.510000228881836,
+        10.045000076293945,
+        -4.809999942779541
+      ]
+    },
+    "340": {
+      "count": 576,
+      "min": [
+        -12.994999885559082,
+        1.3450000286102295,
+        -13.394999504089355
+      ],
+      "max": [
+        5.894999980926514,
+        1.815000057220459,
+        6.99500036239624
+      ]
+    },
+    "343": {
+      "count": 1248,
+      "min": [
+        -13.350000381469727,
+        0.25999999046325684,
+        -13.75
+      ],
+      "max": [
+        6.25,
+        2.190000057220459,
+        7.349999904632568
+      ]
+    },
+    "346": {
+      "count": 144,
+      "min": [
+        -12.739999771118164,
+        0.2549999952316284,
+        -1.590000033378601
+      ],
+      "max": [
+        -9.260000228881836,
+        0.5450000166893005,
+        -1.1100000143051147
+      ]
+    },
+    "349": {
+      "count": 1380,
+      "min": [
+        -13.095000267028809,
+        0.4749999940395355,
+        -13.494999885559082
+      ],
+      "max": [
+        5.994999885559082,
+        2.370000123977661,
+        7.095000267028809
+      ]
+    },
+    "352": {
+      "count": 360,
+      "min": [
+        -13.199999809265137,
+        0.2646566927433014,
+        -1.5200008153915405
+      ],
+      "max": [
+        -8.800000190734863,
+        3.509999990463257,
+        -1.1799992322921753
+      ]
+    },
+    "355": {
+      "count": 1248,
+      "min": [
+        -2.1700000762939453,
+        -0.015000000596046448,
+        8.405999183654785
+      ],
+      "max": [
+        0.7300000190734863,
+        0.0949999988079071,
+        10.473999977111816
+      ]
+    },
+    "358": {
+      "count": 480,
+      "min": [
+        -13.375,
+        -0.8499999642372131,
+        -7.414999961853027
+      ],
+      "max": [
+        6.914999961853027,
+        3.669999837875366,
+        10.550000190734863
+      ]
+    },
+    "361": {
+      "count": 192,
+      "min": [
+        -7.200000286102295,
+        0.6550000309944153,
+        -7.480000019073486
+      ],
+      "max": [
+        7.099999904632568,
+        0.7850000262260437,
+        10.079999923706055
+      ]
+    },
+    "363": {
+      "count": 590,
+      "min": [
+        11.935999870300293,
+        1.3309999704360962,
+        8.105999946594238
+      ],
+      "max": [
+        12.553999900817871,
+        1.5525000095367432,
+        8.484000205993652
+      ]
+    },
+    "366": {
+      "count": 384,
+      "min": [
+        11.279999732971191,
+        0.9089999794960022,
+        6.889999866485596
+      ],
+      "max": [
+        13.210000038146973,
+        0.9990000128746033,
+        9.700000762939453
+      ]
+    },
+    "368": {
+      "count": 192,
+      "min": [
+        13.138999938964844,
+        2.609999895095825,
+        7.999000072479248
+      ],
+      "max": [
+        15.741000175476074,
+        2.6549999713897705,
+        10.60099983215332
+      ]
+    },
+    "371": {
+      "count": 456,
+      "min": [
+        10.420000076293945,
+        0.23500001430511475,
+        6.970000267028809
+      ],
+      "max": [
+        15.180000305175781,
+        0.6840000152587891,
+        10.130000114440918
+      ]
+    },
+    "374": {
+      "count": 96,
+      "min": [
+        9.829999923706055,
+        0.2549999952316284,
+        7.260000228881836
+      ],
+      "max": [
+        10.229999542236328,
+        0.42500001192092896,
+        8.940000534057617
+      ]
+    },
+    "376": {
+      "count": 768,
+      "min": [
+        13.140000343322754,
+        2.609999895095825,
+        8.0
+      ],
+      "max": [
+        15.739999771118164,
+        2.9600000381469727,
+        10.600000381469727
+      ]
+    },
+    "379": {
+      "count": 2424,
+      "min": [
+        10.288999557495117,
+        0.4985000193119049,
+        6.820000171661377
+      ],
+      "max": [
+        15.310999870300293,
+        2.9084746837615967,
+        10.280000686645508
+      ]
+    },
+    "382": {
+      "count": 1310,
+      "min": [
+        10.239999771118164,
+        0.2900000214576721,
+        6.770000457763672
+      ],
+      "max": [
+        15.360000610351562,
+        3.000999927520752,
+        10.329999923706055
+      ]
+    },
+    "385": {
+      "count": 3798,
+      "min": [
+        10.529000282287598,
+        0.4985000193119049,
+        6.820000171661377
+      ],
+      "max": [
+        15.745109558105469,
+        3.069999933242798,
+        10.605110168457031
+      ]
+    },
+    "388": {
+      "count": 1224,
+      "min": [
+        -30.18000030517578,
+        0.3799999952316284,
+        -12.904999732971191
+      ],
+      "max": [
+        -24.34000015258789,
+        2.7100000381469727,
+        -6.779999732971191
+      ]
+    },
+    "391": {
+      "count": 252,
+      "min": [
+        -28.633981704711914,
+        2.1600000858306885,
+        -13.141189575195312
+      ],
+      "max": [
+        -22.899999618530273,
+        3.2300000190734863,
+        -6.858809471130371
+      ]
+    },
+    "394": {
+      "count": 8359,
+      "min": [
+        -30.539501190185547,
+        0.3799999952316284,
+        -13.622499465942383
+      ],
+      "max": [
+        -23.17099952697754,
+        5.380000114440918,
+        -6.377499580383301
+      ]
+    },
+    "397": {
+      "count": 126,
+      "min": [
+        -30.5,
+        0.2999999523162842,
+        -13.59000015258789
+      ],
+      "max": [
+        -23.5,
+        6.489999771118164,
+        -6.409999370574951
+      ]
+    },
+    "400": {
+      "count": 48,
+      "min": [
+        -30.5,
+        0.2999999523162842,
+        -13.600001335144043
+      ],
+      "max": [
+        -23.5,
+        3.700000047683716,
+        -6.399999141693115
+      ]
+    },
+    "403": {
+      "count": 896,
+      "min": [
+        -31.020000457763672,
+        5.695844650268555,
+        -14.070000648498535
+      ],
+      "max": [
+        -22.979999542236328,
+        6.619999885559082,
+        -5.929998874664307
+      ]
+    },
+    "406": {
+      "count": 3168,
+      "min": [
+        -31.020000457763672,
+        5.8428449630737305,
+        -14.140000343322754
+      ],
+      "max": [
+        -22.979999542236328,
+        6.809999942779541,
+        -5.860000133514404
+      ]
+    },
+    "409": {
+      "count": 1264,
+      "min": [
+        -30.18000030517578,
+        0.3799999952316284,
+        -12.629499435424805
+      ],
+      "max": [
+        -23.100000381469727,
+        3.8249998092651367,
+        -6.779999732971191
+      ]
+    },
+    "412": {
+      "count": 24,
+      "min": [
+        -23.350000381469727,
+        0.24000000953674316,
+        -11.25
+      ],
+      "max": [
+        -22.190000534057617,
+        0.29600000381469727,
+        -8.75
+      ]
+    },
+    "415": {
+      "count": 1176,
+      "min": [
+        -30.18000030517578,
+        0.3799999952316284,
+        -12.904999732971191
+      ],
+      "max": [
+        -25.139999389648438,
+        2.7100000381469727,
+        -6.779999732971191
+      ]
+    },
+    "418": {
+      "count": 3864,
+      "min": [
+        -30.599498748779297,
+        0.2720000147819519,
+        -13.682500839233398
+      ],
+      "max": [
+        -22.795000076293945,
+        6.489999771118164,
+        -6.31749963760376
+      ]
+    },
+    "421": {
+      "count": 7742,
+      "min": [
+        -31.095001220703125,
+        0.12999999523162842,
+        -14.119999885559082
+      ],
+      "max": [
+        -22.797500610351562,
+        5.809999942779541,
+        -5.880000114440918
+      ]
+    },
+    "424": {
+      "count": 1752,
+      "min": [
+        -30.40999984741211,
+        0.24000000953674316,
+        -13.069999694824219
+      ],
+      "max": [
+        -23.25,
+        3.055000066757202,
+        -6.455999374389648
+      ]
+    },
+    "427": {
+      "count": 4754,
+      "min": [
+        25.286279678344727,
+        0.3799999952316284,
+        -0.16980789601802826
+      ],
+      "max": [
+        30.116329193115234,
+        2.7200000286102295,
+        4.869999885559082
+      ]
+    },
+    "430": {
+      "count": 328,
+      "min": [
+        23.100000381469727,
+        0.9024999737739563,
+        0.009999867528676987
+      ],
+      "max": [
+        28.235000610351562,
+        3.8249998092651367,
+        3.990000009536743
+      ]
+    },
+    "433": {
+      "count": 252,
+      "min": [
+        22.899999618530273,
+        2.1600000858306885,
+        -1.1411904096603394
+      ],
+      "max": [
+        28.633981704711914,
+        3.2300000190734863,
+        5.141190052032471
+      ]
+    },
+    "435": {
+      "count": 2844,
+      "min": [
+        23.17099952697754,
+        0.49000000953674316,
+        -1.6225000619888306
+      ],
+      "max": [
+        30.539501190185547,
+        5.380000114440918,
+        5.622500419616699
+      ]
+    },
+    "438": {
+      "count": 126,
+      "min": [
+        23.5,
+        0.2999999523162842,
+        -1.5900001525878906
+      ],
+      "max": [
+        30.5,
+        6.489999771118164,
+        5.590000152587891
+      ]
+    },
+    "440": {
+      "count": 48,
+      "min": [
+        23.5,
+        0.2999999523162842,
+        -1.600000262260437
+      ],
+      "max": [
+        30.5,
+        3.700000047683716,
+        5.600000381469727
+      ]
+    },
+    "442": {
+      "count": 896,
+      "min": [
+        22.979999542236328,
+        5.695844650268555,
+        -2.070000410079956
+      ],
+      "max": [
+        31.020000457763672,
+        6.619999885559082,
+        6.070000648498535
+      ]
+    },
+    "445": {
+      "count": 3168,
+      "min": [
+        22.979999542236328,
+        5.8428449630737305,
+        -2.1399998664855957
+      ],
+      "max": [
+        31.020000457763672,
+        6.809999942779541,
+        6.139999866485596
+      ]
+    },
+    "448": {
+      "count": 3962,
+      "min": [
+        25.578670501708984,
+        0.3799999952316284,
+        -0.8050001859664917
+      ],
+      "max": [
+        30.116329193115234,
+        2.7200000286102295,
+        4.763000011444092
+      ]
+    },
+    "451": {
+      "count": 144,
+      "min": [
+        25.378999710083008,
+        1.219499945640564,
+        3.688999891281128
+      ],
+      "max": [
+        25.7810001373291,
+        1.2285000085830688,
+        4.831000328063965
+      ]
+    },
+    "454": {
+      "count": 24,
+      "min": [
+        22.190000534057617,
+        0.24000000953674316,
+        0.7499997019767761
+      ],
+      "max": [
+        23.350000381469727,
+        0.29600000381469727,
+        3.249999761581421
+      ]
+    },
+    "456": {
+      "count": 52,
+      "min": [
+        25.472999572753906,
+        1.2430000305175781,
+        3.866999864578247
+      ],
+      "max": [
+        25.567001342773438,
+        1.2769999504089355,
+        4.693000316619873
+      ]
+    },
+    "459": {
+      "count": 3912,
+      "min": [
+        22.795000076293945,
+        0.2720000147819519,
+        -1.6825002431869507
+      ],
+      "max": [
+        30.599498748779297,
+        6.489999771118164,
+        5.68250036239624
+      ]
+    },
+    "462": {
+      "count": 11556,
+      "min": [
+        22.797500610351562,
+        0.12999999523162842,
+        -2.120000123977661
+      ],
+      "max": [
+        31.095001220703125,
+        5.809999942779541,
+        6.12000036239624
+      ]
+    },
+    "465": {
+      "count": 3288,
+      "min": [
+        23.25,
+        0.24000000953674316,
+        -1.544000267982483
+      ],
+      "max": [
+        30.40999984741211,
+        2.8949999809265137,
+        5.029999732971191
+      ]
+    },
+    "468": {
+      "count": 26,
+      "min": [
+        -24.722000122070312,
+        1.3450000286102295,
+        15.447999954223633
+      ],
+      "max": [
+        -24.63800048828125,
+        1.38100004196167,
+        15.531999588012695
+      ]
+    },
+    "471": {
+      "count": 24,
+      "min": [
+        -28.920000076293945,
+        1.5500000715255737,
+        15.184000015258789
+      ],
+      "max": [
+        -28.420000076293945,
+        1.840000033378601,
+        15.205999374389648
+      ]
+    },
+    "473": {
+      "count": 3708,
+      "min": [
+        -30.09961700439453,
+        0.3799999952316284,
+        10.532999992370605
+      ],
+      "max": [
+        -24.986278533935547,
+        2.2249999046325684,
+        16.255699157714844
+      ]
+    },
+    "476": {
+      "count": 112,
+      "min": [
+        -23.344999313354492,
+        2.9700000286102295,
+        11.010000228881836
+      ],
+      "max": [
+        -23.100000381469727,
+        3.8249998092651367,
+        14.989999771118164
+      ]
+    },
+    "479": {
+      "count": 252,
+      "min": [
+        -28.633981704711914,
+        2.1600000858306885,
+        9.858810424804688
+      ],
+      "max": [
+        -22.899999618530273,
+        3.2300000190734863,
+        16.141189575195312
+      ]
+    },
+    "481": {
+      "count": 1325,
+      "min": [
+        -30.364999771118164,
+        0.8050000667572021,
+        9.377500534057617
+      ],
+      "max": [
+        -23.17099952697754,
+        3.6894798278808594,
+        16.622501373291016
+      ]
+    },
+    "484": {
+      "count": 150,
+      "min": [
+        -30.5,
+        0.2999999523162842,
+        9.40999984741211
+      ],
+      "max": [
+        -23.5,
+        5.019999980926514,
+        16.59000015258789
+      ]
+    },
+    "487": {
+      "count": 48,
+      "min": [
+        -30.5,
+        0.2999999523162842,
+        9.399998664855957
+      ],
+      "max": [
+        -23.5,
+        3.700000047683716,
+        16.600000381469727
+      ]
+    },
+    "489": {
+      "count": 896,
+      "min": [
+        -31.020000457763672,
+        4.01835823059082,
+        8.929999351501465
+      ],
+      "max": [
+        -22.979999542236328,
+        5.150000095367432,
+        17.07000160217285
+      ]
+    },
+    "491": {
+      "count": 3168,
+      "min": [
+        -31.020000457763672,
+        4.165358543395996,
+        8.859999656677246
+      ],
+      "max": [
+        -22.979999542236328,
+        5.340000152587891,
+        17.139999389648438
+      ]
+    },
+    "494": {
+      "count": 138,
+      "min": [
+        -24.794126510620117,
+        1.21999990940094,
+        14.9350004196167
+      ],
+      "max": [
+        -24.565874099731445,
+        1.4100000858306885,
+        16.08281135559082
+      ]
+    },
+    "497": {
+      "count": 96,
+      "min": [
+        -28.979999542236328,
+        1.4450000524520874,
+        15.204999923706055
+      ],
+      "max": [
+        -28.360000610351562,
+        1.9450000524520874,
+        15.875
+      ]
+    },
+    "500": {
+      "count": 24,
+      "min": [
+        -23.350000381469727,
+        0.24000000953674316,
+        11.75
+      ],
+      "max": [
+        -22.190000534057617,
+        0.29600000381469727,
+        14.25
+      ]
+    },
+    "502": {
+      "count": 2964,
+      "min": [
+        -30.420000076293945,
+        0.2720000147819519,
+        9.317499160766602
+      ],
+      "max": [
+        -23.230501174926758,
+        5.019999980926514,
+        16.682498931884766
+      ]
+    },
+    "505": {
+      "count": 7034,
+      "min": [
+        -31.095001220703125,
+        0.12999999523162842,
+        8.880000114440918
+      ],
+      "max": [
+        -22.904998779296875,
+        4.119999885559082,
+        17.1200008392334
+      ]
+    },
+    "508": {
+      "count": 708,
+      "min": [
+        -30.40999984741211,
+        0.24000000953674316,
+        10.0476655960083
+      ],
+      "max": [
+        -23.25,
+        2.3949999809265137,
+        16.544002532958984
+      ]
+    },
+    "511": {
+      "count": 8500,
+      "min": [
+        -16.135000228881836,
+        0.3799999952316284,
+        -26.111190795898438
+      ],
+      "max": [
+        -12.920000076293945,
+        2.547499895095825,
+        -21.146183013916016
+      ]
+    },
+    "514": {
+      "count": 170,
+      "min": [
+        -10.601706504821777,
+        1.1899999380111694,
+        -21.201148986816406
+      ],
+      "max": [
+        -10.01538372039795,
+        1.440000057220459,
+        -20.680377960205078
+      ]
+    },
+    "517": {
+      "count": 252,
+      "min": [
+        -16.141189575195312,
+        2.1600000858306885,
+        -24.633981704711914
+      ],
+      "max": [
+        -9.858809471130371,
+        3.2300000190734863,
+        -18.899999618530273
+      ]
+    },
+    "519": {
+      "count": 1987,
+      "min": [
+        -16.622501373291016,
+        0.8050000667572021,
+        -26.364999771118164
+      ],
+      "max": [
+        -9.377500534057617,
+        3.675794839859009,
+        -19.17099952697754
+      ]
+    },
+    "522": {
+      "count": 150,
+      "min": [
+        -16.59000015258789,
+        0.2999999523162842,
+        -26.5
+      ],
+      "max": [
+        -9.40999984741211,
+        5.019999980926514,
+        -19.5
+      ]
+    },
+    "525": {
+      "count": 48,
+      "min": [
+        -16.600000381469727,
+        0.2999999523162842,
+        -26.5
+      ],
+      "max": [
+        -9.399999618530273,
+        3.700000047683716,
+        -19.5
+      ]
+    },
+    "527": {
+      "count": 896,
+      "min": [
+        -17.06999969482422,
+        4.01835823059082,
+        -27.020000457763672
+      ],
+      "max": [
+        -8.930000305175781,
+        5.150000095367432,
+        -18.979999542236328
+      ]
+    },
+    "530": {
+      "count": 3168,
+      "min": [
+        -17.139999389648438,
+        4.165358543395996,
+        -27.020000457763672
+      ],
+      "max": [
+        -8.859999656677246,
+        5.340000152587891,
+        -18.979999542236328
+      ]
+    },
+    "533": {
+      "count": 282,
+      "min": [
+        -14.989999771118164,
+        1.1899999380111694,
+        -22.061147689819336
+      ],
+      "max": [
+        -10.01538372039795,
+        3.8249998092651367,
+        -19.100000381469727
+      ]
+    },
+    "536": {
+      "count": 510,
+      "min": [
+        -15.829999923706055,
+        1.059999942779541,
+        -22.061147689819336
+      ],
+      "max": [
+        -10.85538387298584,
+        1.5199999809265137,
+        -20.360279083251953
+      ]
+    },
+    "539": {
+      "count": 24,
+      "min": [
+        -14.25,
+        0.24000000953674316,
+        -19.350000381469727
+      ],
+      "max": [
+        -11.75,
+        0.29600000381469727,
+        -18.190000534057617
+      ]
+    },
+    "541": {
+      "count": 170,
+      "min": [
+        -11.441706657409668,
+        1.1899999380111694,
+        -21.201148986816406
+      ],
+      "max": [
+        -10.85538387298584,
+        1.440000057220459,
+        -20.680377960205078
+      ]
+    },
+    "543": {
+      "count": 2544,
+      "min": [
+        -16.682498931884766,
+        0.2720000147819519,
+        -26.420000076293945
+      ],
+      "max": [
+        -9.317500114440918,
+        5.019999980926514,
+        -19.230501174926758
+      ]
+    },
+    "546": {
+      "count": 7966,
+      "min": [
+        -17.119998931884766,
+        0.12999999523162842,
+        -27.095001220703125
+      ],
+      "max": [
+        -8.880000114440918,
+        4.119999885559082,
+        -18.904998779296875
+      ]
+    },
+    "549": {
+      "count": 648,
+      "min": [
+        -16.54400062561035,
+        0.24000000953674316,
+        -26.40999984741211
+      ],
+      "max": [
+        -9.829999923706055,
+        2.825000047683716,
+        -19.25
+      ]
+    },
+    "552": {
+      "count": 5340,
+      "min": [
+        -30.149616241455078,
+        0.3799999952316284,
+        -0.9150005578994751
+      ],
+      "max": [
+        -25.040000915527344,
+        2.2699999809265137,
+        4.340000152587891
+      ]
+    },
+    "555": {
+      "count": 252,
+      "min": [
+        -28.633981704711914,
+        2.1600000858306885,
+        -1.1411899328231812
+      ],
+      "max": [
+        -22.899999618530273,
+        3.2300000190734863,
+        5.141190528869629
+      ]
+    },
+    "557": {
+      "count": 1587,
+      "min": [
+        -29.854999542236328,
+        0.8050000667572021,
+        -1.6225001811981201
+      ],
+      "max": [
+        -23.17099952697754,
+        3.688079833984375,
+        5.622500419616699
+      ]
+    },
+    "560": {
+      "count": 150,
+      "min": [
+        -30.5,
+        0.2999999523162842,
+        -1.5900006294250488
+      ],
+      "max": [
+        -23.5,
+        5.019999980926514,
+        5.590000629425049
+      ]
+    },
+    "562": {
+      "count": 48,
+      "min": [
+        -30.5,
+        0.2999999523162842,
+        -1.6000006198883057
+      ],
+      "max": [
+        -23.5,
+        3.700000047683716,
+        5.600000858306885
+      ]
+    },
+    "564": {
+      "count": 896,
+      "min": [
+        -31.020000457763672,
+        4.01835823059082,
+        -2.0700008869171143
+      ],
+      "max": [
+        -22.979999542236328,
+        5.150000095367432,
+        6.070001125335693
+      ]
+    },
+    "566": {
+      "count": 3168,
+      "min": [
+        -31.020000457763672,
+        4.165358543395996,
+        -2.1399998664855957
+      ],
+      "max": [
+        -22.979999542236328,
+        5.340000152587891,
+        6.139999866485596
+      ]
+    },
+    "569": {
+      "count": 130,
+      "min": [
+        -28.017000198364258,
+        1.3030000925064087,
+        -0.6129997968673706
+      ],
+      "max": [
+        -25.28299903869629,
+        1.5719999074935913,
+        4.053000450134277
+      ]
+    },
+    "572": {
+      "count": 360,
+      "min": [
+        -28.121000289916992,
+        1.2795000076293945,
+        -0.6809999346733093
+      ],
+      "max": [
+        -25.07900047302246,
+        1.5235000848770142,
+        4.301000118255615
+      ]
+    },
+    "575": {
+      "count": 144,
+      "min": [
+        -30.09000015258789,
+        1.2750000953674316,
+        3.5099997520446777
+      ],
+      "max": [
+        -29.59000015258789,
+        1.6449999809265137,
+        4.900000095367432
+      ]
+    },
+    "578": {
+      "count": 96,
+      "min": [
+        -30.200000762939453,
+        0.29999998211860657,
+        3.1549997329711914
+      ],
+      "max": [
+        -29.479999542236328,
+        1.1299999952316284,
+        5.204999923706055
+      ]
+    },
+    "580": {
+      "count": 24,
+      "min": [
+        -23.350000381469727,
+        0.24000000953674316,
+        0.7500001192092896
+      ],
+      "max": [
+        -22.190000534057617,
+        0.29600000381469727,
+        3.250000238418579
+      ]
+    },
+    "582": {
+      "count": 458,
+      "min": [
+        -28.135000228881836,
+        0.9124999642372131,
+        -0.5429999232292175
+      ],
+      "max": [
+        -23.100000381469727,
+        3.8249998092651367,
+        4.123000144958496
+      ]
+    },
+    "585": {
+      "count": 2616,
+      "min": [
+        -30.420000076293945,
+        0.2720000147819519,
+        -1.6825003623962402
+      ],
+      "max": [
+        -23.230501174926758,
+        5.019999980926514,
+        5.68250036239624
+      ]
+    },
+    "588": {
+      "count": 6742,
+      "min": [
+        -31.095001220703125,
+        0.12999999523162842,
+        -2.1200003623962402
+      ],
+      "max": [
+        -22.904998779296875,
+        4.119999885559082,
+        6.12000036239624
+      ]
+    },
+    "591": {
+      "count": 552,
+      "min": [
+        -30.40999984741211,
+        0.24000000953674316,
+        -0.9523340463638306
+      ],
+      "max": [
+        -23.25,
+        2.455000162124634,
+        5.544000625610352
+      ]
+    },
+    "594": {
+      "count": 2238,
+      "min": [
+        10.350000381469727,
+        1.149999976158142,
+        -26.229999542236328
+      ],
+      "max": [
+        15.517000198364258,
+        1.5149999856948853,
+        -21.056278228759766
+      ]
+    },
+    "597": {
+      "count": 252,
+      "min": [
+        9.858809471130371,
+        2.1600000858306885,
+        -24.633981704711914
+      ],
+      "max": [
+        16.141189575195312,
+        3.2300000190734863,
+        -18.899999618530273
+      ]
+    },
+    "599": {
+      "count": 1770,
+      "min": [
+        9.377500534057617,
+        0.8050000667572021,
+        -26.364999771118164
+      ],
+      "max": [
+        16.622501373291016,
+        3.675794839859009,
+        -19.17099952697754
+      ]
+    },
+    "602": {
+      "count": 150,
+      "min": [
+        9.40999984741211,
+        0.2999999523162842,
+        -26.5
+      ],
+      "max": [
+        16.59000015258789,
+        5.019999980926514,
+        -19.5
+      ]
+    },
+    "604": {
+      "count": 48,
+      "min": [
+        9.399999618530273,
+        0.2999999523162842,
+        -26.5
+      ],
+      "max": [
+        16.600000381469727,
+        3.700000047683716,
+        -19.5
+      ]
+    },
+    "606": {
+      "count": 896,
+      "min": [
+        8.930000305175781,
+        4.01835823059082,
+        -27.020000457763672
+      ],
+      "max": [
+        17.06999969482422,
+        5.150000095367432,
+        -18.979999542236328
+      ]
+    },
+    "608": {
+      "count": 3168,
+      "min": [
+        8.859999656677246,
+        4.165358543395996,
+        -27.020000457763672
+      ],
+      "max": [
+        17.139999389648438,
+        5.340000152587891,
+        -18.979999542236328
+      ]
+    },
+    "611": {
+      "count": 78,
+      "min": [
+        10.63700008392334,
+        1.4880000352859497,
+        -26.08700180053711
+      ],
+      "max": [
+        12.782999992370605,
+        1.5219999551773071,
+        -25.993000030517578
+      ]
+    },
+    "614": {
+      "count": 216,
+      "min": [
+        10.388999938964844,
+        1.4644999504089355,
+        -26.19099998474121
+      ],
+      "max": [
+        12.85099983215332,
+        1.4735000133514404,
+        -25.788999557495117
+      ]
+    },
+    "617": {
+      "count": 96,
+      "min": [
+        10.074999809265137,
+        0.29999998211860657,
+        -26.315000534057617
+      ],
+      "max": [
+        13.72499942779541,
+        1.2400000095367432,
+        -25.66499900817871
+      ]
+    },
+    "619": {
+      "count": 24,
+      "min": [
+        11.75,
+        0.24000000953674316,
+        -19.350000381469727
+      ],
+      "max": [
+        14.25,
+        0.29600000381469727,
+        -18.190000534057617
+      ]
+    },
+    "621": {
+      "count": 478,
+      "min": [
+        10.555000305175781,
+        0.7224999666213989,
+        -25.977001190185547
+      ],
+      "max": [
+        14.989999771118164,
+        3.8249998092651367,
+        -19.100000381469727
+      ]
+    },
+    "624": {
+      "count": 2718,
+      "min": [
+        9.317500114440918,
+        0.2720000147819519,
+        -26.420000076293945
+      ],
+      "max": [
+        16.682498931884766,
+        5.019999980926514,
+        -19.230501174926758
+      ]
+    },
+    "627": {
+      "count": 6205,
+      "min": [
+        8.880000114440918,
+        0.12999999523162842,
+        -27.095001220703125
+      ],
+      "max": [
+        17.119998931884766,
+        4.119999885559082,
+        -18.904998779296875
+      ]
+    },
+    "630": {
+      "count": 528,
+      "min": [
+        9.456000328063965,
+        0.24000000953674316,
+        -26.40999984741211
+      ],
+      "max": [
+        16.020000457763672,
+        2.3329999446868896,
+        -19.25
+      ]
+    },
+    "633": {
+      "count": 242,
+      "min": [
+        23.100000381469727,
+        1.3700000047683716,
+        10.527999877929688
+      ],
+      "max": [
+        28.062000274658203,
+        3.8249998092651367,
+        14.989999771118164
+      ]
+    },
+    "636": {
+      "count": 4080,
+      "min": [
+        29.930383682250977,
+        0.3799999952316284,
+        13.404799461364746
+      ],
+      "max": [
+        30.139616012573242,
+        2.3450000286102295,
+        15.855199813842773
+      ]
+    },
+    "639": {
+      "count": 276,
+      "min": [
+        22.899999618530273,
+        0.934999942779541,
+        9.858809471130371
+      ],
+      "max": [
+        29.33049964904785,
+        3.2300000190734863,
+        16.141189575195312
+      ]
+    },
+    "642": {
+      "count": 2308,
+      "min": [
+        23.17099952697754,
+        0.8050000667572021,
+        9.377500534057617
+      ],
+      "max": [
+        29.854999542236328,
+        3.6894798278808594,
+        16.622501373291016
+      ]
+    },
+    "645": {
+      "count": 150,
+      "min": [
+        23.5,
+        0.2999999523162842,
+        9.40999984741211
+      ],
+      "max": [
+        30.5,
+        5.019999980926514,
+        16.59000015258789
+      ]
+    },
+    "647": {
+      "count": 48,
+      "min": [
+        23.5,
+        0.2999999523162842,
+        9.399999618530273
+      ],
+      "max": [
+        30.5,
+        3.700000047683716,
+        16.600000381469727
+      ]
+    },
+    "649": {
+      "count": 896,
+      "min": [
+        22.979999542236328,
+        4.01835823059082,
+        8.929999351501465
+      ],
+      "max": [
+        31.020000457763672,
+        5.150000095367432,
+        17.06999969482422
+      ]
+    },
+    "651": {
+      "count": 3168,
+      "min": [
+        22.979999542236328,
+        4.165358543395996,
+        8.859999656677246
+      ],
+      "max": [
+        31.020000457763672,
+        5.340000152587891,
+        17.139999389648438
+      ]
+    },
+    "654": {
+      "count": 978,
+      "min": [
+        25.05000114440918,
+        1.0799999237060547,
+        10.067188262939453
+      ],
+      "max": [
+        27.914125442504883,
+        2.1449999809265137,
+        15.765000343322754
+      ]
+    },
+    "657": {
+      "count": 96,
+      "min": [
+        29.360000610351562,
+        0.2999999523162842,
+        9.800000190734863
+      ],
+      "max": [
+        30.200000762939453,
+        2.299999952316284,
+        11.9399995803833
+      ]
+    },
+    "659": {
+      "count": 24,
+      "min": [
+        22.190000534057617,
+        0.24000000953674316,
+        11.75
+      ],
+      "max": [
+        23.350000381469727,
+        0.29600000381469727,
+        14.25
+      ]
+    },
+    "661": {
+      "count": 2568,
+      "min": [
+        23.230501174926758,
+        0.2720000147819519,
+        9.317499160766602
+      ],
+      "max": [
+        30.420000076293945,
+        5.019999980926514,
+        16.682498931884766
+      ]
+    },
+    "664": {
+      "count": 6455,
+      "min": [
+        22.904998779296875,
+        0.12999999523162842,
+        8.880000114440918
+      ],
+      "max": [
+        31.095001220703125,
+        4.119999885559082,
+        17.1200008392334
+      ]
+    },
+    "667": {
+      "count": 780,
+      "min": [
+        23.25,
+        0.24000000953674316,
+        9.455999374389648
+      ],
+      "max": [
+        30.40999984741211,
+        2.555000066757202,
+        16.065000534057617
+      ]
+    },
+    "670": {
+      "count": 78,
+      "min": [
+        30.253000259399414,
+        2.06000018119812,
+        -8.184999465942383
+      ],
+      "max": [
+        30.27699851989746,
+        2.819999933242798,
+        -7.65500020980835
+      ]
+    },
+    "673": {
+      "count": 4898,
+      "min": [
+        24.572383880615234,
+        0.3799999952316284,
+        -12.567000389099121
+      ],
+      "max": [
+        30.083637237548828,
+        2.4800000190734863,
+        -6.974999904632568
+      ]
+    },
+    "676": {
+      "count": 480,
+      "min": [
+        24.28499984741211,
+        0.4599999785423279,
+        -13.324999809265137
+      ],
+      "max": [
+        29.454999923706055,
+        0.5799999833106995,
+        -11.295000076293945
+      ]
+    },
+    "679": {
+      "count": 252,
+      "min": [
+        22.899999618530273,
+        2.1600000858306885,
+        -13.141190528869629
+      ],
+      "max": [
+        28.633981704711914,
+        3.2300000190734863,
+        -6.858809947967529
+      ]
+    },
+    "681": {
+      "count": 820,
+      "min": [
+        23.17099952697754,
+        0.8050000667572021,
+        -13.622499465942383
+      ],
+      "max": [
+        30.364999771118164,
+        3.688080072402954,
+        -6.377499580383301
+      ]
+    },
+    "684": {
+      "count": 150,
+      "min": [
+        23.5,
+        0.2999999523162842,
+        -13.59000015258789
+      ],
+      "max": [
+        30.5,
+        5.019999980926514,
+        -6.409999847412109
+      ]
+    },
+    "686": {
+      "count": 48,
+      "min": [
+        23.5,
+        0.2999999523162842,
+        -13.600000381469727
+      ],
+      "max": [
+        30.5,
+        3.700000047683716,
+        -6.399999618530273
+      ]
+    },
+    "688": {
+      "count": 896,
+      "min": [
+        22.979999542236328,
+        4.01835823059082,
+        -14.070000648498535
+      ],
+      "max": [
+        31.020000457763672,
+        5.150000095367432,
+        -5.929999351501465
+      ]
+    },
+    "690": {
+      "count": 3168,
+      "min": [
+        22.979999542236328,
+        4.165358543395996,
+        -14.140000343322754
+      ],
+      "max": [
+        31.020000457763672,
+        5.340000152587891,
+        -5.860000133514404
+      ]
+    },
+    "693": {
+      "count": 500,
+      "min": [
+        23.100000381469727,
+        0.4425000250339508,
+        -13.320000648498535
+      ],
+      "max": [
+        30.083637237548828,
+        3.8249998092651367,
+        -8.010000228881836
+      ]
+    },
+    "696": {
+      "count": 24,
+      "min": [
+        22.190000534057617,
+        0.24000000953674316,
+        -11.25
+      ],
+      "max": [
+        23.350000381469727,
+        0.29600000381469727,
+        -8.75
+      ]
+    },
+    "698": {
+      "count": 2580,
+      "min": [
+        23.230501174926758,
+        0.2720000147819519,
+        -13.682500839233398
+      ],
+      "max": [
+        30.420000076293945,
+        5.019999980926514,
+        -6.31749963760376
+      ]
+    },
+    "701": {
+      "count": 6797,
+      "min": [
+        22.904998779296875,
+        0.12999999523162842,
+        -14.119999885559082
+      ],
+      "max": [
+        31.095001220703125,
+        4.119999885559082,
+        -5.880000114440918
+      ]
+    },
+    "704": {
+      "count": 552,
+      "min": [
+        23.25,
+        0.24000000953674316,
+        -13.544000625610352
+      ],
+      "max": [
+        30.40999984741211,
+        2.7350001335144043,
+        -6.799999713897705
+      ]
+    },
+    "707": {
+      "count": 1320,
+      "min": [
+        -2.4650158882141113,
+        -0.15950000286102295,
+        -14.866564750671387
+      ],
+      "max": [
+        2.3364996910095215,
+        -0.15650001168251038,
+        12.715502738952637
+      ]
+    }
+  },
+  "bounds_world_gltf": {
+    "min": [
+      -34.0,
+      -1.850000023841858,
+      -28.0
+    ],
+    "max": [
+      34.0,
+      13.920000076293945,
+      26.0
+    ]
+  },
+  "dimensions_world_gltf": [
+    68.0,
+    15.770000100135803,
+    54.0
+  ],
+  "markers": [
+    {
+      "name": "MARK_player_spawn",
+      "extras": {
+        "kind": "player_spawn",
+        "facing_yaw": 0.0
+      },
+      "position_world_gltf": [
+        5.0,
+        0.30000001192092896,
+        10.0
+      ]
+    },
+    {
+      "name": "MARK_npc_cafe",
+      "extras": {
+        "kind": "npc",
+        "npc_id": "cafe_owner",
+        "interaction_radius": 2.2
+      },
+      "position_world_gltf": [
+        9.0,
+        0.3149999976158142,
+        1.850000023841858
+      ]
+    },
+    {
+      "name": "MARK_npc_guide",
+      "extras": {
+        "kind": "npc",
+        "npc_id": "local_guide",
+        "interaction_radius": 2.2
+      },
+      "position_world_gltf": [
+        -8.0,
+        0.30000001192092896,
+        -1.0
+      ]
+    },
+    {
+      "name": "MARK_npc_inn",
+      "extras": {
+        "kind": "npc",
+        "npc_id": "inn_host",
+        "interaction_radius": 2.2
+      },
+      "position_world_gltf": [
+        8.800000190734863,
+        0.3149999976158142,
+        -7.099999904632568
+      ]
+    },
+    {
+      "name": "MARK_bridge_midpoint",
+      "extras": {
+        "kind": "waypoint"
+      },
+      "position_world_gltf": [
+        0.0,
+        1.2999999523162842,
+        4.0
+      ]
+    }
+  ],
+  "extensions_used": [
+    "KHR_materials_specular"
+  ],
+  "issue_counts": {},
+  "verification_limit": "Static uncompressed GLB structure, data and scene checks only; not a complete glTF schema/extension validator, rendered appearance, physics, browser performance or gameplay verification."
+}

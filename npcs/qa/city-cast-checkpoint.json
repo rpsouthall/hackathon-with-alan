@@ -1,0 +1,51 @@
+{
+  "date": "2026-09-13",
+  "verdict": "PASS",
+  "characters": [
+    "local_guide",
+    "cafe_owner",
+    "inn_host",
+    "market_produce",
+    "market_tea",
+    "market_fish",
+    "market_dango",
+    "kissa_aoi_host",
+    "ramen_akari_host",
+    "bookshop_tsuki_host",
+    "sakura_bakery_host",
+    "izakaya_tomo_host",
+    "tea_hanami_host",
+    "market_provisions_host",
+    "restaurant_momiji_host"
+  ],
+  "compatibility": {
+    "threeVersions": [
+      "0.180.0",
+      "0.186.0"
+    ],
+    "testsPerVersion": 13,
+    "playerCombinations": 72
+  },
+  "files": {
+    "exports/komorebi_npc.glb": {
+      "bytes": 272808,
+      "sha256": "45bb1fdbe87b4a7f21c0260a66a356465fa77f941c172cb03422e22bb761e232"
+    },
+    "exports/kyoto_city_cast.json": {
+      "bytes": 5877,
+      "sha256": "22bc039e48aa78703d5a57ad5e2ac4a5418df0530c94588e3bdd221e1bf537eb"
+    },
+    "src/appearance.js": {
+      "bytes": 2271,
+      "sha256": "6488345f71b547e619763bd6421a1697e5952f76cee9447a30331b2e8611a989"
+    },
+    "src/city-cast.js": {
+      "bytes": 3701,
+      "sha256": "a436da97b1bdbfe1a3abab125a8fa6dab3dceb3d4498970c8b11577238131c3e"
+    },
+    "src/npc.js": {
+      "bytes": 9837,
+      "sha256": "6826b499d63907b94e18ccc24f79943ce02d21949f6d837108a31e6af7162e70"
+    }
+  }
+}

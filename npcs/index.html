@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f3ec">
+  <title>Komorebi — Character Workshop</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath fill='%23496354' d='M12 0h8v8h8v8h-8v8h-8v-8H4V8h8z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./src/workshop.css">
+  <script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head>
+<body>
+<header>
+  <a class="wordmark" href="./" aria-label="Komorebi workshop"><span class="mark" aria-hidden="true">✳</span> KOMOREBI <span class="divider"></span><span class="edition">CHARACTER WORKSHOP</span></a>
+  <div class="ready"><i></i> <span id="ready-label">Preparing the workshop</span></div>
+</header>
+<main>
+  <div class="intro"><div><p class="eyebrow">THE PEOPLE MAKE THE PLACE</p><h1>Meet the neighbourhood<span>.</span></h1><p class="subheading">A few blocks. A little personality. A world of conversation. <a href="./cast/" class="cast-link">Meet all 15 residents ↗</a></p></div><div class="edition-number">木漏れ日<span>RESIDENT SERIES / 01</span></div></div>
+  <div class="workspace">
+    <section class="viewer" aria-label="3D character preview">
+      <div class="viewer-top"><div class="view-tabs" role="group" aria-label="Preview mode"><button class="selected" data-mode="studio" aria-pressed="true">Studio</button><button data-mode="walk" aria-pressed="false">Walk around</button><button data-mode="cast" aria-pressed="false">The cast</button></div><button id="reset-camera" class="icon-button" title="Reset camera" aria-label="Reset camera">↺</button></div>
+      <div class="canvas-wrap" id="canvas-wrap"><canvas id="viewport" aria-label="Interactive voxel character. Drag to orbit and scroll to zoom. In Walk around mode use W A S D and Shift." tabindex="0"></canvas><div id="loading" role="status">Bringing the neighbours to life…</div></div>
+      <div class="nameplate"><span class="number" id="resident-number">01</span><div><strong id="resident-name">Haru</strong><span id="resident-role">Local guide</span></div></div>
+      <div class="stage-label" id="stage-label">DRAG TO ORBIT <span>·</span> SCROLL TO ZOOM</div>
+      <div class="animation-panel"><span class="eyebrow">A LITTLE LIFE</span><div class="animation-buttons" role="group" aria-label="Animation"><button data-animation="Idle" class="selected" aria-pressed="true">Idle</button><button data-animation="Walk" aria-pressed="false">Walk</button><button data-animation="Run" aria-pressed="false">Run</button><button data-animation="Wave" aria-pressed="false">Wave</button><button data-animation="Bow" aria-pressed="false">Bow</button><button data-animation="Talk" aria-pressed="false">Talk</button><button data-animation="Listen" aria-pressed="false">Listen</button></div></div>
+    </section>
+    <aside class="customizer" aria-label="Character customization">
+      <div class="panel-heading"><h2>Make them their own</h2><span>01—03</span></div>
+      <p class="field-label">START WITH A RESIDENT</p>
+      <div class="presets" role="group" aria-label="Resident preset"><button data-preset="local_guide" class="selected" aria-pressed="true"><i class="preset-dot guide"></i><strong>Haru</strong><small>Guide</small></button><button data-preset="cafe_owner" aria-pressed="false"><i class="preset-dot cafe"></i><strong>Aoi</strong><small>Café</small></button><button data-preset="inn_host" aria-pressed="false"><i class="preset-dot inn"></i><strong>Ren</strong><small>Inn</small></button></div>
+      <div class="field"><label for="hair">Hairstyle</label><select id="hair"><option value="crop">Side-swept crop</option><option value="bob">Soft block bob</option><option value="topknot">Tied topknot</option></select></div>
+      <div class="field"><label for="outfit">Outfit</label><select id="outfit"><option value="jacket">Everyday jacket</option><option value="apron">Café apron</option><option value="haori">Short haori</option></select></div>
+      <p class="field-label palette-label">THEIR COLOURS</p><div class="colours">
+        <label><input type="color" id="skin" value="#dca477" aria-label="Skin colour"><span>Skin</span></label>
+        <label><input type="color" id="hairColor" value="#463b35" aria-label="Hair colour"><span>Hair</span></label>
+        <label><input type="color" id="top" value="#5c7f89" aria-label="Clothing colour"><span>Clothes</span></label>
+        <label><input type="color" id="accent" value="#d5af72" aria-label="Accent colour"><span>Accent</span></label>
+        <label><input type="color" id="trousers" value="#455563" aria-label="Trouser colour"><span>Trousers</span></label>
+        <label><input type="color" id="shoes" value="#353d43" aria-label="Shoe colour"><span>Shoes</span></label>
+      </div>
+      <div class="height-label"><label for="height">Height</label><output id="height-value" for="height">1.75 m</output></div><input type="range" id="height" min="1.4" max="2.1" step=".01" value="1.75">
+      <div class="accessories"><label><input id="glasses" type="checkbox"><span>Glasses</span></label><label><input id="bag" type="checkbox" checked><span>Day bag</span></label></div>
+      <div class="exports"><button id="export-glb" class="primary">Export character <span>↓ GLB</span></button><div class="secondary-row"><button id="save-look">Save look</button><button id="load-look">Load look</button><button id="reset-look">Reset</button></div><input id="look-file" type="file" accept=".json,application/json" hidden></div>
+      <p class="panel-note" id="panel-note">A familiar face for a new place.</p>
+    </aside>
+  </div>
+  <footer><span><i></i><span id="asset-stats">Original voxel characters · Built in Blender</span></span><span>BLENDER → THREE.JS <b> / </b> READY TO MEET YOUR WORLD</span></footer>
+  <p id="status" role="status" aria-live="polite"></p>
+  <details class="integration"><summary>For your game</summary><p>Use the reusable <code>VoxelNPC</code> class in <code>src/npc.js</code>. Load the GLB once, create independent residents, and place them at your Kyoto markers. The kit includes in-place motion, a mouth envelope input and attachment sockets. See <a href="./README.md">the handoff notes</a> for integration. This workshop uses a small test courtyard; navigation and voice connect in your game.</p></details>
+</main>
+<script type="module" src="./src/workshop.js"></script>
+</body>
+</html>

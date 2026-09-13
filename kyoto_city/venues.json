@@ -1,0 +1,3018 @@
+{
+  "schema_version": 2,
+  "units": "metres",
+  "up_axis": "Z",
+  "coordinate_space": "Blender source; global = T(venue position) * Rz(rotation_z) * local",
+  "note": "All route markers are foot reference positions. Enterable new venues are exterior shells with actual furnished interiors; original central buildings remain exterior assets.",
+  "venues": [
+    {
+      "id": "kissa_aoi",
+      "name": "Kissa Aoi",
+      "type": "cafe",
+      "is_enterable": true,
+      "collection": "COL_Venue_kissa_aoi",
+      "position": [
+        -27.0,
+        -13.0,
+        0.0
+      ],
+      "rotation_z": 1.5707963267948966,
+      "dimensions_local": [
+        7.2,
+        7.0,
+        3.7
+      ],
+      "ground_floor_wall_height": 3.4,
+      "roof_peak_z": 5.34,
+      "floor_z": 0.3,
+      "door_clear_width": 1.9,
+      "door_clear_height": 2.6,
+      "central_aisle_width": 2.2,
+      "interaction_radius": 2.8,
+      "accessible_storeys": 1,
+      "decorative_upper_storey": false,
+      "upper_storey_accessible": false,
+      "npc_id": "kissa_aoi_host",
+      "accent_material": "indigo",
+      "markers": {
+        "entry": {
+          "name": "MARK_entry_kissa_aoi",
+          "local": [
+            0.0,
+            -5.1,
+            0.32
+          ],
+          "global": [
+            -21.9,
+            -13.0,
+            0.32
+          ]
+        },
+        "inside": {
+          "name": "MARK_inside_kissa_aoi",
+          "local": [
+            0.0,
+            -2.0,
+            0.32
+          ],
+          "global": [
+            -25.0,
+            -13.0,
+            0.32
+          ]
+        },
+        "interaction": {
+          "name": "MARK_interaction_kissa_aoi",
+          "local": [
+            0.0,
+            0.5,
+            0.32
+          ],
+          "global": [
+            -27.5,
+            -13.0,
+            0.32
+          ]
+        },
+        "npc": {
+          "name": "MARK_npc_kissa_aoi",
+          "local": [
+            2.1,
+            1.8,
+            0.32
+          ],
+          "global": [
+            -28.8,
+            -10.9,
+            0.32
+          ]
+        }
+      },
+      "clear_npc_zone_local": {
+        "min": [
+          1.65,
+          1.2,
+          0.3
+        ],
+        "max": [
+          2.75,
+          2.55,
+          2.4
+        ]
+      },
+      "floor_support": "SM_COL_kissa_aoi_floor",
+      "furnishing_theme": "Espresso bar, pastry display, two cafe tables and coffee service",
+      "collision_boxes_local": [
+        {
+          "name": "SM_COL_kissa_aoi_floor",
+          "position": [
+            0,
+            0,
+            0.215
+          ],
+          "dimensions": [
+            7.2,
+            7.0,
+            0.17
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_wall_left",
+          "position": [
+            -3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_wall_right",
+          "position": [
+            3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_wall_back",
+          "position": [
+            0,
+            3.42,
+            2.0
+          ],
+          "dimensions": [
+            7.04,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_front_wall",
+          "position": [
+            -2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_front_wall.001",
+          "position": [
+            2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_entry_lintel",
+          "position": [
+            0,
+            -3.42,
+            3.31
+          ],
+          "dimensions": [
+            2.12,
+            0.16,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_entry_jamb",
+          "position": [
+            -1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_entry_jamb.001",
+          "position": [
+            1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_ceiling",
+          "position": [
+            0,
+            0,
+            3.775
+          ],
+          "dimensions": [
+            7.14,
+            6.86,
+            0.15
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_entry_threshold",
+          "position": [
+            0,
+            -3.57,
+            0.27
+          ],
+          "dimensions": [
+            1.9,
+            0.36,
+            0.06
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_entry_paving",
+          "position": [
+            0,
+            -4.23,
+            0.268
+          ],
+          "dimensions": [
+            2.5,
+            1.16,
+            0.056
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_espresso_bar_body",
+          "position": [
+            -2.57,
+            0.86,
+            0.8300000000000001
+          ],
+          "dimensions": [
+            1.04,
+            3.7,
+            1.06
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_espresso_bar_worktop",
+          "position": [
+            -2.57,
+            0.86,
+            1.395
+          ],
+          "dimensions": [
+            1.12,
+            3.7800000000000002,
+            0.07
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_pastry_case_body",
+          "position": [
+            -2.46,
+            -2.32,
+            0.7050000000000001
+          ],
+          "dimensions": [
+            1.42,
+            0.7,
+            0.81
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_pastry_case_worktop",
+          "position": [
+            -2.46,
+            -2.32,
+            1.145
+          ],
+          "dimensions": [
+            1.5,
+            0.7799999999999999,
+            0.07
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_cafe_table_0",
+          "position": [
+            2.18,
+            -1.85,
+            0.7150000000000001
+          ],
+          "dimensions": [
+            1.32,
+            0.77,
+            0.8300000000000001
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_cafe_stool_a",
+          "position": [
+            2.18,
+            -2.52,
+            0.54
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.58
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_cafe_stool_b",
+          "position": [
+            2.18,
+            -1.1800000000000002,
+            0.54
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.58
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_cafe_table_1",
+          "position": [
+            2.18,
+            0.25,
+            0.7150000000000001
+          ],
+          "dimensions": [
+            1.32,
+            0.77,
+            0.8300000000000001
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_cafe_stool_a.001",
+          "position": [
+            2.18,
+            -0.42000000000000004,
+            0.54
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.58
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_cafe_stool_b.001",
+          "position": [
+            2.18,
+            0.92,
+            0.54
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.58
+          ]
+        },
+        {
+          "name": "SM_COL_kissa_aoi_coffee_storage",
+          "position": [
+            -2.42,
+            3.02,
+            1.37
+          ],
+          "dimensions": [
+            1.77,
+            0.38,
+            2.14
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ramen_akari",
+      "name": "Ramen Akari",
+      "type": "ramen",
+      "is_enterable": true,
+      "collection": "COL_Venue_ramen_akari",
+      "position": [
+        -27.0,
+        -2.0,
+        0.0
+      ],
+      "rotation_z": 1.5707963267948966,
+      "dimensions_local": [
+        7.2,
+        7.0,
+        3.7
+      ],
+      "ground_floor_wall_height": 3.4,
+      "roof_peak_z": 5.34,
+      "floor_z": 0.3,
+      "door_clear_width": 1.9,
+      "door_clear_height": 2.6,
+      "central_aisle_width": 2.2,
+      "interaction_radius": 2.8,
+      "accessible_storeys": 1,
+      "decorative_upper_storey": false,
+      "upper_storey_accessible": false,
+      "npc_id": "ramen_akari_host",
+      "accent_material": "vermilion",
+      "markers": {
+        "entry": {
+          "name": "MARK_entry_ramen_akari",
+          "local": [
+            0.0,
+            -5.1,
+            0.32
+          ],
+          "global": [
+            -21.9,
+            -2.0,
+            0.32
+          ]
+        },
+        "inside": {
+          "name": "MARK_inside_ramen_akari",
+          "local": [
+            0.0,
+            -2.0,
+            0.32
+          ],
+          "global": [
+            -25.0,
+            -2.0,
+            0.32
+          ]
+        },
+        "interaction": {
+          "name": "MARK_interaction_ramen_akari",
+          "local": [
+            0.0,
+            0.5,
+            0.32
+          ],
+          "global": [
+            -27.5,
+            -2.0,
+            0.32
+          ]
+        },
+        "npc": {
+          "name": "MARK_npc_ramen_akari",
+          "local": [
+            2.1,
+            1.8,
+            0.32
+          ],
+          "global": [
+            -28.8,
+            0.1,
+            0.32
+          ]
+        }
+      },
+      "clear_npc_zone_local": {
+        "min": [
+          1.65,
+          1.2,
+          0.3
+        ],
+        "max": [
+          2.75,
+          2.55,
+          2.4
+        ]
+      },
+      "floor_support": "SM_COL_ramen_akari_floor",
+      "furnishing_theme": "Ramen counter, stools, cooking range, bowls and a small dining table",
+      "collision_boxes_local": [
+        {
+          "name": "SM_COL_ramen_akari_floor",
+          "position": [
+            0,
+            0,
+            0.215
+          ],
+          "dimensions": [
+            7.2,
+            7.0,
+            0.17
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_wall_left",
+          "position": [
+            -3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_wall_right",
+          "position": [
+            3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_wall_back",
+          "position": [
+            0,
+            3.42,
+            2.0
+          ],
+          "dimensions": [
+            7.04,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_front_wall",
+          "position": [
+            -2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_front_wall.001",
+          "position": [
+            2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_entry_lintel",
+          "position": [
+            0,
+            -3.42,
+            3.31
+          ],
+          "dimensions": [
+            2.12,
+            0.16,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_entry_jamb",
+          "position": [
+            -1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_entry_jamb.001",
+          "position": [
+            1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_ceiling",
+          "position": [
+            0,
+            0,
+            3.775
+          ],
+          "dimensions": [
+            7.14,
+            6.86,
+            0.15
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_entry_threshold",
+          "position": [
+            0,
+            -3.57,
+            0.27
+          ],
+          "dimensions": [
+            1.9,
+            0.36,
+            0.06
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_entry_paving",
+          "position": [
+            0,
+            -4.23,
+            0.268
+          ],
+          "dimensions": [
+            2.5,
+            1.16,
+            0.056
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_ramen_counter_body",
+          "position": [
+            -2.55,
+            0.03,
+            0.7949999999999999
+          ],
+          "dimensions": [
+            1.03,
+            4.64,
+            0.99
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_ramen_counter_worktop",
+          "position": [
+            -2.55,
+            0.03,
+            1.325
+          ],
+          "dimensions": [
+            1.11,
+            4.72,
+            0.07
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_counter_stool",
+          "position": [
+            -1.49,
+            -1.72,
+            0.63
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.76
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_counter_stool.001",
+          "position": [
+            -1.49,
+            -0.4,
+            0.63
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.76
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_counter_stool.002",
+          "position": [
+            -1.49,
+            0.92,
+            0.63
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.76
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_kitchen_range_body",
+          "position": [
+            -2.18,
+            2.84,
+            0.715
+          ],
+          "dimensions": [
+            2.05,
+            0.72,
+            0.83
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_kitchen_range_worktop",
+          "position": [
+            -2.18,
+            2.84,
+            1.1649999999999998
+          ],
+          "dimensions": [
+            2.13,
+            0.7999999999999999,
+            0.07
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_ramen_table",
+          "position": [
+            2.21,
+            -1.3,
+            0.7150000000000001
+          ],
+          "dimensions": [
+            1.48,
+            1.38,
+            0.8300000000000001
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_ramen_diner_a",
+          "position": [
+            2.21,
+            -2.31,
+            0.54
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.58
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_ramen_diner_b",
+          "position": [
+            2.21,
+            -0.29,
+            0.54
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.58
+          ]
+        },
+        {
+          "name": "SM_COL_ramen_akari_ramen_bowls",
+          "position": [
+            1.78,
+            3.07,
+            1.4000000000000001
+          ],
+          "dimensions": [
+            2.5,
+            0.34,
+            2.2
+          ]
+        }
+      ]
+    },
+    {
+      "id": "bookshop_tsuki",
+      "name": "Bookshop Tsuki",
+      "type": "bookshop",
+      "is_enterable": true,
+      "collection": "COL_Venue_bookshop_tsuki",
+      "position": [
+        -27.0,
+        10.0,
+        0.0
+      ],
+      "rotation_z": 1.5707963267948966,
+      "dimensions_local": [
+        7.2,
+        7.0,
+        5.66
+      ],
+      "ground_floor_wall_height": 3.4,
+      "roof_peak_z": 6.81,
+      "floor_z": 0.3,
+      "door_clear_width": 1.9,
+      "door_clear_height": 2.6,
+      "central_aisle_width": 2.2,
+      "interaction_radius": 2.8,
+      "accessible_storeys": 1,
+      "decorative_upper_storey": true,
+      "upper_storey_accessible": false,
+      "npc_id": "bookshop_tsuki_host",
+      "accent_material": "sage",
+      "markers": {
+        "entry": {
+          "name": "MARK_entry_bookshop_tsuki",
+          "local": [
+            0.0,
+            -5.1,
+            0.32
+          ],
+          "global": [
+            -21.9,
+            10.0,
+            0.32
+          ]
+        },
+        "inside": {
+          "name": "MARK_inside_bookshop_tsuki",
+          "local": [
+            0.0,
+            -2.0,
+            0.32
+          ],
+          "global": [
+            -25.0,
+            10.0,
+            0.32
+          ]
+        },
+        "interaction": {
+          "name": "MARK_interaction_bookshop_tsuki",
+          "local": [
+            0.0,
+            0.5,
+            0.32
+          ],
+          "global": [
+            -27.5,
+            10.0,
+            0.32
+          ]
+        },
+        "npc": {
+          "name": "MARK_npc_bookshop_tsuki",
+          "local": [
+            2.1,
+            1.8,
+            0.32
+          ],
+          "global": [
+            -28.8,
+            12.1,
+            0.32
+          ]
+        }
+      },
+      "clear_npc_zone_local": {
+        "min": [
+          1.65,
+          1.2,
+          0.3
+        ],
+        "max": [
+          2.75,
+          2.55,
+          2.4
+        ]
+      },
+      "floor_support": "SM_COL_bookshop_tsuki_floor",
+      "furnishing_theme": "Full bookshelves, display stacks, reading desk and a sales counter",
+      "collision_boxes_local": [
+        {
+          "name": "SM_COL_bookshop_tsuki_floor",
+          "position": [
+            0,
+            0,
+            0.215
+          ],
+          "dimensions": [
+            7.2,
+            7.0,
+            0.17
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_wall_left",
+          "position": [
+            -3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_wall_right",
+          "position": [
+            3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_wall_back",
+          "position": [
+            0,
+            3.42,
+            2.0
+          ],
+          "dimensions": [
+            7.04,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_front_wall",
+          "position": [
+            -2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_front_wall.001",
+          "position": [
+            2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_entry_lintel",
+          "position": [
+            0,
+            -3.42,
+            3.31
+          ],
+          "dimensions": [
+            2.12,
+            0.16,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_entry_jamb",
+          "position": [
+            -1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_entry_jamb.001",
+          "position": [
+            1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_ceiling",
+          "position": [
+            0,
+            0,
+            3.775
+          ],
+          "dimensions": [
+            7.14,
+            6.86,
+            0.15
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_entry_threshold",
+          "position": [
+            0,
+            -3.57,
+            0.27
+          ],
+          "dimensions": [
+            1.9,
+            0.36,
+            0.06
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_entry_paving",
+          "position": [
+            0,
+            -4.23,
+            0.268
+          ],
+          "dimensions": [
+            2.5,
+            1.16,
+            0.056
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_left_library",
+          "position": [
+            -3.11,
+            0.45,
+            1.7
+          ],
+          "dimensions": [
+            0.5,
+            5.23,
+            2.8
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_back_library",
+          "position": [
+            0.45,
+            3.07,
+            1.685
+          ],
+          "dimensions": [
+            5.2,
+            0.4,
+            2.77
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_bookseller_desk_body",
+          "position": [
+            -2.23,
+            -2.47,
+            0.69
+          ],
+          "dimensions": [
+            1.64,
+            0.66,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_bookseller_desk_worktop",
+          "position": [
+            -2.23,
+            -2.47,
+            1.115
+          ],
+          "dimensions": [
+            1.72,
+            0.74,
+            0.07
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_book_display",
+          "position": [
+            2.32,
+            -1.35,
+            0.6699999999999999
+          ],
+          "dimensions": [
+            1.5,
+            1.5,
+            0.74
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_reading_desk",
+          "position": [
+            -2.11,
+            1.73,
+            0.69
+          ],
+          "dimensions": [
+            1.54,
+            0.72,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_bookshop_tsuki_reading_stool",
+          "position": [
+            -1.97,
+            0.95,
+            0.54
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.58
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sakura_bakery",
+      "name": "Sakura Bakery",
+      "type": "bakery",
+      "is_enterable": true,
+      "collection": "COL_Venue_sakura_bakery",
+      "position": [
+        27.0,
+        -13.0,
+        0.0
+      ],
+      "rotation_z": -1.5707963267948966,
+      "dimensions_local": [
+        7.2,
+        7.0,
+        3.7
+      ],
+      "ground_floor_wall_height": 3.4,
+      "roof_peak_z": 5.34,
+      "floor_z": 0.3,
+      "door_clear_width": 1.9,
+      "door_clear_height": 2.6,
+      "central_aisle_width": 2.2,
+      "interaction_radius": 2.8,
+      "accessible_storeys": 1,
+      "decorative_upper_storey": false,
+      "upper_storey_accessible": false,
+      "npc_id": "sakura_bakery_host",
+      "accent_material": "blossom_dark",
+      "markers": {
+        "entry": {
+          "name": "MARK_entry_sakura_bakery",
+          "local": [
+            0.0,
+            -5.1,
+            0.32
+          ],
+          "global": [
+            21.9,
+            -13.0,
+            0.32
+          ]
+        },
+        "inside": {
+          "name": "MARK_inside_sakura_bakery",
+          "local": [
+            0.0,
+            -2.0,
+            0.32
+          ],
+          "global": [
+            25.0,
+            -13.0,
+            0.32
+          ]
+        },
+        "interaction": {
+          "name": "MARK_interaction_sakura_bakery",
+          "local": [
+            0.0,
+            0.5,
+            0.32
+          ],
+          "global": [
+            27.5,
+            -13.0,
+            0.32
+          ]
+        },
+        "npc": {
+          "name": "MARK_npc_sakura_bakery",
+          "local": [
+            2.1,
+            1.8,
+            0.32
+          ],
+          "global": [
+            28.8,
+            -15.1,
+            0.32
+          ]
+        }
+      },
+      "clear_npc_zone_local": {
+        "min": [
+          1.65,
+          1.2,
+          0.3
+        ],
+        "max": [
+          2.75,
+          2.55,
+          2.4
+        ]
+      },
+      "floor_support": "SM_COL_sakura_bakery_floor",
+      "furnishing_theme": "Open bread display, pastry table, baking oven and storage shelves",
+      "collision_boxes_local": [
+        {
+          "name": "SM_COL_sakura_bakery_floor",
+          "position": [
+            0,
+            0,
+            0.215
+          ],
+          "dimensions": [
+            7.2,
+            7.0,
+            0.17
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_wall_left",
+          "position": [
+            -3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_wall_right",
+          "position": [
+            3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_wall_back",
+          "position": [
+            0,
+            3.42,
+            2.0
+          ],
+          "dimensions": [
+            7.04,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_front_wall",
+          "position": [
+            -2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_front_wall.001",
+          "position": [
+            2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_entry_lintel",
+          "position": [
+            0,
+            -3.42,
+            3.31
+          ],
+          "dimensions": [
+            2.12,
+            0.16,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_entry_jamb",
+          "position": [
+            -1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_entry_jamb.001",
+          "position": [
+            1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_ceiling",
+          "position": [
+            0,
+            0,
+            3.775
+          ],
+          "dimensions": [
+            7.14,
+            6.86,
+            0.15
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_entry_threshold",
+          "position": [
+            0,
+            -3.57,
+            0.27
+          ],
+          "dimensions": [
+            1.9,
+            0.36,
+            0.06
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_entry_paving",
+          "position": [
+            0,
+            -4.23,
+            0.268
+          ],
+          "dimensions": [
+            2.5,
+            1.16,
+            0.056
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_bread_counter_body",
+          "position": [
+            -2.42,
+            -0.27,
+            0.7
+          ],
+          "dimensions": [
+            1.35,
+            4.1,
+            0.8
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_bread_counter_worktop",
+          "position": [
+            -2.42,
+            -0.27,
+            1.135
+          ],
+          "dimensions": [
+            1.4300000000000002,
+            4.18,
+            0.07
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_baking_oven",
+          "position": [
+            -2.13,
+            2.78,
+            1.3
+          ],
+          "dimensions": [
+            2.14,
+            0.84,
+            2.0
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_pastry_table",
+          "position": [
+            2.3,
+            -1.47,
+            0.69
+          ],
+          "dimensions": [
+            1.53,
+            1.63,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_sakura_bakery_bakery_jars",
+          "position": [
+            1.63,
+            3.06,
+            1.45
+          ],
+          "dimensions": [
+            2.72,
+            0.38,
+            2.3
+          ]
+        }
+      ]
+    },
+    {
+      "id": "izakaya_tomo",
+      "name": "Izakaya Tomo",
+      "type": "izakaya",
+      "is_enterable": true,
+      "collection": "COL_Venue_izakaya_tomo",
+      "position": [
+        27.0,
+        -2.0,
+        0.0
+      ],
+      "rotation_z": -1.5707963267948966,
+      "dimensions_local": [
+        7.2,
+        7.0,
+        5.66
+      ],
+      "ground_floor_wall_height": 3.4,
+      "roof_peak_z": 6.81,
+      "floor_z": 0.3,
+      "door_clear_width": 1.9,
+      "door_clear_height": 2.6,
+      "central_aisle_width": 2.2,
+      "interaction_radius": 2.8,
+      "accessible_storeys": 1,
+      "decorative_upper_storey": true,
+      "upper_storey_accessible": false,
+      "npc_id": "izakaya_tomo_host",
+      "accent_material": "indigo",
+      "markers": {
+        "entry": {
+          "name": "MARK_entry_izakaya_tomo",
+          "local": [
+            0.0,
+            -5.1,
+            0.32
+          ],
+          "global": [
+            21.9,
+            -2.0,
+            0.32
+          ]
+        },
+        "inside": {
+          "name": "MARK_inside_izakaya_tomo",
+          "local": [
+            0.0,
+            -2.0,
+            0.32
+          ],
+          "global": [
+            25.0,
+            -2.0,
+            0.32
+          ]
+        },
+        "interaction": {
+          "name": "MARK_interaction_izakaya_tomo",
+          "local": [
+            0.0,
+            0.5,
+            0.32
+          ],
+          "global": [
+            27.5,
+            -2.0,
+            0.32
+          ]
+        },
+        "npc": {
+          "name": "MARK_npc_izakaya_tomo",
+          "local": [
+            2.1,
+            1.8,
+            0.32
+          ],
+          "global": [
+            28.8,
+            -4.1,
+            0.32
+          ]
+        }
+      },
+      "clear_npc_zone_local": {
+        "min": [
+          1.65,
+          1.2,
+          0.3
+        ],
+        "max": [
+          2.75,
+          2.55,
+          2.4
+        ]
+      },
+      "floor_support": "SM_COL_izakaya_tomo_floor",
+      "furnishing_theme": "Timber bar, sake bottles, dining table, benches and small plates",
+      "collision_boxes_local": [
+        {
+          "name": "SM_COL_izakaya_tomo_floor",
+          "position": [
+            0,
+            0,
+            0.215
+          ],
+          "dimensions": [
+            7.2,
+            7.0,
+            0.17
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_wall_left",
+          "position": [
+            -3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_wall_right",
+          "position": [
+            3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_wall_back",
+          "position": [
+            0,
+            3.42,
+            2.0
+          ],
+          "dimensions": [
+            7.04,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_front_wall",
+          "position": [
+            -2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_front_wall.001",
+          "position": [
+            2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_entry_lintel",
+          "position": [
+            0,
+            -3.42,
+            3.31
+          ],
+          "dimensions": [
+            2.12,
+            0.16,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_entry_jamb",
+          "position": [
+            -1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_entry_jamb.001",
+          "position": [
+            1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_ceiling",
+          "position": [
+            0,
+            0,
+            3.775
+          ],
+          "dimensions": [
+            7.14,
+            6.86,
+            0.15
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_entry_threshold",
+          "position": [
+            0,
+            -3.57,
+            0.27
+          ],
+          "dimensions": [
+            1.9,
+            0.36,
+            0.06
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_entry_paving",
+          "position": [
+            0,
+            -4.23,
+            0.268
+          ],
+          "dimensions": [
+            2.5,
+            1.16,
+            0.056
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_izakaya_bar_body",
+          "position": [
+            -2.57,
+            0.05,
+            0.81
+          ],
+          "dimensions": [
+            1.02,
+            4.6,
+            1.02
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_izakaya_bar_worktop",
+          "position": [
+            -2.57,
+            0.05,
+            1.355
+          ],
+          "dimensions": [
+            1.1,
+            4.68,
+            0.07
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_bar_stool",
+          "position": [
+            -1.49,
+            -1.65,
+            0.625
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.75
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_bar_stool.001",
+          "position": [
+            -1.49,
+            -0.32,
+            0.625
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.75
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_bar_stool.002",
+          "position": [
+            -1.49,
+            1.02,
+            0.625
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.75
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_sake_wall",
+          "position": [
+            -0.1,
+            3.07,
+            1.62
+          ],
+          "dimensions": [
+            5.75,
+            0.4,
+            2.64
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_izakaya_dining",
+          "position": [
+            2.26,
+            -1.42,
+            0.685
+          ],
+          "dimensions": [
+            1.54,
+            1.31,
+            0.77
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_izakaya_bench_a",
+          "position": [
+            2.26,
+            -2.41,
+            0.55
+          ],
+          "dimensions": [
+            1.58,
+            0.53,
+            0.5
+          ]
+        },
+        {
+          "name": "SM_COL_izakaya_tomo_izakaya_bench_b",
+          "position": [
+            2.26,
+            -0.43,
+            0.55
+          ],
+          "dimensions": [
+            1.58,
+            0.53,
+            0.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tea_hanami",
+      "name": "Tea Hanami",
+      "type": "tea",
+      "is_enterable": true,
+      "collection": "COL_Venue_tea_hanami",
+      "position": [
+        27.0,
+        10.0,
+        0.0
+      ],
+      "rotation_z": -1.5707963267948966,
+      "dimensions_local": [
+        7.2,
+        7.0,
+        3.7
+      ],
+      "ground_floor_wall_height": 3.4,
+      "roof_peak_z": 5.34,
+      "floor_z": 0.3,
+      "door_clear_width": 1.9,
+      "door_clear_height": 2.6,
+      "central_aisle_width": 2.2,
+      "interaction_radius": 2.8,
+      "accessible_storeys": 1,
+      "decorative_upper_storey": false,
+      "upper_storey_accessible": false,
+      "npc_id": "tea_hanami_host",
+      "accent_material": "sage",
+      "markers": {
+        "entry": {
+          "name": "MARK_entry_tea_hanami",
+          "local": [
+            0.0,
+            -5.1,
+            0.32
+          ],
+          "global": [
+            21.9,
+            10.0,
+            0.32
+          ]
+        },
+        "inside": {
+          "name": "MARK_inside_tea_hanami",
+          "local": [
+            0.0,
+            -2.0,
+            0.32
+          ],
+          "global": [
+            25.0,
+            10.0,
+            0.32
+          ]
+        },
+        "interaction": {
+          "name": "MARK_interaction_tea_hanami",
+          "local": [
+            0.0,
+            0.5,
+            0.32
+          ],
+          "global": [
+            27.5,
+            10.0,
+            0.32
+          ]
+        },
+        "npc": {
+          "name": "MARK_npc_tea_hanami",
+          "local": [
+            2.1,
+            1.8,
+            0.32
+          ],
+          "global": [
+            28.8,
+            7.9,
+            0.32
+          ]
+        }
+      },
+      "clear_npc_zone_local": {
+        "min": [
+          1.65,
+          1.2,
+          0.3
+        ],
+        "max": [
+          2.75,
+          2.55,
+          2.4
+        ]
+      },
+      "floor_support": "SM_COL_tea_hanami_floor",
+      "furnishing_theme": "Tatami sitting platform, low tea tables, cushions and ceramic display",
+      "collision_boxes_local": [
+        {
+          "name": "SM_COL_tea_hanami_floor",
+          "position": [
+            0,
+            0,
+            0.215
+          ],
+          "dimensions": [
+            7.2,
+            7.0,
+            0.17
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_wall_left",
+          "position": [
+            -3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_wall_right",
+          "position": [
+            3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_wall_back",
+          "position": [
+            0,
+            3.42,
+            2.0
+          ],
+          "dimensions": [
+            7.04,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_front_wall",
+          "position": [
+            -2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_front_wall.001",
+          "position": [
+            2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_entry_lintel",
+          "position": [
+            0,
+            -3.42,
+            3.31
+          ],
+          "dimensions": [
+            2.12,
+            0.16,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_entry_jamb",
+          "position": [
+            -1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_entry_jamb.001",
+          "position": [
+            1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_ceiling",
+          "position": [
+            0,
+            0,
+            3.775
+          ],
+          "dimensions": [
+            7.14,
+            6.86,
+            0.15
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_entry_threshold",
+          "position": [
+            0,
+            -3.57,
+            0.27
+          ],
+          "dimensions": [
+            1.9,
+            0.36,
+            0.06
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_entry_paving",
+          "position": [
+            0,
+            -4.23,
+            0.268
+          ],
+          "dimensions": [
+            2.5,
+            1.16,
+            0.056
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_tatami_platform",
+          "position": [
+            -2.31,
+            -0.13,
+            0.37
+          ],
+          "dimensions": [
+            2.1,
+            5.24,
+            0.14
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_tea_low_table",
+          "position": [
+            -2.28,
+            -1.44,
+            0.47
+          ],
+          "dimensions": [
+            1.48,
+            0.66,
+            0.33999999999999997
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_tea_floor_cushion",
+          "position": [
+            -2.28,
+            -2.23,
+            0.52
+          ],
+          "dimensions": [
+            0.74,
+            0.62,
+            0.12
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_tea_floor_cushion.001",
+          "position": [
+            -2.28,
+            -0.6499999999999999,
+            0.52
+          ],
+          "dimensions": [
+            0.74,
+            0.62,
+            0.12
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_tea_low_table.001",
+          "position": [
+            -2.28,
+            1.18,
+            0.47
+          ],
+          "dimensions": [
+            1.48,
+            0.66,
+            0.33999999999999997
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_tea_floor_cushion.002",
+          "position": [
+            -2.28,
+            0.3899999999999999,
+            0.52
+          ],
+          "dimensions": [
+            0.74,
+            0.62,
+            0.12
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_tea_floor_cushion.003",
+          "position": [
+            -2.28,
+            1.97,
+            0.52
+          ],
+          "dimensions": [
+            0.74,
+            0.62,
+            0.12
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_tea_ceramic_display",
+          "position": [
+            2.94,
+            -1.38,
+            1.54
+          ],
+          "dimensions": [
+            0.61,
+            2.3,
+            2.48
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_tea_preparation_body",
+          "position": [
+            -0.61,
+            2.96,
+            0.6950000000000001
+          ],
+          "dimensions": [
+            3.75,
+            0.62,
+            0.79
+          ]
+        },
+        {
+          "name": "SM_COL_tea_hanami_tea_preparation_worktop",
+          "position": [
+            -0.61,
+            2.96,
+            1.125
+          ],
+          "dimensions": [
+            3.83,
+            0.7,
+            0.07
+          ]
+        }
+      ]
+    },
+    {
+      "id": "market_provisions",
+      "name": "Market Provisions",
+      "type": "grocer",
+      "is_enterable": true,
+      "collection": "COL_Venue_market_provisions",
+      "position": [
+        -13.0,
+        23.0,
+        0.0
+      ],
+      "rotation_z": 0.0,
+      "dimensions_local": [
+        7.2,
+        7.0,
+        3.7
+      ],
+      "ground_floor_wall_height": 3.4,
+      "roof_peak_z": 5.34,
+      "floor_z": 0.3,
+      "door_clear_width": 1.9,
+      "door_clear_height": 2.6,
+      "central_aisle_width": 2.2,
+      "interaction_radius": 2.8,
+      "accessible_storeys": 1,
+      "decorative_upper_storey": false,
+      "upper_storey_accessible": false,
+      "npc_id": "market_provisions_host",
+      "accent_material": "sage",
+      "markers": {
+        "entry": {
+          "name": "MARK_entry_market_provisions",
+          "local": [
+            0.0,
+            -5.1,
+            0.32
+          ],
+          "global": [
+            -13.0,
+            17.9,
+            0.32
+          ]
+        },
+        "inside": {
+          "name": "MARK_inside_market_provisions",
+          "local": [
+            0.0,
+            -2.0,
+            0.32
+          ],
+          "global": [
+            -13.0,
+            21.0,
+            0.32
+          ]
+        },
+        "interaction": {
+          "name": "MARK_interaction_market_provisions",
+          "local": [
+            0.0,
+            0.5,
+            0.32
+          ],
+          "global": [
+            -13.0,
+            23.5,
+            0.32
+          ]
+        },
+        "npc": {
+          "name": "MARK_npc_market_provisions",
+          "local": [
+            2.1,
+            1.8,
+            0.32
+          ],
+          "global": [
+            -10.9,
+            24.8,
+            0.32
+          ]
+        }
+      },
+      "clear_npc_zone_local": {
+        "min": [
+          1.65,
+          1.2,
+          0.3
+        ],
+        "max": [
+          2.75,
+          2.55,
+          2.4
+        ]
+      },
+      "floor_support": "SM_COL_market_provisions_floor",
+      "furnishing_theme": "Produce crates, fruit displays, jars and a rear provisions counter",
+      "collision_boxes_local": [
+        {
+          "name": "SM_COL_market_provisions_floor",
+          "position": [
+            0,
+            0,
+            0.215
+          ],
+          "dimensions": [
+            7.2,
+            7.0,
+            0.17
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_wall_left",
+          "position": [
+            -3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_wall_right",
+          "position": [
+            3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_wall_back",
+          "position": [
+            0,
+            3.42,
+            2.0
+          ],
+          "dimensions": [
+            7.04,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_front_wall",
+          "position": [
+            -2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_front_wall.001",
+          "position": [
+            2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_entry_lintel",
+          "position": [
+            0,
+            -3.42,
+            3.31
+          ],
+          "dimensions": [
+            2.12,
+            0.16,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_entry_jamb",
+          "position": [
+            -1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_entry_jamb.001",
+          "position": [
+            1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_ceiling",
+          "position": [
+            0,
+            0,
+            3.775
+          ],
+          "dimensions": [
+            7.14,
+            6.86,
+            0.15
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_entry_threshold",
+          "position": [
+            0,
+            -3.57,
+            0.27
+          ],
+          "dimensions": [
+            1.9,
+            0.36,
+            0.06
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_entry_paving",
+          "position": [
+            0,
+            -4.23,
+            0.268
+          ],
+          "dimensions": [
+            2.5,
+            1.16,
+            0.056
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_provisions_shelf",
+          "position": [
+            -3.05,
+            0.35,
+            1.585
+          ],
+          "dimensions": [
+            0.57,
+            5.12,
+            2.57
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_fruit_stall_body",
+          "position": [
+            2.28,
+            -1.55,
+            0.62
+          ],
+          "dimensions": [
+            1.7,
+            1.84,
+            0.64
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_fruit_stall_worktop",
+          "position": [
+            2.28,
+            -1.55,
+            0.975
+          ],
+          "dimensions": [
+            1.78,
+            1.9200000000000002,
+            0.07
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_provisions_rear_body",
+          "position": [
+            -0.69,
+            2.94,
+            0.73
+          ],
+          "dimensions": [
+            3.86,
+            0.65,
+            0.86
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_provisions_rear_worktop",
+          "position": [
+            -0.69,
+            2.94,
+            1.1949999999999998
+          ],
+          "dimensions": [
+            3.94,
+            0.73,
+            0.07
+          ]
+        },
+        {
+          "name": "SM_COL_market_provisions_rice_crate",
+          "position": [
+            -2.33,
+            -2.44,
+            0.68
+          ],
+          "dimensions": [
+            1.07,
+            0.89,
+            0.76
+          ]
+        }
+      ]
+    },
+    {
+      "id": "restaurant_momiji",
+      "name": "Restaurant Momiji",
+      "type": "restaurant",
+      "is_enterable": true,
+      "collection": "COL_Venue_restaurant_momiji",
+      "position": [
+        13.0,
+        23.0,
+        0.0
+      ],
+      "rotation_z": 0.0,
+      "dimensions_local": [
+        7.2,
+        7.0,
+        3.7
+      ],
+      "ground_floor_wall_height": 3.4,
+      "roof_peak_z": 5.34,
+      "floor_z": 0.3,
+      "door_clear_width": 1.9,
+      "door_clear_height": 2.6,
+      "central_aisle_width": 2.2,
+      "interaction_radius": 2.8,
+      "accessible_storeys": 1,
+      "decorative_upper_storey": false,
+      "upper_storey_accessible": false,
+      "npc_id": "restaurant_momiji_host",
+      "accent_material": "vermilion",
+      "markers": {
+        "entry": {
+          "name": "MARK_entry_restaurant_momiji",
+          "local": [
+            0.0,
+            -5.1,
+            0.32
+          ],
+          "global": [
+            13.0,
+            17.9,
+            0.32
+          ]
+        },
+        "inside": {
+          "name": "MARK_inside_restaurant_momiji",
+          "local": [
+            0.0,
+            -2.0,
+            0.32
+          ],
+          "global": [
+            13.0,
+            21.0,
+            0.32
+          ]
+        },
+        "interaction": {
+          "name": "MARK_interaction_restaurant_momiji",
+          "local": [
+            0.0,
+            0.5,
+            0.32
+          ],
+          "global": [
+            13.0,
+            23.5,
+            0.32
+          ]
+        },
+        "npc": {
+          "name": "MARK_npc_restaurant_momiji",
+          "local": [
+            2.1,
+            1.8,
+            0.32
+          ],
+          "global": [
+            15.1,
+            24.8,
+            0.32
+          ]
+        }
+      },
+      "clear_npc_zone_local": {
+        "min": [
+          1.65,
+          1.2,
+          0.3
+        ],
+        "max": [
+          2.75,
+          2.55,
+          2.4
+        ]
+      },
+      "floor_support": "SM_COL_restaurant_momiji_floor",
+      "furnishing_theme": "Dining tables, chairs, place settings and a rear kitchen counter",
+      "collision_boxes_local": [
+        {
+          "name": "SM_COL_restaurant_momiji_floor",
+          "position": [
+            0,
+            0,
+            0.215
+          ],
+          "dimensions": [
+            7.2,
+            7.0,
+            0.17
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_wall_left",
+          "position": [
+            -3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_wall_right",
+          "position": [
+            3.52,
+            0,
+            2.0
+          ],
+          "dimensions": [
+            0.16,
+            7.0,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_wall_back",
+          "position": [
+            0,
+            3.42,
+            2.0
+          ],
+          "dimensions": [
+            7.04,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_front_wall",
+          "position": [
+            -2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_front_wall.001",
+          "position": [
+            2.28,
+            -3.42,
+            2.0
+          ],
+          "dimensions": [
+            2.48,
+            0.16,
+            3.4
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_entry_lintel",
+          "position": [
+            0,
+            -3.42,
+            3.31
+          ],
+          "dimensions": [
+            2.12,
+            0.16,
+            0.78
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_entry_jamb",
+          "position": [
+            -1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_entry_jamb.001",
+          "position": [
+            1.025,
+            -3.49,
+            1.61
+          ],
+          "dimensions": [
+            0.15,
+            0.24,
+            2.62
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_ceiling",
+          "position": [
+            0,
+            0,
+            3.775
+          ],
+          "dimensions": [
+            7.14,
+            6.86,
+            0.15
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_entry_threshold",
+          "position": [
+            0,
+            -3.57,
+            0.27
+          ],
+          "dimensions": [
+            1.9,
+            0.36,
+            0.06
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_entry_paving",
+          "position": [
+            0,
+            -4.23,
+            0.268
+          ],
+          "dimensions": [
+            2.5,
+            1.16,
+            0.056
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_restaurant_table_0",
+          "position": [
+            -2.23,
+            -1.78,
+            0.7
+          ],
+          "dimensions": [
+            1.64,
+            1.08,
+            0.8
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_restaurant_chair_a",
+          "position": [
+            -2.23,
+            -2.62,
+            0.5349999999999999
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.57
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_restaurant_chair_b",
+          "position": [
+            -2.23,
+            -0.9400000000000001,
+            0.5349999999999999
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.57
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_restaurant_table_1",
+          "position": [
+            -2.23,
+            0.62,
+            0.7
+          ],
+          "dimensions": [
+            1.64,
+            1.08,
+            0.8
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_restaurant_chair_a.001",
+          "position": [
+            -2.23,
+            -0.21999999999999997,
+            0.5349999999999999
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.57
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_restaurant_chair_b.001",
+          "position": [
+            -2.23,
+            1.46,
+            0.5349999999999999
+          ],
+          "dimensions": [
+            0.44,
+            0.44,
+            0.57
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_window_dining",
+          "position": [
+            2.23,
+            -1.58,
+            0.7
+          ],
+          "dimensions": [
+            1.58,
+            1.32,
+            0.8
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_window_bench_a",
+          "position": [
+            2.23,
+            -2.57,
+            0.55
+          ],
+          "dimensions": [
+            1.67,
+            0.53,
+            0.5
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_window_bench_b",
+          "position": [
+            2.23,
+            -0.59,
+            0.55
+          ],
+          "dimensions": [
+            1.67,
+            0.53,
+            0.5
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_restaurant_kitchen_body",
+          "position": [
+            -1.1,
+            2.99,
+            0.77
+          ],
+          "dimensions": [
+            3.65,
+            0.65,
+            0.94
+          ]
+        },
+        {
+          "name": "SM_COL_restaurant_momiji_restaurant_kitchen_worktop",
+          "position": [
+            -1.1,
+            2.99,
+            1.275
+          ],
+          "dimensions": [
+            3.73,
+            0.73,
+            0.07
+          ]
+        }
+      ]
+    }
+  ],
+  "build_stats": [
+    {
+      "id": "kissa_aoi",
+      "render_triangles": 11314,
+      "render_objects": 397,
+      "colliders": 23
+    },
+    {
+      "id": "ramen_akari",
+      "render_triangles": 12748,
+      "render_objects": 422,
+      "colliders": 23
+    },
+    {
+      "id": "bookshop_tsuki",
+      "render_triangles": 15598,
+      "render_objects": 983,
+      "colliders": 19
+    },
+    {
+      "id": "sakura_bakery",
+      "render_triangles": 12454,
+      "render_objects": 406,
+      "colliders": 17
+    },
+    {
+      "id": "izakaya_tomo",
+      "render_triangles": 18778,
+      "render_objects": 712,
+      "colliders": 21
+    },
+    {
+      "id": "tea_hanami",
+      "render_triangles": 11590,
+      "render_objects": 398,
+      "colliders": 22
+    },
+    {
+      "id": "market_provisions",
+      "render_triangles": 15670,
+      "render_objects": 439,
+      "colliders": 18
+    },
+    {
+      "id": "restaurant_momiji",
+      "render_triangles": 10760,
+      "render_objects": 384,
+      "colliders": 23
+    }
+  ],
+  "new_venue_render_triangles": 108912
+}
