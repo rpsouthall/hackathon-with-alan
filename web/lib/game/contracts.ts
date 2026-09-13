@@ -22,9 +22,11 @@ export interface TranscriptLine {
 
 // Presentation only. The room supplies the available cast, positions and encounter state.
 export const npcs: NpcDefinition[] = [
-  { id: "cafe_owner", name: "Aoi", nameJapanese: "葵", role: "Tea house host", objective: "Order tea and ask for a recommendation", level: "N5", accent: "#b96550" },
+  { id: "cafe_owner", name: "Aoi", nameJapanese: "葵", role: "Café owner", objective: "Order coffee and ask for a recommendation", level: "N5", accent: "#b96550" },
   { id: "local_guide", name: "Haru", nameJapanese: "春", role: "Local guide", objective: "Ask for directions to the temple", level: "N4", accent: "#628778" },
   { id: "inn_host", name: "Ren", nameJapanese: "蓮", role: "Inn host", objective: "Check in and ask about breakfast", level: "N4", accent: "#536585" },
+  { id: "market_produce", name: "Yui", nameJapanese: "結衣", role: "Produce seller", objective: "Choose fresh fruit and ask the price", level: "N5", accent: "#8c9973" },
+  { id: "market_tea", name: "Sora", nameJapanese: "空", role: "Tea seller", objective: "Taste Japanese tea and choose a gift", level: "N5", accent: "#6e8982" },
 ];
 
 export function npcPresentation(npc: NpcSnapshot): NpcDefinition {

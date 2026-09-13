@@ -756,3 +756,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 1100px) { .world-camera-controls { top: 151px; } }
 @media (max-width: 860px) { .world-camera-controls { top: auto; bottom: 250px; } }
 @media (max-width: 600px) { .world-camera-controls { right: 12px; max-width: calc(100% - 24px); } .world-camera-controls button { padding: 8px 10px; } }
+
+.npc-live-preview { width: 76px; height: 76px; object-fit: cover; object-position: 50% 26%; border-radius: 12px; flex: 0 0 auto; border: 1px solid #d9ccb2; }
+.walking-notice { position: absolute; z-index: 25; bottom: 84px; left: 50%; transform: translateX(-50%); max-width: min(500px, calc(100vw - 32px)); border: 1px solid #d9ccb2; border-radius: 12px; padding: 10px 16px; color: #273b49; background: #fff9eaf5; font-size: 13px; box-shadow: 0 5px 20px #182f3415; pointer-events: none; }
+@media (max-width: 700px) { .walking-notice { bottom: 190px; width: calc(100vw - 36px); } }

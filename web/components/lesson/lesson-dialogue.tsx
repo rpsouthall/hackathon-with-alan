@@ -1,20 +1,23 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { ArrowRight, Check, ChevronLeft, Coffee, HelpCircle, Languages, LoaderCircle, Mic, MicOff, RotateCcw, Send, Sparkles, Volume2, X } from 'lucide-react';
+import { lessonClientId } from '@/lib/lesson/client-id';
 import { scenarioForNpc } from '@/lib/lesson/scenarios';
+import { lessonCharacterForWorldNpc, scenarioForCharacter } from '@/lib/lesson/characters';
 import { environmentForNpc } from '@/lib/game/environments';
 import { LessonEngine, gradeChoice } from '@/lib/lesson/engine';
 import type { LessonEvent, LessonSnapshot, NativeLanguage, Turn } from '@/lib/lesson/types';
-import type { MicCapture } from '@/lib/lesson/mic-capture';
+import { startMicCapture, type MicCapture } from '@/lib/lesson/mic-capture';
 import type { joinAvatarRoom } from '@/lib/lesson/avatar-room';
 
 type AvatarRoom = Awaited<ReturnType<typeof joinAvatarRoom>>;
 type Capabilities = { aiFeedback: boolean; liveAvatar: boolean; missing: string[] };
 const kindLabels = { roleplay: 'Your turn to speak', meaning: 'Check your understanding', politeness: 'Choose a polite reply', fill: 'Complete the phrase' };
 
-export function LessonDialogue({ npcId, onClose, allowLive = true }: { npcId: string; onClose: () => void; allowLive?: boolean }) {
-  const scenario = scenarioForNpc(npcId);
+export function LessonDialogue({ npcId, worldNpcId, onClose, allowLive = true }: { npcId: string; worldNpcId?: string; onClose: () => void; allowLive?: boolean }) {
+  const character = worldNpcId ? lessonCharacterForWorldNpc(worldNpcId) : undefined;
+  const scenario = character ? scenarioForCharacter(character) : scenarioForNpc(npcId);
   const environment = environmentForNpc(npcId);
   const preview = useRef(new LessonEngine(scenario));
   const [lesson, setLesson] = useState<LessonSnapshot>(() => new LessonEngine(scenario).state);
@@ -28,11 +31,19 @@ export function LessonDialogue({ npcId, onClose, allowLive = true }: { npcId: st
   const [error, setError] = useState('');
   const [live, setLive] = useState<'off' | 'starting' | 'ready'>('off');
   const [muted, setMuted] = useState(false);
+  const [micStatus, setMicStatus] = useState<'off' | 'starting' | 'on'>('off');
+  const [micError, setMicError] = useState('');
+  const [audioBlocked, setAudioBlocked] = useState(false);
   const [hasVideo, setHasVideo] = useState(false);
   const [turns, setTurns] = useState<Turn[]>([]);
   const [reconnect, setReconnect] = useState(0);
   const socket = useRef<WebSocket | null>(null);
   const mic = useRef<MicCapture | null>(null);
+  const microphoneSetup = useRef<AbortController | null>(null);
+  const avatarSetup = useRef<AbortController | null>(null);
+  const startupTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const liveState = useRef<'off' | 'starting' | 'ready'>('off');
+  const autoStarted = useRef(false);
   const room = useRef<AvatarRoom | null>(null);
   const video = useRef<HTMLVideoElement>(null);
   const audio = useRef<HTMLAudioElement>(null);
@@ -54,16 +65,24 @@ export function LessonDialogue({ npcId, onClose, allowLive = true }: { npcId: st
   }
   function releaseMedia() {
     mediaVersion.current++;
-    mic.current?.stop(); mic.current = null;
+    if (startupTimer.current) clearTimeout(startupTimer.current);
+    startupTimer.current = null;
+    avatarSetup.current?.abort(); avatarSetup.current = null;
+    microphoneSetup.current?.abort(); microphoneSetup.current = null;
+    mic.current?.stop(); mic.current = null; setMicStatus('off');
     void room.current?.disconnect(); room.current = null;
   }
   function stopAvatar() {
     send({ type: 'stop-live' }); releaseMedia();
-    setLive('off'); setHasVideo(false); setMuted(false);
+    liveState.current = 'off'; setLive('off'); setHasVideo(false); setMuted(false);
   }
 
   useEffect(() => {
     const epoch = ++generation.current;
+    autoStarted.current = false;
+    // Fetch the video client while provider sessions open, rather than adding
+    // its download and compilation to the eventual room-connection delay.
+    void import('@/lib/lesson/avatar-room').catch(() => {});
     const controller = new AbortController();
     const current = () => generation.current === epoch;
     void fetch('/lesson-api/config', { signal: controller.signal }).then(response => {
@@ -77,7 +96,10 @@ export function LessonDialogue({ npcId, onClose, allowLive = true }: { npcId: st
     const local = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
     const ws = new WebSocket(local ? 'ws://127.0.0.1:8790/lesson-api/session' : `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/lesson-api/session`);
     socket.current = ws;
-    ws.onopen = () => ws.send(JSON.stringify({ type: 'start', scenarioId: scenario.id, language: initialLanguage.current }));
+    ws.onopen = () => {
+      setConnected(false);
+      ws.send(JSON.stringify({ type: 'start', scenarioId: scenario.id, language: initialLanguage.current, clientId: lessonClientId(), characterId: worldNpcId }));
+    };
     ws.onmessage = message => {
       if (!current()) return;
       const event = JSON.parse(message.data) as LessonEvent;
@@ -89,53 +111,87 @@ export function LessonDialogue({ npcId, onClose, allowLive = true }: { npcId: st
         const found = previous.some(turn => turn.id === event.turn.id);
         return (found ? previous.map(turn => turn.id === event.turn.id ? event.turn : turn) : [...previous, event.turn]).slice(-30);
       });
-      if (event.type === 'ready') { setLive('ready'); mic.current?.setMuted(false); setMuted(false); }
-      if (event.type === 'ended') { releaseMedia(); setLive('off'); setHasVideo(false); }
+      if (event.type === 'live-starting') { liveState.current = 'starting'; setLive('starting'); }
+      if (event.type === 'ready') {
+        if (startupTimer.current) clearTimeout(startupTimer.current);
+        startupTimer.current = null;
+        liveState.current = 'ready'; setLive('ready'); mic.current?.setMuted(false); setMuted(false);
+      }
+      if (event.type === 'ended') { releaseMedia(); liveState.current = 'off'; setLive('off'); setHasVideo(false); }
       if (event.type === 'avatar') {
         const version = mediaVersion.current;
+        const setup = avatarSetup.current;
+        if (!setup || setup.signal.aborted || liveState.current === 'off') return;
         void import('@/lib/lesson/avatar-room').then(({ joinAvatarRoom }) => {
-          if (!current() || !video.current || !audio.current) return null;
+          if (!current() || setup.signal.aborted || version !== mediaVersion.current || !video.current || !audio.current) return null;
           return joinAvatarRoom(event.url, event.token, video.current, audio.current,
             () => { if (current() && version === mediaVersion.current) setHasVideo(true); },
-            () => { if (current() && version === mediaVersion.current) { setError('The avatar video disconnected. Start it again to continue speaking.'); send({ type: 'stop-live' }); releaseMedia(); setLive('off'); setHasVideo(false); } });
+            () => { if (current() && version === mediaVersion.current) { setError('The avatar video disconnected. Start it again to continue speaking.'); send({ type: 'stop-live' }); releaseMedia(); liveState.current = 'off'; setLive('off'); setHasVideo(false); } }, setup.signal, () => { if (current() && version === mediaVersion.current) setAudioBlocked(true); });
         }).then(value => {
           if (!value) return;
-          if (!current() || version !== mediaVersion.current) { void value.disconnect(); return; }
+          if (!current() || version !== mediaVersion.current || setup.signal.aborted) { void value.disconnect(); return; }
           room.current = value; ws.send(JSON.stringify({ type: 'avatar-ready' }));
         }).catch(() => {
-          if (current()) { setError('The avatar video could not connect. Please try again.'); send({ type: 'stop-live' }); releaseMedia(); setLive('off'); setHasVideo(false); }
+          if (current() && version === mediaVersion.current && !setup.signal.aborted) { setError('The avatar video could not connect. Please try again.'); send({ type: 'stop-live' }); releaseMedia(); liveState.current = 'off'; setLive('off'); setHasVideo(false); }
         });
       }
     };
     ws.onclose = () => {
       if (!current()) return;
-      setConnected(false); setChecking(false); setLive('off'); setHasVideo(false); releaseMedia();
+      liveState.current = 'off'; setConnected(false); setChecking(false); setLive('off'); setHasVideo(false); releaseMedia();
       setError('The lesson connection ended. Reconnect to start a new lesson.');
     };
     ws.onerror = () => { if (current()) setError('The lesson service could not connect.'); };
     return () => {
-      generation.current = epoch + 1; controller.abort(); releaseMedia(); socket.current = null;
+      generation.current = epoch + 1; liveState.current = 'off'; controller.abort(); releaseMedia(); socket.current = null;
       ws.onopen = null; ws.onmessage = null; ws.onclose = null; ws.onerror = () => {};
       if (ws.readyState === WebSocket.CONNECTING) ws.addEventListener('open', () => ws.close(), { once: true }); else ws.close();
     };
-  }, [scenario.id, reconnect]);
+  }, [scenario.id, worldNpcId, reconnect]);
 
-  async function startAvatar() {
-    const epoch = generation.current;
-    const version = ++mediaVersion.current;
-    setError(''); setLive('starting');
+  async function enableMicrophone() {
+    if (microphoneSetup.current || mic.current || liveState.current === 'off') return;
+    const epoch = generation.current, version = mediaVersion.current;
+    const controller = new AbortController(); microphoneSetup.current = controller;
+    setMicError(''); setMicStatus('starting');
     try {
-      const { startMicCapture } = await import('@/lib/lesson/mic-capture');
       const capture = await startMicCapture(chunk => {
         if (socket.current?.readyState === WebSocket.OPEN && socket.current.bufferedAmount < 128000) send({ type: 'audio', audio: chunk });
-      });
-      if (epoch !== generation.current || version !== mediaVersion.current) { capture.stop(); return; }
-      capture.setMuted(true); mic.current = capture;
-      send({ type: 'live' });
-    } catch {
-      if (epoch === generation.current) { setError('Microphone access is needed. Allow it in your browser, then try again.'); setLive('off'); releaseMedia(); }
-    }
+      }, undefined, controller.signal);
+      if (epoch !== generation.current || version !== mediaVersion.current || controller.signal.aborted) { capture.stop(); return; }
+      capture.setMuted(liveState.current !== 'ready'); mic.current = capture;
+      setMicStatus('on'); setMuted(false);
+      void room.current?.enableAudio().then(() => setAudioBlocked(false)).catch(() => setAudioBlocked(true));
+    } catch (cause) {
+      if (epoch === generation.current && version === mediaVersion.current && !controller.signal.aborted) {
+        setMicStatus('off');
+        setMicError(cause instanceof Error ? cause.message : 'Enable your microphone to speak, or continue in the chat.');
+      }
+    } finally { if (microphoneSetup.current === controller) microphoneSetup.current = null; }
   }
+
+  function startAvatar() {
+    if (!connected || socket.current?.readyState !== WebSocket.OPEN || !capabilities?.liveAvatar || !allowLive || lesson.completed || liveState.current !== 'off') return;
+    releaseMedia();
+    liveState.current = 'starting'; setLive('starting'); setError(''); setHasVideo(false); setTurns([]); setAudioBlocked(false);
+    avatarSetup.current = new AbortController();
+    const version = mediaVersion.current;
+    startupTimer.current = setTimeout(() => {
+      if (version !== mediaVersion.current || liveState.current !== 'starting') return;
+      stopAvatar(); setError('The avatar could not finish connecting. Retry the avatar to start a fresh session.');
+    }, 90000);
+    // Video connects independently: a pending microphone permission must never
+    // leave the learner looking at a placeholder instead of their tutor.
+    send({ type: 'live' });
+    void enableMicrophone();
+  }
+  const beginEncounter = useEffectEvent(startAvatar);
+  useEffect(() => {
+    if (!connected || socket.current?.readyState !== WebSocket.OPEN || !capabilities?.liveAvatar || !allowLive || autoStarted.current) return;
+    autoStarted.current = true;
+    beginEncounter();
+  }, [connected, capabilities?.liveAvatar, allowLive]);
+
   function submit(choice?: number) {
     setError('');
     if (connected) { setChecking(true); send({ type: 'answer', questionId: question.id, answer: choice === undefined ? answer : undefined, choice }); }
@@ -150,7 +206,7 @@ export function LessonDialogue({ npcId, onClose, allowLive = true }: { npcId: st
     else { preview.current[action](question.id); setLesson({ ...preview.current.state }); }
   }
   function restart() {
-    stopAvatar(); preview.current = new LessonEngine(scenario); setLesson(preview.current.state);
+    autoStarted.current = false; stopAvatar(); preview.current = new LessonEngine(scenario); setLesson(preview.current.state);
     setConnected(false); setAnswer(''); setHint(false); setTurns([]); setChecking(false); setReconnect(value => value + 1);
   }
 
@@ -171,7 +227,7 @@ export function LessonDialogue({ npcId, onClose, allowLive = true }: { npcId: st
     </header>
     <div className="lesson-body">
       <aside className="lesson-avatar-column">
-        <div className="lesson-avatar-stage" style={{ backgroundImage: `url('${environment.image}')` }}>
+        <div className="lesson-avatar-stage" style={{ backgroundImage: `url('${character?.preview ?? environment.image}')` }}>
           <video ref={video} autoPlay playsInline muted aria-hidden={!hasVideo} className={hasVideo ? 'is-visible' : ''} aria-label={`${scenario.name} live HeyGen avatar`} />
           <audio ref={audio} autoPlay />
           {!hasVideo && <div className="lesson-avatar-placeholder">
@@ -184,13 +240,14 @@ export function LessonDialogue({ npcId, onClose, allowLive = true }: { npcId: st
           <div className="lesson-avatar-caption"><span className={live === 'ready' ? 'lesson-dot active' : 'lesson-dot'} />{live === 'ready' ? `${scenario.name} · Japanese tutor` : 'HeyGen LiveAvatar + GPT-Live'}</div>
         </div>
         <div className="lesson-voice-controls">
-          {live === 'off' ? <button className="lesson-primary" onClick={() => void startAvatar()} disabled={!connected || !capabilities?.liveAvatar || !allowLive || lesson.completed}><Mic size={18} /> Start live avatar</button> : <>
-            <button className="lesson-primary" onClick={() => { const next = !muted; setMuted(next); mic.current?.setMuted(next); }} disabled={live !== 'ready'}>{live === 'starting' ? <LoaderCircle className="lesson-spin" size={18} /> : muted ? <MicOff size={18} /> : <Mic size={18} />}{live === 'starting' ? 'Connecting…' : muted ? 'Unmute microphone' : 'Microphone on'}</button>
-            <button className="lesson-secondary" onClick={stopAvatar}>Stop</button>
+          {live === 'off' ? <button className="lesson-primary" onClick={startAvatar} disabled={!connected || !capabilities?.liveAvatar || !allowLive || lesson.completed}><RotateCcw size={18} /> Retry live avatar</button> : <>
+            {micStatus === 'on' ? <button className="lesson-primary" onClick={() => { const next = !muted; setMuted(next); mic.current?.setMuted(next); }} disabled={live !== 'ready'}>{muted ? <MicOff size={18} /> : <Mic size={18} />}{live === 'starting' ? 'Connecting tutor…' : muted ? 'Unmute microphone' : 'Microphone on'}</button> : <button className="lesson-primary" onClick={() => void enableMicrophone()} disabled={micStatus === 'starting'}>{micStatus === 'starting' ? <LoaderCircle className="lesson-spin" size={18} /> : <Mic size={18} />}{micStatus === 'starting' ? 'Preparing microphone…' : 'Enable microphone'}</button>}
+            <button className="lesson-secondary" onClick={stopAvatar}>Stop avatar</button>
           </>}
-          {hasVideo && <button className="lesson-icon-button" onClick={() => { void room.current?.enableAudio().catch(() => setError('Use your browser’s sound controls to allow audio.')); }} aria-label="Enable avatar sound"><Volume2 size={18} /></button>}
+          {hasVideo && audioBlocked && <button className="lesson-secondary" onClick={() => { void room.current?.enableAudio().then(() => setAudioBlocked(false)).catch(() => setMicError('Click Enable sound again to allow browser audio.')); }}><Volume2 size={18} /> Enable sound</button>}
         </div>
-        <p className="lesson-service-note">{!allowLive ? 'Live lessons are currently available in a private room.' : capabilities?.liveAvatar ? 'Speak English or try Japanese. The tutor replies in Japanese. Live sessions last up to 5 minutes.' : 'The lesson is ready for practice. Connect a LiveAvatar key and avatar ID to bring the tutor on screen.'}</p>
+        {micError && <p className="lesson-service-note" role="status">{micError} You can still type in the chat.</p>}
+        <p className="lesson-service-note">{capabilities?.liveAvatar ? 'Your avatar and chat are private to you. Speak English or try Japanese; your tutor replies in Japanese.' : capabilities ? 'The live avatar is unavailable. You can continue practising in the chat.' : 'Connecting to your lesson service…'}</p>
         <label className="lesson-language"><Languages size={16} /> I speak <select aria-label="Your native language" value={language} disabled={live !== 'off'} onChange={event => { const value = event.target.value as NativeLanguage; setLanguage(value); initialLanguage.current = value; send({ type: 'language', language: value }); }}><option>English</option><option>Mandarin Chinese</option><option>Spanish</option><option>Japanese</option></select></label>
       </aside>
 
@@ -221,7 +278,11 @@ export function LessonDialogue({ npcId, onClose, allowLive = true }: { npcId: st
           </article>}
           <button className="lesson-text-button lesson-hint-toggle" onClick={() => setHint(value => !value)}><HelpCircle size={16} />{hint ? 'Hide example' : 'Need a little help?'}</button>
           {hint && <div className="lesson-hint"><p lang="ja">{question.modelAnswer}</p><span>{question.reading}</span><p>{question.answerMeaning}</p><small>{question.tip}</small></div>}
-          {!!latest.length && <details className="lesson-transcript" open><summary>Live conversation · transcript may contain errors</summary><div aria-live="polite">{latest.map(turn => <p key={turn.id}><strong>{turn.role === 'user' ? 'You' : scenario.name}</strong><span>{turn.text}{!turn.done && ' …'}</span></p>)}</div><small>Feedback uses the recognised words; it does not measure pronunciation.</small></details>}
+          <section className="lesson-transcript" aria-label="Conversation chat">
+            <h3>Conversation</h3>
+            <div aria-live="polite">{latest.length ? latest.map(turn => <p key={turn.id}><strong>{turn.role === 'user' ? 'You' : scenario.name}</strong><span>{turn.text}{!turn.done && ' …'}</span></p>) : <p>{live === 'starting' ? 'Your tutor is joining. You can type an answer while the video connects.' : 'Your messages and your tutor’s replies appear here.'}</p>}</div>
+            <small>Speech recognition can contain errors. Feedback assesses words, not pronunciation.</small>
+          </section>
         </>}
       </div>
     </div>

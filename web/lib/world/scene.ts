@@ -5,10 +5,11 @@ import { createAvatar, loadAvatarTemplate, disposeAvatarTemplate } from "../char
 import { SceneryCutaway, setOcclusionRay, isOccludingScenery } from "./occlusion";
 import { addWorldLighting } from "./lighting";
 import { CHARACTER_PRESETS } from "../characters/presets";
-import type { EnvironmentManifest, NpcSnapshot, PlayerSnapshot, EncounterSnapshot } from "./schema";
+import type { EnvironmentManifest, NpcSnapshot, PlayerSnapshot, EncounterSnapshot, Vec3 } from "./schema";
+import type { createWalkingMap } from './navigation';
 
 export interface SceneEntities { players: PlayerSnapshot[]; npcs: NpcSnapshot[]; localPlayerId: string | null; encounters?: EncounterSnapshot[]; selectedNpcId?: string }
-export interface SceneCallbacks { onMove: (direction: [number, number], yaw: number) => void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void; onToggleView?: () => void }
+export interface SceneCallbacks { onMove: (direction: [number, number], yaw: number) => void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void; onToggleView?: () => void; onWalking?: (walking: boolean, message: string) => void }
 function disposeObject(root: THREE.Object3D) {
   const textures = new Set<THREE.Texture>(), materials = new Set<THREE.Material>(), geometries = new Set<THREE.BufferGeometry>();
   root.traverse((object) => { if (object instanceof THREE.Mesh) {
@@ -52,7 +53,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     }
   }
   scene.add(fallback);
-  let stopped = false, loaded: THREE.Object3D | null = null;
+  let stopped = false, paused = false, loaded: THREE.Object3D | null = null;
   const surfaces: THREE.Mesh[] = [];
   const cutaway = new SceneryCutaway();
   let occlusionHits = new Set<THREE.Mesh>();
@@ -85,13 +86,37 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   let entities: SceneEntities = {players:[],npcs:[],localPlayerId:null};
   let enabled = true, overview = false, walkingYaw = 0;
   const keys = new Set<string>(); let step: {direction:[number,number];until:number}|null=null;
+  let walkingMap: Promise<Awaited<ReturnType<typeof createWalkingMap>>> | undefined;
+  let walkGeneration = 0;
+  let walk: { npcId: string; route: Vec3[]; lastPosition: Vec3; progressed: number } | null = null;
+  function stopWalking(message = '') { walkGeneration++; walk = null; callbacks.onWalking?.(false, message); }
+  async function walkTo(npcId: string) {
+    if (!enabled || stopped) return;
+    resetInput();
+    const generation = ++walkGeneration;
+    const npc = entities.npcs.find(n => n.id === npcId), player = entities.players.find(p => p.id === entities.localPlayerId);
+    if (!npc || !player) return;
+    callbacks.onWalking?.(true, `Finding a path to ${npc.name}…`);
+    try {
+      walkingMap ??= import('./navigation').then(module => module.createWalkingMap(environment));
+      const map = await walkingMap;
+      if (generation !== walkGeneration || stopped || !enabled) return;
+      const route = map.route(player.position, npc);
+      if (!route?.length) { stopWalking('No clear walking route. Use WASD to move around the obstacle, then try again.'); return; }
+      walk = { npcId, route, lastPosition: [...player.position], progressed: performance.now() };
+      callbacks.onWalking?.(true, `Walking to ${npc.name} · WASD or Stop walking to cancel`);
+    } catch { walkingMap = undefined; if (generation === walkGeneration && !stopped) stopWalking('Walking guidance is unavailable. Use WASD to approach the character.'); }
+  }
   const movementKeys = new Set(["w","a","s","d","arrowup","arrowleft","arrowdown","arrowright"]);
   const ring = new THREE.Mesh(new THREE.RingGeometry(.48,.55,32),new THREE.MeshBasicMaterial({color:"#bd624c",transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
   ring.rotation.x=-Math.PI/2; ring.visible=false; scene.add(ring);
-  function resetInput() {keys.clear();step=null;callbacks.onMove([0,0],walkingYaw);}
+  function resetInput() {keys.clear();step=null;stopWalking();callbacks.onMove([0,0],walkingYaw);}
+  // Moving focus to Stop walking must not change its action before click fires.
+  function blurInput() {keys.clear();step=null;callbacks.onMove([0,0],walkingYaw);}
   function keyDown(event:KeyboardEvent) {
     const key=event.key.toLowerCase();
-    if(movementKeys.has(key)) {event.preventDefault();if(enabled)keys.add(key);}
+    if(movementKeys.has(key)) {event.preventDefault();if(enabled){stopWalking();keys.add(key);}}
+    if(key==='escape')resetInput();
     if(key==="v"&&!event.repeat&&enabled) { event.preventDefault(); resetInput(); callbacks.onToggleView?.(); }
     if(key==="e"&&!event.repeat&&enabled&&!cameraRig.isTransitioning) {
       const player=entities.players.find(p=>p.id===entities.localPlayerId);
@@ -110,7 +135,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     let node=hit?.object; while(node&&!node.userData.npcId)node=node.parent??undefined;
     if(node?.userData.npcId)callbacks.onInteract(node.userData.npcId);
   }
-  host.addEventListener("keydown",keyDown);host.addEventListener("keyup",keyUp);host.addEventListener("blur",resetInput);window.addEventListener("blur",resetInput);
+  host.addEventListener("keydown",keyDown);host.addEventListener("keyup",keyUp);host.addEventListener("blur",blurInput);window.addEventListener("blur",resetInput);
   renderer.domElement.addEventListener("pointerdown",pointerDown);renderer.domElement.addEventListener("click",click);
   // Resize the drawing buffer on the next render frame. Writing layout inside
   // ResizeObserver can feed back into its delivery loop when the game opens.
@@ -120,7 +145,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   let frame=0,previous=performance.now(),lastInput=0,lastLabelCheck=0;
   const forward=new THREE.Vector3(),right=new THREE.Vector3(),velocity=new THREE.Vector3(), projected=new THREE.Vector3();
   const render=(now:number)=>{
-    if(stopped)return; const dt=Math.min((now-previous)/1000,.1);previous=now;
+    if(stopped||paused)return; const dt=Math.min((now-previous)/1000,.1);previous=now;
     if (resizePending) {
       resizePending = false;
       const width = Math.max(host.clientWidth, 1), height = Math.max(host.clientHeight, 1);
@@ -143,7 +168,20 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       const z=Number(keys.has("s")||keys.has("arrowdown"))-Number(keys.has("w")||keys.has("arrowup"))||(step&&now<step.until?step.direction[1]:0);
       camera.getWorldDirection(forward);forward.y=0;forward.normalize();right.crossVectors(forward,THREE.Object3D.DEFAULT_UP).normalize();
       velocity.copy(right).multiplyScalar(x).addScaledVector(forward,-z);if(velocity.length()>1)velocity.normalize();
-      if(x||z)walkingYaw=Math.atan2(velocity.x,velocity.z);callbacks.onMove([velocity.x,velocity.z],walkingYaw);lastInput=now;
+      if (walk) {
+        const player = entities.players.find(p => p.id === entities.localPlayerId), npc = entities.npcs.find(n => n.id === walk!.npcId);
+        if (!player || !npc) stopWalking();
+        else if (Math.hypot(...player.position.map((v, i) => v - npc.position[i])) <= npc.interactionRadius - 0.2) {
+          stopWalking(`You are close to ${npc.name}. Start the conversation when you are ready.`);
+        } else {
+          if (Math.hypot(player.position[0] - walk.lastPosition[0], player.position[2] - walk.lastPosition[2]) > 0.12) { walk.lastPosition = [...player.position]; walk.progressed = now; }
+          while (walk.route.length && Math.hypot(player.position[0] - walk.route[0][0], player.position[2] - walk.route[0][2]) < 0.22) walk.route.shift();
+          const next = walk.route[0];
+          if (!next || now - walk.progressed > 3000) stopWalking('Path blocked. Use WASD to move around the obstacle, then try again.');
+          else { velocity.set(next[0] - player.position[0], 0, next[2] - player.position[2]); if (velocity.length() > 0) velocity.normalize(); }
+        }
+      }
+      if(velocity.lengthSq())walkingYaw=Math.atan2(velocity.x,velocity.z);callbacks.onMove([velocity.x,velocity.z],walkingYaw);lastInput=now;
     }
     // Ray tests are throttled; smoothing still runs every rendered frame.
     if(now-lastOcclusionCheck>=50) {
@@ -184,7 +222,15 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     renderer.render(scene,camera);frame=requestAnimationFrame(render);
   };frame=requestAnimationFrame(render);
   return {
-    step(direction:[number,number]){if(enabled)step={direction,until:performance.now()+240};},
+    setPaused(value:boolean){
+      if (stopped || paused === value) return;
+      paused=value;
+      if(paused){cancelAnimationFrame(frame);resetInput();}
+      else {previous=performance.now();resizePending=true;frame=requestAnimationFrame(render);}
+    },
+    walkTo,
+    cancelWalk: resetInput,
+    step(direction:[number,number]){if(enabled){stopWalking();step={direction,until:performance.now()+240};}},
     setView(value:CameraView){resetInput();overview=false;const local=actors.get(`player:${entities.localPlayerId}`);cameraRig.setView(value,local?.root.rotation.y??0);},
     setOverview(value:boolean){overview=value;resetInput();cameraRig.setOverview(value);},
     update(next:SceneEntities,inputEnabled:boolean){
@@ -203,6 +249,6 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       }
       for(const [key,actor]of actors)if(!present.has(key)){actor.avatar?.dispose();scene.remove(actor.root);disposeObject(actor.root);actor.label.remove();actors.delete(key);}
     },
-    dispose(){stopped=true;cancelAnimationFrame(frame);resize.disconnect();resetInput();cameraRig.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
+    dispose(){stopped=true;cancelAnimationFrame(frame);resize.disconnect();resetInput();cameraRig.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",blurInput);window.removeEventListener("blur",resetInput);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
   };
 }

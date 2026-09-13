@@ -1,4 +1,5 @@
 import { createServer } from 'node:http';
+import { randomUUID } from 'node:crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import { z } from 'zod';
 import { LessonEngine, gradeChoice } from '../../lib/lesson/engine';
@@ -6,10 +7,12 @@ import { scenarios } from '../../lib/lesson/scenarios';
 import type { LessonEvent, NativeLanguage } from '../../lib/lesson/types';
 import { assessAnswer } from './assess';
 import { LiveBridge } from './live';
+import { LiveSessionSlot } from './live-slot';
+import { lessonCharacterForWorldNpc, scenarioForCharacter } from '../../lib/lesson/characters';
 
 const language = z.enum(['English', 'Mandarin Chinese', 'Spanish', 'Japanese']);
 const command = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('start'), scenarioId: z.string().max(40), language }),
+  z.object({ type: z.literal('start'), scenarioId: z.string().max(40), language, clientId: z.string().regex(/^[a-zA-Z0-9_-]{1,80}$/).optional(), characterId: z.string().max(80).optional() }),
   z.object({ type: z.literal('language'), language }),
   z.object({ type: z.literal('answer'), questionId: z.string().max(50), answer: z.string().trim().min(1).max(1500).optional(), choice: z.number().int().min(0).max(9).optional() }),
   z.object({ type: z.literal('next'), questionId: z.string().max(50) }),
@@ -26,7 +29,9 @@ export const capabilities = () => ({
 });
 
 /** Local-only companion. Production needs authenticated websocket hosting. */
-export function createLessonServer() {
+export function createLessonServer(options: { createBridge?: (...args: ConstructorParameters<typeof LiveBridge>) => Pick<LiveBridge, 'start' | 'close' | 'audio' | 'ask' | 'feedback' | 'avatarReady'> } = {}) {
+  const createBridge = options.createBridge ?? ((...args: ConstructorParameters<typeof LiveBridge>) => new LiveBridge(...args));
+  type Bridge = ReturnType<typeof createBridge>;
   const allowedOrigins = new Set((process.env.LESSON_ALLOWED_ORIGINS || 'http://localhost:5173,http://127.0.0.1:5173').split(','));
   const server = createServer((req, res) => {
     res.setHeader('Cache-Control', 'no-store');
@@ -35,7 +40,7 @@ export function createLessonServer() {
     } else { res.writeHead(404); res.end(); }
   });
   const wss = new WebSocketServer({ noServer: true, maxPayload: 24 * 1024 });
-  let activeLive: WebSocket | null = null;
+  const liveSlot = new LiveSessionSlot<Bridge>();
   server.on('upgrade', (req, socket, head) => {
     if (req.url !== '/lesson-api/session' || !allowedOrigins.has(req.headers.origin || '') || wss.clients.size >= 8) {
       console.warn('Rejected lesson websocket:', { origin: req.headers.origin || '(missing)', clients: wss.clients.size });
@@ -46,7 +51,12 @@ export function createLessonServer() {
   wss.on('connection', ws => {
     let engine: LessonEngine | undefined;
     let nativeLanguage: NativeLanguage = 'English';
-    let bridge: LiveBridge | undefined;
+    let bridge: Bridge | undefined;
+    let clientId: string = randomUUID();
+    let avatarId: string | undefined;
+    let liveVersion = 0;
+    let liveStart: AbortController | undefined;
+    let chatSequence = 0;
     let request: AbortController | undefined;
     let alive = true;
     let disposed = false;
@@ -57,10 +67,12 @@ export function createLessonServer() {
     const publish = () => engine && send({ type: 'lesson', lesson: engine.state });
     const error = (message: string) => send({ type: 'error', message });
     const stopLive = async () => {
+      const version = ++liveVersion;
+      liveStart?.abort(); liveStart = undefined;
       const current = bridge; bridge = undefined;
-      await current?.close();
-      if (current && activeLive === ws) activeLive = null;
-      send({ type: 'ended' });
+      spokenQuestions.clear();
+      if (current) await liveSlot.close(current);
+      if (version === liveVersion) send({ type: 'ended' });
     };
     const submit = async (questionId: string, answer?: string, choice?: number) => {
       if (!engine) throw new Error('Start a lesson first.');
@@ -76,7 +88,11 @@ export function createLessonServer() {
           if (!answer?.trim()) throw new Error('Speak or type your answer first.');
           feedback = await assessAnswer(engine.question, answer.trim(), nativeLanguage, controller.signal);
         }
-        if (!disposed && engine.finish(ticket, feedback)) { publish(); bridge?.feedback(feedback); }
+        if (!disposed && engine.finish(ticket, feedback)) {
+          publish();
+          send({ type: 'turn', turn: { id: `feedback-${++chatSequence}`, role: 'assistant', text: `${feedback.japanese}\n${feedback.meaning}`, done: true } });
+          bridge?.feedback(feedback);
+        }
       } catch (cause) {
         engine.cancel(ticket);
         if (!disposed) { publish(); error(cause instanceof Error ? cause.message : 'Feedback could not finish. Please retry.'); }
@@ -95,8 +111,12 @@ export function createLessonServer() {
         if (++commands > 12) throw new Error('Too many requests. Please wait a moment.');
         if (input.type === 'start') {
           if (engine) throw new Error('Leave this lesson before starting another.');
-          const scenario = scenarios.find(item => item.id === input.scenarioId);
+          const character = input.characterId ? lessonCharacterForWorldNpc(input.characterId) : undefined;
+          if (input.characterId && (!character || character.scenarioId !== input.scenarioId)) throw new Error('Choose the lesson assigned to this character.');
+          const scenario = character ? scenarioForCharacter(character) : scenarios.find(item => item.id === input.scenarioId);
           if (!scenario) throw new Error('Choose an available scenario.');
+          avatarId = character?.avatarId;
+          clientId = input.clientId ?? clientId;
           nativeLanguage = input.language; engine = new LessonEngine(scenario);
           send({ type: 'connected', live: false, lesson: engine.state }); return;
         }
@@ -105,7 +125,10 @@ export function createLessonServer() {
           if (bridge) throw new Error('Stop the avatar before changing your language.');
           nativeLanguage = input.language;
         }
-        if (input.type === 'answer') await submit(input.questionId, input.answer, input.choice);
+        if (input.type === 'answer') {
+          if (input.answer) send({ type: 'turn', turn: { id: `typed-${++chatSequence}`, role: 'user', text: input.answer, done: true } });
+          await submit(input.questionId, input.answer, input.choice);
+        }
         if (input.type === 'next' || input.type === 'retry') {
           engine[input.type](input.questionId); publish();
           if (engine.state.completed) await stopLive(); else bridge?.ask(engine.question);
@@ -114,13 +137,19 @@ export function createLessonServer() {
         if (input.type === 'stop-live') await stopLive();
         if (input.type === 'live') {
           if (!capabilities().liveAvatar) { send({ type: 'ended' }); throw new Error('Add your LiveAvatar API key and avatar ID to the lesson server to start the avatar.'); }
-          if (bridge || activeLive) { send({ type: 'ended' }); throw new Error('An avatar session is already running. End it before starting another.'); }
+          if (bridge || liveStart) return;
           if (engine.state.completed) { send({ type: 'ended' }); throw new Error('Start a new lesson to use the avatar.'); }
-          activeLive = ws;
-          bridge = new LiveBridge(engine.scenario, nativeLanguage, engine.question, {
-            avatar: (url, token) => send({ type: 'avatar', url, token }), ready: () => send({ type: 'ready' }),
-            failed: message => { error(message); void stopLive(); },
+          const version = ++liveVersion;
+          const controller = new AbortController(); liveStart = controller;
+          send({ type: 'live-starting' });
+          const current = () => !disposed && liveVersion === version && !controller.signal.aborted;
+          try {
+          const created = await liveSlot.open(clientId, () => createBridge(engine!.scenario, nativeLanguage, engine!.question, {
+            avatar: (url, token) => { if (current()) send({ type: 'avatar', url, token }); },
+            ready: () => { if (current()) send({ type: 'ready' }); },
+            failed: message => { if (current()) { error(message); void stopLive(); } },
             turn: turn => {
+              if (!current()) return;
               send({ type: 'turn', turn });
               if (turn.role !== 'user' || !engine) return;
               if (!spokenQuestions.has(turn.id)) spokenQuestions.set(turn.id, engine.question.id);
@@ -131,8 +160,13 @@ export function createLessonServer() {
                 }
               }
             },
-          });
-          void bridge.start();
+          }, avatarId), controller.signal);
+          if (!current()) { await liveSlot.close(created); return; }
+          bridge = created;
+          void created.start();
+          } catch (cause) {
+            if (current()) { send({ type: 'ended' }); error(cause instanceof Error ? cause.message : 'The avatar could not start. Please try again.'); }
+          } finally { if (liveStart === controller) liveStart = undefined; }
         }
       })().catch(cause => error(cause instanceof z.ZodError || cause instanceof SyntaxError ? 'The lesson received an invalid request.' : cause instanceof Error ? cause.message : 'The lesson request failed.'));
     });

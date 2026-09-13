@@ -2,10 +2,12 @@
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import Image from 'next/image';
 import { ChevronRight, CircleStop, Headphones, Languages, Map, MicOff, RotateCcw, Sparkles, Volume2, Users, Shirt, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LessonDialogue } from "@/components/lesson/lesson-dialogue";
 import { lessonNpcForWorldNpc } from "@/lib/lesson/world-lessons";
+import { lessonCharacterForWorldNpc } from "@/lib/lesson/characters";
 import { CharacterEditor, type CharacterJoinSettings } from "@/components/game/character-editor";
 import { appearanceSchema, type PlayerAppearance } from "@/lib/world/schema";
 import { WorldProvider, useWorld } from "@/components/world/world-provider";
@@ -123,6 +125,9 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
   const [showRoom, setShowRoom] = useState(false);
   const [showCharacter, setShowCharacter] = useState(false);
   const [showCast, setShowCast] = useState(true);
+  const [walkingRequest, setWalkingRequest] = useState<{ npcId: string; sequence: number } | null>(null);
+  const [walking, setWalking] = useState(false);
+  const [walkingNotice, setWalkingNotice] = useState('');
   const [appearanceNotice, setAppearanceNotice] = useState("");
   const restoredFor = useRef<string | null>(null);
   const preferredAppearance = useRef<PlayerAppearance | undefined>(session.appearance);
@@ -137,6 +142,7 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
   const selectedNpc = cast.find((npc) => npc.id === (showingResult ? result.npcId : active?.npcId ?? selectedNpcId)) ?? cast[0] ?? npcs[0];
   const phase: ExperiencePhase = showingResult ? "results" : active ? "conversation" : "explore";
   const lessonNpcId = lessonNpcForWorldNpc(selectedNpc.id);
+  const liveCharacter = lessonCharacterForWorldNpc(selectedNpc.id);
   const encounter = encounterContent[selectedNpc.id] ?? encounterContent.greeting;
   const visibleTranscript = useMemo(() => encounter.lines.slice(0, transcriptCount), [encounter.lines, transcriptCount]);
   const localPlayer = snapshot?.players.find((p) => p.id === localPlayerId);
@@ -251,6 +257,8 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
       <section className="world-stage" aria-label={`${snapshot?.environment.name ?? "World"} interactive preview`}>
         {snapshot && <WorldViewport environment={snapshot.environment} players={snapshot.players} npcs={snapshot.npcs} localPlayerId={localPlayerId} selectedNpcId={selectedNpc.id} encounters={snapshot.encounters}
           inputEnabled={phase === "explore" && connection === "connected" && !showRoom && !showCharacter}
+          renderPaused={phase !== "explore" || showCharacter || showRoom}
+          walkingRequest={walkingRequest} onWalking={(walking, message) => { setWalking(walking); setWalkingNotice(message); }}
           onMove={(direction, yaw) => send({ type: "move", direction, yaw, sequence: 0 })}
           onInteract={(npcId) => requestConversation(npcId as NpcDefinition["id"])} />}
       </section>
@@ -279,32 +287,38 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
             <div className="rail-rule" aria-hidden="true" />
             <div className="eyebrow"><Map /> Your afternoon</div>
             <div className="mission-title-row"><h1>Meet the neighbourhood</h1><button className="cast-toggle" onClick={() => setShowCast(!showCast)} aria-expanded={showCast} aria-controls="world-cast">{showCast ? "Hide" : "Show"}</button></div>
-            <p>Find a local, walk over and press E. Explore the streets together in a shared room.</p>
+            <p>Pick a local, then Walk closer. Start a conversation when you reach them.</p>
             <div className="character-picker" id="world-cast" hidden={!showCast}>{cast.map((npc) => {
               const character = snapshot?.npcs.find((entry) => entry.id === npc.id);
               const meters = localPlayer && character ? distance(localPlayer.position, character.position) : null;
               const occupied = snapshot?.encounters.some((entry) => entry.npcId === npc.id);
-              return <button key={npc.id} aria-pressed={npc.id === selectedNpc.id} onClick={() => setSelectedNpcId(npc.id)}><span className="cast-dot" style={{ background: npc.accent }} /><span><strong>{npc.name}</strong><small>{npc.role}</small></span><small>{meters !== null ? `${meters.toFixed(0)} m` : "…"}{occupied ? " · Group" : ""}</small></button>;
+              const avatar = lessonCharacterForWorldNpc(npc.id);
+              return <button key={npc.id} aria-pressed={npc.id === selectedNpc.id} onClick={() => { setWalkingRequest(null); setSelectedNpcId(npc.id); }}><span className="cast-dot" style={{ background: npc.accent }} /><span><strong>{npc.name}</strong><small>{npc.role}{avatar ? ' · Live avatar' : ''}</small></span><small>{meters !== null ? `${meters.toFixed(0)} m` : "…"}{occupied ? " · Group" : ""}</small></button>;
             })}</div>
-            <p className="rail-caption">言葉で、もっと近くに。<br /><span>Practise ten-question lessons at the café, produce stall and Momiji restaurant.</span></p>
+            <p className="rail-caption">言葉で、もっと近くに。<br /><span>Meet live characters and practise ten-question lessons around the neighbourhood.</span></p>
             <Link className="environment-preview-link" href="/environments">Explore the conversation settings <ChevronRight size={14} /></Link>
           </aside>
 
           <aside className="location-card iso-character-card" aria-label="Selected character">
-            <span className="npc-monogram" style={{ background: selectedNpc.accent }}>{selectedNpc.nameJapanese}</span>
+            {liveCharacter ? <Image className="npc-live-preview" src={liveCharacter.preview} alt={`${selectedNpc.name}'s live avatar`} width={76} height={76} unoptimized /> : <span className="npc-monogram" style={{ background: selectedNpc.accent }}>{selectedNpc.nameJapanese}</span>}
             <div><small>{selectedNpc.role} · {selectedNpc.level}</small><h2>{selectedNpc.name}</h2><p>{selectedNpc.objective}</p><span className="distance-label">{inRange ? "Within talking distance" : targetDistance !== null ? `${targetDistance.toFixed(1)} m away` : "Joining the world…"}</span></div>
           </aside>
 
           <div className="interaction-prompt iso-interaction-prompt">
             <span className="keycap" aria-hidden="true">話</span>
             <span><small>Selected character</small>{selectedNpc.name}</span>
-            <Button size="sm" disabled={!inRange || connection !== "connected"} onClick={() => requestConversation()}>{inRange ? targetEncounter ? "Join encounter" : "Start encounter" : "Walk closer"} <ChevronRight /></Button>
+            <Button size="sm" disabled={!target || connection !== "connected"} onClick={() => {
+              if (walking) setWalkingRequest(null);
+              else if (inRange) requestConversation();
+              else setWalkingRequest({ npcId: selectedNpc.id, sequence: Date.now() });
+            }}>{walking ? "Stop walking" : inRange ? targetEncounter ? "Join encounter" : "Start encounter" : "Walk closer"} <ChevronRight /></Button>
           </div>
           <div className="movement-hint iso-movement-hint"><span>W A S D</span> Move <span>E</span> {closest ? `Talk to ${closest.name}` : "Talk nearby"} · Click the world to focus</div>
+          {walkingNotice && <div className="walking-notice" role="status">{walkingNotice}</div>}
         </>
       )}
 
-      {phase === "conversation" && lessonNpcId && <LessonDialogue key={active?.id} npcId={lessonNpcId} allowLive={mode === "local"} onClose={returnToWorld} />}
+      {phase === "conversation" && lessonNpcId && <LessonDialogue key={active?.id} npcId={lessonNpcId} worldNpcId={selectedNpc.id} onClose={returnToWorld} />}
       {phase === "conversation" && !lessonNpcId && (
         <section className="conversation-layout" aria-label={`Conversation with ${selectedNpc.name}`}>
           <div className="conversation-focus">

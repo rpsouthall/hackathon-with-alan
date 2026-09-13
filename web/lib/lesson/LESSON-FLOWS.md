@@ -1,26 +1,29 @@
-# Three guided English-to-Japanese encounters
+# Guided English-to-Japanese encounters
 
 ## World mapping
 
 | Environment | NPC | Stable world ID | Lesson ID | Goal |
 | --- | --- | --- | --- | --- |
-| Coffee shop | Aiko | `cafe_owner` | `coffee` | Order a small iced coffee without milk and ask to pay by card |
-| Fruit market | Mei | `shopkeeper` | `market` | Buy two ripe peaches and understand the total |
-| Restaurant | Haru | `local_guide` | `restaurant` | Get a table, order a grilled-fish set meal, and request the bill |
+| Coffee shop | Aoi | `cafe_owner` | `coffee` | Order coffee and pay |
+| Neighbourhood walk | Haru | `local_guide` | `directions` | Ask for and confirm a route |
+| Inn | Ren | `inn_host` | `inn` | Check in and ask about the stay |
+| Fruit market | Yui | `market_produce` | `market` | Choose fruit and understand the price |
+| Tea stall | Sora | `market_tea` | `tea` | Sample tea and choose a gift |
+| Restaurant | Koharu | `restaurant_momiji_host` | `restaurant` | Request a table, order and pay |
 
-`local_guide` is retained only as a stable asset/encounter identifier. Haru's visible role should be restaurant host. The frontend and any remote world server should use matching lesson mappings. Preserve Ryan's world geometry and NPC spawn positions while connecting dialogue.
+`characters.ts` is the allowlist for the live cast, appearance IDs and lesson identity. `world-lessons.ts` resolves world NPC IDs to lesson template IDs. Some old template NPC IDs are retained for `/lesson-lab` compatibility; do not interpret the restaurant template's legacy `local_guide` ID as the city guide's scenario. Pass `worldNpcId` into `LessonDialogue` to preserve the real character's name and avatar. Nao also uses coffee practice; Kaede uses tea practice. Preserve Ryan's geometry and spawn positions.
 
 ## Entry and exit
 
 1. The player reaches the venue's NPC. The authoritative world accepts an `interact` request (the existing nearby E/Start encounter interaction).
-2. Resolve `scenarioForNpc(activeEncounter.npcId)` and open its dialogue screen. A venue can later have an entrance trigger that requests the same encounter, provided server membership/proximity checks still pass.
+2. Resolve `lessonNpcForWorldNpc(activeEncounter.npcId)` and the allowlisted character, then open its dialogue screen. A venue can later have an entrance trigger that requests the same encounter, provided server membership/proximity checks still pass.
 3. Show the NPC/avatar, location, ten-step progress, and a single current question. Never start three paid avatar sessions during exploration.
 4. The player answers in English, selects a quiz option, or tries Japanese. Voice input and typed input should feed the same current question; switching input mode must not advance or reset the lesson.
 5. Show feedback before Next. Incorrect quiz answers remain retryable on the same question. Retry should not count another completed question. Record one final result per question, with attempts separately.
 6. After the tenth reviewed question, show the phrases practised and actual lesson completion. Distinguish “reviewed” from “correct”; do not label a completed example as verified proficiency.
 7. Leaving dialogue, losing encounter membership, or disconnecting stops media and cancels pending work. Responses from an old encounter must not appear in a new one.
 
-The lesson content is ready; automatic building-entry triggers are not added by this content module. HeyGen rendering and microphone transport are owned by the avatar integration task.
+The character picker provides a Walk closer action that follows collision-aware routes. Starting an accepted encounter opens its lesson and live avatar. Other residents retain sample dialogue until authored lessons are added.
 
 ## Instruction and feedback policy
 

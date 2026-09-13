@@ -33,6 +33,12 @@ export const conversationEnvironments: ConversationEnvironment[] = [
   },
 ];
 
+const neighbourhoodEnvironments: ConversationEnvironment[] = [
+  { id: 'walk', npcId: 'guide_practice', title: 'A walk around Kyoto', japanese: '散歩', category: 'Neighbourhood walk', host: 'Haru', image: '/environments/kyoto-garden-v1.png', description: 'Ask a local for directions and confirm your route.', practice: ['Find the temple', 'Ask for directions', 'Confirm the route'] },
+  { id: 'inn', npcId: 'inn_host', title: 'A welcome at the inn', japanese: '旅館', category: 'Local inn', host: 'Ren', image: '/environments/kyoto-gift-shop-v1.png', description: 'Check in and ask about your stay.', practice: ['Check in', 'Ask about breakfast', 'Request a towel'] },
+  { id: 'tea', npcId: 'market_tea', title: 'A taste of Japanese tea', japanese: 'お茶屋', category: 'Tea stall', host: 'Sora', image: '/environments/kyoto-cafe-v1.png', description: 'Find a tea to take home and learn how to prepare it.', practice: ['Choose a tea', 'Ask the price', 'Buy a gift'] },
+];
+
 export function environmentForNpc(npcId: string) {
-  return conversationEnvironments.find(environment => environment.npcId === npcId) ?? conversationEnvironments[0];
+  return [...conversationEnvironments, ...neighbourhoodEnvironments].find(environment => environment.npcId === npcId) ?? conversationEnvironments[0];
 }

@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import { KYOTO_NPCS } from '../../lib/world/kyoto';
 import { scenarios, scenarioForNpc } from '../../lib/lesson/scenarios';
 import { lessonNpcForWorldNpc } from '../../lib/lesson/world-lessons';
+import { lessonCharacters, lessonCharacterForWorldNpc, scenarioForCharacter } from '../../lib/lesson/characters';
 
-test('the playable city reaches all three lessons through matching venues', () => {
+test('the playable city reaches all lessons through matching characters', () => {
   const reachable = KYOTO_NPCS.map(npc => lessonNpcForWorldNpc(npc.id))
     .filter((id): id is string => !!id).map(id => scenarioForNpc(id).id);
   assert.deepEqual([...new Set(reachable)].sort(), scenarios.map(scenario => scenario.id).sort());
@@ -14,7 +15,23 @@ test('the playable city reaches all three lessons through matching venues', () =
 });
 
 test('unrelated city residents do not accidentally start the coffee lesson', () => {
-  for (const npc of ['local_guide', 'inn_host', 'bookshop_tsuki_host', 'unknown']) {
+  for (const npc of ['bookshop_tsuki_host', 'unknown']) {
     assert.equal(lessonNpcForWorldNpc(npc), undefined, npc);
   }
+});
+
+test('the five featured neighbours have distinct live avatars and consistent lesson identities', () => {
+  const featured = ['cafe_owner', 'local_guide', 'inn_host', 'market_produce', 'market_tea'].map(id => lessonCharacterForWorldNpc(id)!);
+  assert.equal(new Set(featured.map(character => character.avatarId)).size, 5);
+  assert.deepEqual(featured.map(character => character.scenarioId), ['coffee', 'directions', 'inn', 'market', 'tea']);
+  for (const character of lessonCharacters) {
+    const lesson = scenarioForCharacter(character);
+    assert.equal(lesson.name, character.name);
+    assert.equal(lesson.id, character.scenarioId);
+    assert.equal(lesson.questions.length, 10);
+    assert.match(character.avatarId, /^[a-f0-9-]{36}$/);
+  }
+  assert.match(scenarioForCharacter(featured[0]).questions[0].task, /Aoi/);
+  assert.match(scenarioForCharacter(featured[3]).questions[0].task, /Yui/);
+  assert.equal(lessonCharacterForWorldNpc('arbitrary-avatar-id'), undefined);
 });

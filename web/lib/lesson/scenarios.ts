@@ -1,4 +1,5 @@
 import type { Question, Scenario } from './types';
+import { neighbourhoodScenarios } from './neighbourhood-scenarios';
 
 // Content contract shared with the avatar agent. NPC IDs stay stable so existing
 // world reservations and Blender spawn manifests keep referring to the same actor.
@@ -122,5 +123,7 @@ export const scenarios: Scenario[] = [
     ],
   },
 ];
+
+scenarios.push(...neighbourhoodScenarios);
 
 export const scenarioForNpc = (npcId: string) => scenarios.find(s => s.npcId === npcId) ?? scenarios[0];

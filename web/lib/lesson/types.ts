@@ -8,6 +8,7 @@ export interface LessonSnapshot { scenarioId: string; index: number; attempts: n
 export type LessonEvent =
  | { type: 'connected'; live: boolean; lesson: LessonSnapshot }
  | { type: 'ready' }
+ | { type: 'live-starting' }
  | { type: 'avatar'; url: string; token: string }
  | { type: 'lesson'; lesson: LessonSnapshot }
  | { type: 'turn'; turn: Turn }

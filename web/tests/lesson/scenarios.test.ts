@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { scenarios, scenarioForNpc } from '../../lib/lesson/scenarios';
 
-test('all three world NPCs have distinct ten-question lessons', () => {
-  assert.deepEqual(scenarios.map(s => s.id).sort(), ['coffee', 'market', 'restaurant']);
-  assert.equal(new Set(scenarios.map(s => s.npcId)).size, 3);
+test('all six scenarios have distinct ten-question lessons', () => {
+  assert.deepEqual(scenarios.map(s => s.id).sort(), ['coffee', 'directions', 'inn', 'market', 'restaurant', 'tea']);
+  assert.equal(new Set(scenarios.map(s => s.npcId)).size, 6);
   for (const scenario of scenarios) {
     assert.equal(scenario.questions.length, 10, scenario.id);
     assert.equal(new Set(scenario.questions.map(q => q.id)).size, 10);

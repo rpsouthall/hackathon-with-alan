@@ -68,41 +68,51 @@ export interface MicCapture {
 export async function startMicCapture(
   onAudio: (base64Pcm24k: string) => void,
   onLevel?: (rms01: number) => void,
+  signal?: AbortSignal,
 ): Promise<MicCapture> {
+  signal?.throwIfAborted();
+  // Start/resume sound directly in the click handler, before awaiting permission.
+  const audioContext = new AudioContext();
+  let stream: MediaStream | undefined;
+  let abandoned = false;
+  const audioReady = waitForMedia(audioContext.resume(), 'Click Start live avatar again to enable browser audio.', signal);
+  // Attach immediately: permission may stay pending after audio setup rejects.
+  void audioReady.catch(() => {});
+  try {
   // Echo cancellation matters more than usual here: the avatar's own voice
   // plays out of the same machine the mic is listening on, and without it the
   // model hears itself and answers itself.
-  const stream = await navigator.mediaDevices.getUserMedia({
+  const requestedStream = navigator.mediaDevices.getUserMedia({
     audio: {
       echoCancellation: true,
       noiseSuppression: true,
       autoGainControl: true,
       channelCount: 1,
     },
+  }).then(received => {
+    if (abandoned || signal?.aborted) {
+      received.getTracks().forEach(track => track.stop());
+      throw new DOMException('Microphone setup cancelled.', 'AbortError');
+    }
+    stream = received;
+    stream.getAudioTracks().forEach(track => { track.enabled = false; });
+    return received;
   });
-
-  stream.getAudioTracks().forEach(track => { track.enabled = false; });
-  let audioContext: AudioContext;
-  try { audioContext = new AudioContext(); }
-  catch (error) { stream.getTracks().forEach(track => track.stop()); throw error; }
-  try {
-  // Chrome starts a context suspended unless it was created inside a user
-  // gesture. This one is created after `await getUserMedia`, which has already
-  // left the gesture's call stack — without the resume the worklet is never
-  // pumped: no frames, no error, an avatar that simply cannot hear you.
-  if (audioContext.state === "suspended") {
-    await audioContext.resume();
-  }
+  const [capturedStream] = await Promise.all([
+    waitForMedia(requestedStream, 'Allow microphone access in your browser, then try again.', signal),
+    audioReady,
+  ]);
 
   const blob = new Blob([WORKLET_CODE], { type: "application/javascript" });
   const url = URL.createObjectURL(blob);
   try {
-    await audioContext.audioWorklet.addModule(url);
+    await waitForMedia(audioContext.audioWorklet.addModule(url), 'Microphone audio setup took too long. Please try again.', signal);
   } finally {
     URL.revokeObjectURL(url);
   }
 
-  const source = audioContext.createMediaStreamSource(stream);
+  signal?.throwIfAborted();
+  const source = audioContext.createMediaStreamSource(capturedStream);
   const worklet = new AudioWorkletNode(audioContext, "pcm-downsampler", {
     numberOfInputs: 1,
     numberOfOutputs: 1,
@@ -143,7 +153,7 @@ export async function startMicCapture(
   return {
     analyser,
     setMuted: (muted) => {
-      for (const track of stream.getAudioTracks()) track.enabled = !muted;
+      for (const track of capturedStream.getAudioTracks()) track.enabled = !muted;
     },
     stop: () => {
       worklet.port.onmessage = null;
@@ -152,15 +162,28 @@ export async function startMicCapture(
       mute.disconnect();
       analyser.disconnect();
       source.disconnect();
-      stream.getTracks().forEach((t) => t.stop());
+      capturedStream.getTracks().forEach((t) => t.stop());
       if (audioContext.state !== 'closed') void audioContext.close();
     },
   };
   } catch (error) {
-    stream.getTracks().forEach(track => track.stop());
+    abandoned = true;
+    stream?.getTracks().forEach(track => track.stop());
     if (audioContext.state !== 'closed') void audioContext.close();
+    if (error instanceof DOMException && error.name === 'NotAllowedError') throw new Error('Allow microphone access in your browser, then try again.');
     throw error;
   }
+}
+
+function waitForMedia<T>(pending: Promise<T>, message: string, signal?: AbortSignal): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const abort = () => { cleanup(); reject(new DOMException('Microphone setup cancelled.', 'AbortError')); };
+    const timer = setTimeout(() => { cleanup(); reject(new Error(message)); }, 15000);
+    const cleanup = () => { clearTimeout(timer); signal?.removeEventListener('abort', abort); };
+    signal?.addEventListener('abort', abort, { once: true });
+    if (signal?.aborted) abort();
+    pending.then(value => { cleanup(); resolve(value); }, error => { cleanup(); reject(error); });
+  });
 }
 
 function base64FromBytes(bytes: Uint8Array): string {

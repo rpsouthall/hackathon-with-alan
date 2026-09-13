@@ -1,4 +1,5 @@
 import { scenarios } from './scenarios';
+import { lessonCharacterForWorldNpc } from './characters';
 
 // Ryan's city has a larger cast than the original three-person blockout.
 // Only matching venues start a guided lesson; other residents keep their
@@ -12,6 +13,6 @@ const venueLessons: Record<string, string> = {
 };
 
 export function lessonNpcForWorldNpc(npcId: string): string | undefined {
-  const lessonId = venueLessons[npcId];
+  const lessonId = lessonCharacterForWorldNpc(npcId)?.scenarioId ?? venueLessons[npcId];
   return scenarios.find(scenario => scenario.id === lessonId)?.npcId;
 }

@@ -12,9 +12,12 @@ export interface WorldViewportProps {
   localPlayerId: string | null;
   encounters?: EncounterSnapshot[];
   selectedNpcId?: string;
+  walkingRequest?: { npcId: string; sequence: number } | null;
+  onWalking?: (walking: boolean, message: string) => void;
   onMove: (direction: [number, number], yaw: number) => void;
   onInteract: (npcId: string) => void;
   inputEnabled?: boolean;
+  renderPaused?: boolean;
   className?: string;
 }
 
@@ -41,7 +44,12 @@ export function WorldViewport(props: WorldViewportProps) {
   useEffect(() => {
     latest.current = props;
     runtime.current?.update(props, props.inputEnabled !== false);
+    runtime.current?.setPaused(props.renderPaused === true);
   }, [props]);
+  useEffect(() => {
+    if (props.walkingRequest) { host.current?.focus(); void runtime.current?.walkTo(props.walkingRequest.npcId); }
+    else runtime.current?.cancelWalk();
+  }, [props.walkingRequest]);
   useEffect(() => {
     let cancelled = false;
     let mounted: ReturnType<typeof mountWorldScene> | null = null;
@@ -52,11 +60,13 @@ export function WorldViewport(props: WorldViewportProps) {
         onInteract: (id) => latest.current.onInteract(id),
         onStatus: (phase, error = "") => { if (!cancelled) setStatus({ phase, error }); },
         onToggleView: toggleView,
+        onWalking: (walking, message) => latest.current.onWalking?.(walking, message),
       });
       runtime.current = mounted;
       mounted.update(latest.current, latest.current.inputEnabled !== false);
       mounted.setView(cameraState.current.view);
       if (cameraState.current.overview) mounted.setOverview(true);
+      mounted.setPaused(latest.current.renderPaused === true);
     }).catch(() => { if (!cancelled) setStatus({ phase: "unavailable", error: "3D rendering is unavailable on this device. You can still use the character list." }); });
     return () => { cancelled = true; mounted?.dispose(); runtime.current = null; };
   }, [manifest, toggleView]);
