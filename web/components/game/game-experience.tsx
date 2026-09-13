@@ -76,7 +76,7 @@ export function GameExperience() {
 function GameExperienceContent() {
   const [session, setSession] = useState<SessionSettings | null>(null);
   const hydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
-  const localTransport = useMemo(() => createLocalTransport({ environment: KYOTO_ENVIRONMENT, npcs: KYOTO_NPCS }), []);
+  const localTransport = useMemo(() => createLocalTransport({ environment: KYOTO_ENVIRONMENT, npcs: KYOTO_NPCS.filter(npc => lessonCharacterForWorldNpc(npc.id) && lessonNpcForWorldNpc(npc.id)) }), []);
   function join(next: Omit<SessionSettings, "transport">) {
     setSession({ ...next, transport: next.serverUrl === "hosted" ? createHostedTransport() : next.serverUrl ? createWebSocketTransport(next.serverUrl) : undefined });
   }
