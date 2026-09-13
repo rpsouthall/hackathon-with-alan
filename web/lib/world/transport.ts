@@ -10,7 +10,7 @@ export interface WorldTransport {
   sendVoice?(message: PlayerVoiceClientMessage): void;
   subscribeVoice?(listener: (message: PlayerVoiceServerMessage) => void): () => void;
   readonly mode: "local" | "multiplayer";
-  connect(options: { roomId: string; name: string; onMessage: (message: ServerMessage) => void; onConnection: (state: ConnectionState) => void }): () => void;
+  connect(options: { roomId: string; name: string; onMessage: (message: ServerMessage) => void; onConnection: (state: ConnectionState) => void; onLatency?: (milliseconds: number) => void }): () => void;
   send(command: WorldCommand): void;
 }
 
@@ -86,7 +86,7 @@ export function createWebSocketTransport(address: SocketAddress, heartbeat = fal
   return {
     mode: "multiplayer",
     supportsPlayerVoice,
-    connect({ roomId, name, onMessage, onConnection }) {
+    connect({ roomId, name, onMessage, onConnection, onLatency }) {
       let stopped = false;
       let retry: ReturnType<typeof setTimeout> | undefined;
       let attempts = 0;
@@ -107,19 +107,30 @@ export function createWebSocketTransport(address: SocketAddress, heartbeat = fal
           return;
         }
         let lastMessage = Date.now();
+        let pingStarted: number | null = null;
         let keepalive: ReturnType<typeof setInterval> | undefined;
+        const ping = () => {
+          if (current.readyState !== WebSocket.OPEN || pingStarted !== null) return;
+          pingStarted = performance.now(); current.send("ping");
+        };
         const welcomeTimeout = setTimeout(() => current.close(4000, "Join timed out"), 12000);
         current.onopen = () => {
           current.send(JSON.stringify({ type: "join", protocol: PROTOCOL_VERSION, roomId, name }));
-          if (heartbeat) keepalive = setInterval(() => {
-            if (Date.now() - lastMessage > 45000) current.close(4000, "Connection timed out");
-            else if (current.readyState === WebSocket.OPEN) current.send("ping");
-          }, 15000);
+          if (heartbeat) {
+            ping();
+            keepalive = setInterval(() => {
+              if (Date.now() - lastMessage > 45000 || (pingStarted !== null && performance.now() - pingStarted > 45000)) current.close(4000, "Connection timed out");
+              else ping();
+            }, 3000);
+          }
         };
         current.onmessage = (event) => {
           if (stopped || current !== socket) return;
           lastMessage = Date.now();
-          if (heartbeat && event.data === "pong") return;
+          if (heartbeat && event.data === "pong") {
+            if (pingStarted !== null) onLatency?.(Math.max(0, performance.now() - pingStarted));
+            pingStarted = null; return;
+          }
           try {
             const data: unknown = JSON.parse(event.data);
             const voice = playerVoiceServerSchema.safeParse(data);

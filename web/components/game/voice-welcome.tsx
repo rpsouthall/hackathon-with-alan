@@ -3,8 +3,9 @@
 import { createContext, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { resumeVoiceAudio, VoiceAudioSession } from "@/lib/voice/proximity";
 
-const VoiceConsent = createContext<{ enabled: boolean; setEnabled: (enabled: boolean) => void }>({ enabled: false, setEnabled: () => {} });
+const VoiceConsent = createContext<{ enabled: boolean; setEnabled: (enabled: boolean) => void; getAudioContext: () => AudioContext }>({ enabled: false, setEnabled: () => {}, getAudioContext: () => new AudioContext() });
 export const useVoicePreference = () => useContext(VoiceConsent);
 
 const subscribeToHydration = () => () => {};
@@ -17,21 +18,29 @@ export function VoiceWelcome({ children }: { children: ReactNode }) {
   const [choice, setChoice] = useState<boolean | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [audioSession] = useState(() => new VoiceAudioSession());
   const attempt = useRef(0);
-  useEffect(() => () => { attempt.current++; }, []);
+  useEffect(() => () => { attempt.current++; audioSession.close(); }, [audioSession]);
   async function accept() {
     const current = ++attempt.current;
     setPending(true);
     setError("");
     try {
-      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia || !window.AudioContext || !window.RTCPeerConnection) {
         throw new Error("Microphone access needs HTTPS or localhost. You can continue with voice off.");
       }
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-      stream.getTracks().forEach(track => track.stop());
+      // Unlock output inside this click, then reuse that exact context after room join.
+      // Both promises are observed immediately, and even a late permission grant is stopped.
+      await Promise.all([
+        resumeVoiceAudio(audioSession.getContext()),
+        navigator.mediaDevices.getUserMedia({ audio: true, video: false }).then((stream) => { stream.getTracks().forEach(track => track.stop()); }),
+      ]);
       if (current === attempt.current) setChoice(true);
-    } catch {
-      if (current === attempt.current) setError("Voice is off. Allow microphone access in your browser to enable it, or continue without voice.");
+    } catch (error) {
+      if (current === attempt.current) {
+        audioSession.close();
+        setError(error instanceof Error && error.message.startsWith("Audio playback") ? error.message : "Voice is off. Allow microphone access in your browser to enable it, or continue without voice.");
+      }
     } finally {
       if (current === attempt.current) setPending(false);
     }
@@ -44,8 +53,8 @@ export function VoiceWelcome({ children }: { children: ReactNode }) {
       <p>You can enable or disable voice anytime from the heads-up display.</p>
       {error && <p role="alert">{error}</p>}
       <Button onClick={() => void accept()} disabled={pending}>{pending ? "Waiting for microphone permission…" : "Enable voice"}</Button>
-      <Button variant="outline" onClick={() => { attempt.current++; setChoice(false); }}>Continue without voice</Button>
+      <Button variant="outline" onClick={() => { attempt.current++; audioSession.close(); setChoice(false); }}>Continue without voice</Button>
     </section>
   </main>;
-  return <VoiceConsent.Provider value={{ enabled: choice ?? false, setEnabled: setChoice }}>{children}</VoiceConsent.Provider>;
+  return <VoiceConsent.Provider value={{ enabled: choice ?? false, setEnabled: setChoice, getAudioContext: audioSession.getContext }}>{children}</VoiceConsent.Provider>;
 }

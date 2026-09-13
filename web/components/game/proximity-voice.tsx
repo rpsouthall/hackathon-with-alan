@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Mic, MicOff, PhoneOff } from "lucide-react";
+import { Mic, MicOff, PhoneOff, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useVoicePreference } from "@/components/game/voice-welcome";
 import { useWorld } from "@/components/world/world-provider";
@@ -18,23 +18,25 @@ export function ProximityVoicePanel({ onTalkingChange, onSpeakingChange }: Voice
 }
 function ConnectedVoice({ playerId, onTalkingChange, onSpeakingChange }: VoicePanelProps & { playerId: string }) {
   const { snapshot, sendVoice, subscribeVoice } = useWorld();
-  const { enabled: preferredEnabled, setEnabled: setPreferredEnabled } = useVoicePreference();
+  const { enabled: preferredEnabled, setEnabled: setPreferredEnabled, getAudioContext } = useVoicePreference();
   const initialConsent = useRef(preferredEnabled);
   const [state, setState] = useState(INITIAL_VOICE_STATE);
+  const [diagnostics, setDiagnostics] = useState<string[] | null>(null);
+  const [checking, setChecking] = useState(false);
   useEffect(() => { onTalkingChange?.(state.talking); return () => onTalkingChange?.(false); }, [state.talking, onTalkingChange]);
   useEffect(() => { onSpeakingChange?.(state.speakingPlayerIds); }, [state.speakingPlayerIds, onSpeakingChange]);
   useEffect(() => () => onSpeakingChange?.([]), [onSpeakingChange]);
   const input = useRef<ReturnType<typeof bindPushToTalk> | null>(null);
   const controller = useRef<ProximityVoice | null>(null);
   useEffect(() => {
-    const voice = new ProximityVoice(playerId, sendVoice, setState);
+    const voice = new ProximityVoice(playerId, sendVoice, setState, { createAudio: getAudioContext });
     controller.current = voice;
     if (initialConsent.current) void voice.enable();
     const keys = bindPushToTalk(window, document, (held) => voice.setTalking(held));
     input.current = keys;
     const unsubscribe = subscribeVoice((message) => voice.receive(message));
     return () => { keys.dispose(); input.current = null; unsubscribe(); voice.disable(); controller.current = null; };
-  }, [playerId, sendVoice, subscribeVoice]);
+  }, [playerId, sendVoice, subscribeVoice, getAudioContext]);
   useEffect(() => {
     const me = snapshot?.players.find((player) => player.id === playerId);
     controller.current?.setDistances(new Map(snapshot?.players.map((player) => [player.id, me ? distance(player.position, me.position) : Infinity])));
@@ -48,10 +50,18 @@ function ConnectedVoice({ playerId, onTalkingChange, onSpeakingChange }: VoicePa
     setPreferredEnabled(true);
     void controller.current?.enable();
   }
+  async function checkAudio() {
+    const voice = controller.current;
+    if (!voice || checking) return;
+    setChecking(true);
+    const report = await voice.diagnostics();
+    if (controller.current === voice) { setDiagnostics(report); setChecking(false); }
+  }
   return <div className="proximity-voice" aria-label="Proximity voice">
     <span className="proximity-voice-label"><strong>Nearby voice {enabled ? state.muted ? "· Mic muted" : state.talking ? "· Talking" : "· Hold T to talk" : ""}</strong><small role="status">{state.message}</small></span>
     {!enabled && <Button size="sm" variant="outline" disabled aria-label="Hold to talk (voice off)"><MicOff />Hold to talk · T</Button>}
     {enabled ? <>
+      {state.playbackBlocked && <Button size="sm" variant="outline" onClick={() => void controller.current?.resumePlayback()}><Volume2 />Resume audio</Button>}
       <Button size="sm" variant="outline" disabled={state.muted} aria-pressed={state.talking} aria-keyshortcuts="T" aria-label="Hold to talk to nearby players"
         onPointerDown={(event) => { if (event.button !== 0) return; event.currentTarget.setPointerCapture(event.pointerId); input.current?.setHeld("pointer", true); }}
         onPointerUp={() => input.current?.setHeld("pointer", false)}
@@ -65,6 +75,8 @@ function ConnectedVoice({ playerId, onTalkingChange, onSpeakingChange }: VoicePa
       <Button size="sm" variant="outline" onClick={() => { setPreferredEnabled(false); input.current?.releaseAll(); controller.current?.disable(); }}><PhoneOff />Disable voice</Button>
     </> : <Button size="sm" variant="outline" disabled={state.status === "requesting"} onClick={enable}><Mic />{state.status === "requesting" ? "Starting…" : "Enable voice"}</Button>}
     {state.status === "requesting" && <Button size="sm" variant="outline" onClick={() => { setPreferredEnabled(false); input.current?.releaseAll(); controller.current?.disable(); }}>Cancel</Button>}
+    <Button size="sm" variant="outline" onClick={() => void checkAudio()} disabled={checking}>{checking ? "Checking…" : "Check audio"}</Button>
+    {diagnostics && <div role="status" style={{ flexBasis: "100%", fontSize: ".75rem" }}><strong>Audio check · hold T while checking your microphone</strong>{diagnostics.map((line, index) => <div key={index}>{line}</div>)}<Button size="sm" variant="ghost" onClick={() => setDiagnostics(null)}>Close audio check</Button></div>}
     <small className="proximity-voice-help">Hold T or the talk button to speak to players within 12 m. Audio fades with distance. In busy areas, voice connects you with up to seven nearby players.</small>
   </div>;
 }

@@ -8,15 +8,18 @@ import { verifyWorldTicket, type WorldTicket } from "../lib/world/hosted-ticket"
 import { PlayerVoiceRoom, VoiceBudget } from "./player-voice";
 import { playerVoiceClientSchema, VOICE_ENVELOPE_LIMIT, type PlayerVoiceServerMessage } from "../lib/world/player-voice-contract";
 
-type Env = KyotoWorkerEnv;
-interface Peer { voiceBudget: VoiceBudget; playerId: string; joined: boolean; claims: WorldTicket; lastSeen: number; window: number; messages: number; actions: number; connectedAt: number }
+import { diagnosticRequestSchema, RoomTickDiagnostics, ROOM_LOCATION_HINT, ROOM_GENERATION, roomObjectName } from "./room-diagnostics";
+import { DIRECT_ICE_SERVERS, TurnCredentialsSession, type TurnSecrets } from "./turn-credentials";
+
+type Env = KyotoWorkerEnv & TurnSecrets;
+interface Peer { turn: TurnCredentialsSession; voiceJoined: boolean; lastDiagnosticAt?: number; voiceBudget: VoiceBudget; playerId: string; joined: boolean; claims: WorldTicket; lastSeen: number; window: number; messages: number; actions: number; connectedAt: number }
 const reject = (message: string, status: number) => Response.json({ error: message }, { status, headers: { "Cache-Control": "no-store" } });
 
 /** Every room name maps to one authoritative object worldwide. */
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname === "/health") return Response.json({ service: "kyoto-shared-world", protocol: PROTOCOL_VERSION, capacity: MAX_ROOM_PLAYERS });
+    if (url.pathname === "/health") return Response.json({ service: "kyoto-shared-world", protocol: PROTOCOL_VERSION, capacity: MAX_ROOM_PLAYERS, roomGeneration: ROOM_GENERATION, locationHint: ROOM_LOCATION_HINT });
     if (url.pathname !== "/world") return reject("Not found", 404);
     if (request.headers.get("upgrade")?.toLowerCase() !== "websocket") return reject("WebSocket required", 426);
     const origin = request.headers.get("origin") ?? "";
@@ -29,7 +32,7 @@ export default {
     // shared hackathon Wi-Fi while bounding automated room creation per location.
     const network = request.headers.get("cf-connecting-ip") ?? "unknown";
     if (!(await env.WORLD_ADMISSION.limit({ key: `kyoto-admission:${network}` })).success) return reject("Too many joins. Please wait a minute and reconnect.", 429);
-    const room = env.KYOTO_ROOMS.getByName(claims.roomId);
+    const room = env.KYOTO_ROOMS.getByName(roomObjectName(claims.roomId), { locationHint: ROOM_LOCATION_HINT });
     const headers = new Headers(request.headers);
     // Overwrite any caller-supplied internal claims. Only this Worker signs admission.
     headers.set("x-kyoto-claims", JSON.stringify(claims));
@@ -45,7 +48,8 @@ export class KyotoRoom extends DurableObject<Env> {
   private room?: WorldRoom;
   private roomId?: string;
   private peers = new Map<WebSocket, Peer>();
-  private voice = new PlayerVoiceRoom();
+  private voice = new PlayerVoiceRoom(DIRECT_ICE_SERVERS);
+  private tickDiagnostics = new RoomTickDiagnostics();
   private timer?: ReturnType<typeof setInterval>;
   private previous = performance.now();
   private publishedRevision = -1;
@@ -71,7 +75,7 @@ export class KyotoRoom extends DurableObject<Env> {
     const pair = new WebSocketPair();
     const [client, server] = Object.values(pair);
     server.accept();
-    const peer: Peer = { voiceBudget: new VoiceBudget(), playerId: `player_${claims.playerId}`, joined: false, claims, lastSeen: now, window: now, messages: 0, actions: 0, connectedAt: now };
+    const peer: Peer = { turn: new TurnCredentialsSession(this.env), voiceJoined: false, voiceBudget: new VoiceBudget(), playerId: `player_${claims.playerId}`, joined: false, claims, lastSeen: now, window: now, messages: 0, actions: 0, connectedAt: now };
     this.peers.set(server, peer);
     server.addEventListener("message", (event) => this.message(server, peer, event.data));
     server.addEventListener("close", () => this.remove(server));
@@ -94,6 +98,18 @@ export class KyotoRoom extends DurableObject<Env> {
     try {
       const data: unknown = JSON.parse(raw);
       const type = data && typeof data === "object" && "type" in data ? data.type : undefined;
+      if (type === "diagnostic-ping") {
+        if (++peer.messages > 80) return this.close(socket, 1008, "Too many messages");
+        if (!peer.joined) return this.close(socket, 1008, "Join first");
+        const diagnostic = diagnosticRequestSchema.safeParse(data);
+        if (!diagnostic.success) return this.close(socket, 1002, "Invalid diagnostic request");
+        if (peer.lastDiagnosticAt !== undefined && now-peer.lastDiagnosticAt < 1000) return this.close(socket, 1008, "Too many diagnostic requests");
+        peer.lastDiagnosticAt=now;
+        // Only the requesting socket receives this optional message. No gameplay
+        // schema or heartbeat change is required for non-diagnostic clients.
+        socket.send(JSON.stringify({type:"diagnostic-pong",id:diagnostic.data.id,roomGeneration:ROOM_GENERATION,locationHint:ROOM_LOCATION_HINT,players:this.room!.dynamicSnapshot().players.length,tick:this.tickDiagnostics.snapshot()}));
+        return;
+      }
       if (typeof type === "string" && type.startsWith("npc-")) {
         if (++peer.messages > 80) return this.close(socket, 1008, "Too many messages");
         if (!peer.joined) return this.close(socket, 1008, "Join first");
@@ -104,7 +120,10 @@ export class KyotoRoom extends DurableObject<Env> {
         if (!voice.success) return this.close(socket, 1002, "Invalid voice protocol");
         if (!peer.joined) return this.close(socket, 1008, "Join first");
         if (!peer.voiceBudget.allow(voice.data, now)) return this.close(socket, 1008, "Too many voice messages");
-        this.deliverVoice(this.voice.handle(peer.playerId, voice.data, this.room!.dynamicSnapshot().players)); return;
+        if (voice.data.type === "voice-join") { peer.turn.enable(); this.refreshTurn(socket, peer); return; }
+        if (voice.data.type === "voice-leave") { peer.turn.disable(); peer.voiceJoined = false; }
+        this.deliverVoice(this.voice.handle(peer.playerId, voice.data, this.room!.dynamicSnapshot().players));
+        return;
       }
       if (raw.length > 4096) return this.close(socket, 1002, "Invalid message");
       if (++peer.messages > 80) return this.close(socket, 1008, "Too many messages");
@@ -135,6 +154,20 @@ export class KyotoRoom extends DurableObject<Env> {
       if (target) this.send(target[0], delivery.message);
     }
   }
+  private refreshTurn(socket: WebSocket, peer: Peer) {
+    const pending = peer.turn.tick((update) => {
+      if (this.peers.get(socket) !== peer || !peer.joined || !this.room) return;
+      if (update.status === "pending") { if (!peer.voiceJoined) this.send(socket, { type: "voice-error", message: update.message }); return; }
+      if (!peer.voiceJoined) {
+        peer.voiceJoined = true;
+        this.deliverVoice(this.voice.handle(peer.playerId, { type: "voice-join" }, this.room.dynamicSnapshot().players, update.iceServers));
+        return;
+      }
+      this.voice.setIceServers(peer.playerId, update.iceServers);
+      this.deliverVoice(this.voice.refresh(this.room.dynamicSnapshot().players));
+    });
+    if (pending) this.ctx.waitUntil(pending);
+  }
   private publish() {
     if (!this.room) return;
     this.deliverVoice(this.voice.refresh(this.room.dynamicSnapshot().players));
@@ -153,6 +186,7 @@ export class KyotoRoom extends DurableObject<Env> {
   private remove(socket: WebSocket) {
     const peer = this.peers.get(socket);
     if (!peer) return;
+    peer.turn.dispose();
     this.peers.delete(socket);
     this.voice.remove(peer.playerId);
     if (peer.joined) this.room?.leave(peer.playerId);
@@ -161,6 +195,7 @@ export class KyotoRoom extends DurableObject<Env> {
       clearInterval(this.timer); this.timer = undefined;
       this.room?.dispose(); this.room = undefined;
       this.publishedRevision = -1;
+      this.tickDiagnostics = new RoomTickDiagnostics();
     }
   }
   private startTicking() {
@@ -168,13 +203,16 @@ export class KyotoRoom extends DurableObject<Env> {
     this.previous = performance.now();
     this.timer = setInterval(() => {
       const now = performance.now(), wallClock = Date.now();
+      const intervalMs=now-this.previous;
       for (const [socket, peer] of this.peers) {
         if ((!peer.joined && wallClock - peer.connectedAt > 12000) || wallClock - peer.lastSeen > 45000) this.close(socket, 1001, "Connection expired");
+        else if (peer.joined) this.refreshTurn(socket, peer);
       }
       if (!this.room) return;
       this.room.tick((now - this.previous) / 1000, now); this.previous = now;
       // Coalesce movement, joins, departures and actions into at most 20 broadcasts/s.
       if (this.room.snapshotRevision !== this.publishedRevision) this.publish();
+      if (this.room) this.tickDiagnostics.record(intervalMs,performance.now()-now);
     }, 50);
   }
 }

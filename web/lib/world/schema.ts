@@ -3,7 +3,7 @@ import { EMOTE_NAMES } from "./player-actions";
 import { VEHICLE_KINDS } from "./vehicle-contract";
 export type { VehicleKind } from "./vehicle-contract";
 
-export const PROTOCOL_VERSION = 2 as const;
+export const PROTOCOL_VERSION = 3 as const;
 export const MAX_ROOM_PLAYERS = 32;
 const id = z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/);
 export const vectorSchema = z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]);
@@ -77,6 +77,8 @@ export const playerSchema = z.object({
   emote: z.object({ name: z.enum(EMOTE_NAMES), id: z.number().int().positive(), elapsed: z.number().finite().min(0).max(3) }).nullable().optional(),
   appearance: appearanceSchema.default({}),
   vehicleId: id.nullable().default(null),
+  // Last input actually simulated, and its duration in the authority clock.
+  movementAck: z.object({ sequence: z.number().int().nonnegative(), elapsedSeconds: z.number().finite().min(0).max(1), verticalVelocity: z.number().finite().min(-8).max(0) }).nullable().optional(),
 });
 export type PlayerSnapshot = z.infer<typeof playerSchema>;
 export const encounterSchema = z.object({
@@ -84,11 +86,20 @@ export const encounterSchema = z.object({
   speakerId: id.nullable(),
 });
 export type EncounterSnapshot = z.infer<typeof encounterSchema>;
+export const worldClockSchema = z.object({
+  serverTimeMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  epochMs: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER),
+  dayLengthSeconds: z.number().finite().min(10).max(86400),
+  initialHour: z.number().finite().min(0).lt(24),
+}).strict();
+export type WorldClockSnapshot = z.infer<typeof worldClockSchema>;
 export const roomSchema = z.object({
   protocol: z.literal(PROTOCOL_VERSION), roomId: id, revision: z.number().int().nonnegative(),
   environment: environmentSchema, players: z.array(playerSchema).max(MAX_ROOM_PLAYERS), npcs: z.array(npcSchema).max(64),
   encounters: z.array(encounterSchema).max(MAX_ROOM_PLAYERS),
   vehicles: z.array(vehicleSchema).max(32).default([]),
+  // Optional for older authorities; current rooms always publish a fresh sample.
+  worldClock: worldClockSchema.optional(),
 });
 export type RoomSnapshot = z.infer<typeof roomSchema>;
 /** Static environment travels once in welcome; live room state stays small. */

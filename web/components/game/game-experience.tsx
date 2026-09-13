@@ -136,7 +136,7 @@ function RoomSettings({ session, onJoin, onClose }: {
 }
 
 function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (session: Omit<SessionSettings, "transport">) => void }) {
-  const { snapshot, localPlayerId, connection, mode, error, clearError, send } = useWorld();
+  const { snapshot, localPlayerId, connection, mode, latencyMs, error, clearError, send } = useWorld();
   const [voiceSpeakers, setVoiceSpeakers] = useState<string[]>([]);
   const speakingPlayerIds = voiceSpeakers;
   const localSpeaking = speakingPlayerIds.includes(localPlayerId ?? "");
@@ -290,6 +290,7 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
 
       <aside className="hud-party" aria-label="Connected players">
         <div className="hud-party-heading"><span className={`hud-connection-dot ${connection === "connected" ? "is-online" : ""}`} />{mode === "local" ? "SOLO" : `${snapshot?.players.length ?? 0} ONLINE`}</div>
+        {mode === "multiplayer" && connection === "connected" && <span className="hud-connection-note" title="Round-trip time to this room. Your movement is predicted locally.">{latencyMs === null ? "Measuring connection…" : `${Math.round(latencyMs)} ms ping`}</span>}
         <ul>{snapshot?.players.map(player => <li key={player.id}><span className="hud-player-mark" style={{ backgroundColor: player.appearance.accent }} /><span>{player.name}</span>{player.id === localPlayerId && <small>YOU</small>}{speakingPlayerIds.includes(player.id) && <Mic className="hud-speaking-mic" role="img" aria-label={`${player.name} is speaking`} />}</li>)}</ul>
         {connection !== "connected" && <span className="hud-connection-note" role="status">{connection}</span>}
       </aside>
