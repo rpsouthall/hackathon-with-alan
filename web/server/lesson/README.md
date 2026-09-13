@@ -1,6 +1,6 @@
 # Japanese lesson and LiveAvatar companion
 
-The game opens a ten-question lesson when a player approaches a supported NPC and presses E. With credentials configured, each new encounter automatically starts its assigned live avatar and a fresh private chat. `/lesson-lab` opens any of the three lessons directly. Questions and translations live in `lib/lesson/scenarios.ts`.
+The game opens a ten-question lesson when a player approaches a supported NPC and presses E. With credentials configured, each new encounter automatically starts its assigned live avatar and a fresh private chat. `/lesson-lab` opens any of the six lessons directly. Questions and translations live in `lib/lesson/scenarios.ts`.
 
 ## Run locally
 
@@ -44,6 +44,30 @@ The frontend proxies HTTP `/lesson-api` to `127.0.0.1:8790`. Local browser webso
 
 Run `npm run test:lesson`, `npm run test:world`, and `npx tsc --noEmit`. Unit and integration checks do not require paid API calls. To verify the live connection, configure the keys and ID, open a lesson, confirm the avatar starts automatically, allow microphone access if requested, answer the current task in English, check Japanese speech and written feedback, try Japanese, then leave and check that the microphone stops.
 
-This companion binds to loopback for local hackathon testing. It is **not deployed** with the Sites static/frontend build. Before publishing, host/adapt the websocket companion in a suitable runtime and add authenticated session ownership, per-user usage limits, allowed deployed origins, and production secret configuration. Shared-world speaking-turn authority is not wired to this service: each player has a private avatar and chat, including in a shared world. The local companion currently allows one paid live session at a time. Another player receives a clear busy message rather than having their session interrupted. World NPC identities and avatar IDs are validated against lib/lesson/characters.ts; the browser cannot supply an arbitrary paid avatar ID. The lesson lab uses the configured fallback avatar when no world character is selected.
+The local Node companion still binds to loopback. The Sites build now includes `/lesson-api/config` and `/lesson-api/session` routes backed by native Workers WebSockets. The browser selects the transport reported by the configuration route, so production does not depend on a developer's laptop. Hosted sessions require Sites-provided signed-in identity and a matching Origin; session ownership combines that identity with the browser tab ID.
+
+Configure the existing `OPENAI_API_KEY`, `LIVEAVATAR_API_KEY`, and `LIVEAVATAR_AVATAR_ID` as production runtime secrets/settings through Sites before publishing. Local env files are not uploaded. The configuration endpoint reports availability, never key values. Verify configuration and an authenticated lesson connection after deployment, then verify voice/video only when provider credits are available.
+
+Shared-world speaking-turn authority is not wired to this service: each player has a private avatar and chat, including in a shared world. The local companion permits one live avatar at a time; the hosted slot and eight-connection limit apply per Worker isolate, not globally across the deployment. Provider account concurrency limits still apply. Sessions end after five minutes, and incoming message size/rate checks bound each connection. These limits are not a durable per-account spending quota. World NPC identities and avatar IDs are validated against `lib/lesson/characters.ts`; the browser cannot supply an arbitrary paid avatar ID. The lesson lab uses the configured fallback avatar when no world character is selected.
+
+On 13 September 2026, the public Site connected authenticated lessons through
+`POST /lesson-api/connect` and the dedicated lesson Worker at
+`https://kyoto-alan-lessons.alan-4fb.workers.dev`. The Site issues a short-lived,
+origin-bound ticket; the Worker checks it before opening a lesson. Preserve the
+separate `LESSON_SERVER_URL` setting and the matching `LESSON_TICKET_SECRET`.
+Lesson and world tickets use domain-separated signing even when they share the
+same underlying secret. Provider credentials remain server-side.
+
+A real signed-in browser received live avatar video, advancing audio playback,
+Japanese conversation transcripts and a server-acknowledged difficulty choice.
+The microphone initialized and muted successfully. Physical speaker audibility
+and a complete spoken conversation between a person and tutor remain separate
+manual checks. The final integrated source passed 247 lesson/world tests, with
+14 multiplayer and nine player-voice integration checks.
+
+The production transport uses `redirect: 'manual'` for outbound WebSocket
+upgrades: Cloudflare rejects `redirect: 'error'` before making the request.
+Non-upgrade responses are rejected rather than following redirects with provider
+credentials. A regression test covers this adapter behaviour.
 
 Protocol reference: [HeyGen GPT-Live demos](https://github.com/heygen-com/liveavatar-gpt-live-demos). Adapted microphone, turn-projection, and avatar transport code retains the MIT license in `lib/lesson/HEYGEN-LICENSE.txt`.

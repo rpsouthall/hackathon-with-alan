@@ -15,6 +15,7 @@ import { createWorldAtmosphere } from "./atmosphere";
 import type { WorldTime } from "./day-cycle";
 import type { WorldClockAnchor } from "./world-clock";
 import { CHARACTER_PRESETS } from "../characters/presets";
+import { canTalkToNpc, isInsideVenue, venueForNpc } from './venues';
 import type { EnvironmentManifest, NpcSnapshot, PlayerSnapshot, EncounterSnapshot, VehicleSnapshot, Vec3 } from "./schema";
 
 export interface SceneEntities { worldClock?: WorldClockAnchor | null; speakingPlayerIds?: readonly string[]; speakingNpcIds?: readonly string[]; vehicles?: VehicleSnapshot[]; players: PlayerSnapshot[]; npcs: NpcSnapshot[]; localPlayerId: string | null; encounters?: EncounterSnapshot[]; selectedNpcId?: string; encounterNpcId?: string }
@@ -141,25 +142,35 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   const input = new PlayerInput(); let step: {direction:[number,number];until:number;sprint:boolean}|null=null;
   let walkingMap: Promise<Awaited<ReturnType<typeof createWalkingMap>>> | undefined;
   let walkGeneration = 0;
-  let walk: { npcId: string; route: Vec3[]; lastPosition: Vec3; progressed: number } | null = null;
+  let walk: { npcId: string; destination: 'tutor' | 'entry'; goal: Vec3; radius: number; route: Vec3[]; lastPosition: Vec3; progressed: number } | null = null;
   function stopWalking(message = '') { walkGeneration++; walk = null; callbacks.onWalking?.(false, message); }
-  async function walkTo(npcId: string) {
+  async function walkTo(npcId: string, destination: 'tutor' | 'entry' = 'tutor') {
     if (!enabled || stopped) return;
     resetInput();
     const generation = ++walkGeneration;
     const npc = entities.npcs.find(n => n.id === npcId), player = entities.players.find(p => p.id === entities.localPlayerId);
     if (!npc || !player || player.vehicleId) return;
-    callbacks.onWalking?.(true, `Finding a path to ${npc.name}…`);
+    const venue = venueForNpc(environment, npcId);
+    const goal = destination === 'entry' && venue ? { position: venue.entry, interactionRadius: 1 } : npc;
+    const canStop = (position: Vec3) => destination === 'entry' || !venue || isInsideVenue(venue, position);
+    callbacks.onWalking?.(true, `Finding a path ${destination === 'entry' ? 'outside' : `to ${npc.name}`}…`);
     try {
       walkingMap ??= import('./navigation').then(module => module.createWalkingMap(environment));
       const map = await walkingMap;
       if (generation !== walkGeneration || stopped || !enabled) return;
-      const route = map.route(player.position, npc);
+      const route = map.route(player.position, goal, canStop);
       if (!route?.length) { stopWalking('No clear walking route. Use WASD to move around the obstacle, then try again.'); return; }
-      walk = { npcId, route, lastPosition: [...player.position], progressed: performance.now() };
-      callbacks.onWalking?.(true, `Walking to ${npc.name} · WASD or Stop walking to cancel`);
+      walk = { npcId, destination, goal: goal.position, radius: goal.interactionRadius, route, lastPosition: [...player.position], progressed: performance.now() };
+      callbacks.onWalking?.(true, `${destination === 'entry' ? 'Leaving the shop' : venue ? `Entering ${venue.name} to meet ${npc.name}` : `Walking to ${npc.name}`} · WASD to cancel`);
     } catch { walkingMap = undefined; if (generation === walkGeneration && !stopped) stopWalking('Walking guidance is unavailable. Use WASD to approach the character.'); }
   }
+  const venueLabels = (environment.venues ?? []).map(venue => {
+    const label = document.createElement('button');
+    label.type = 'button'; label.className = 'world-venue-label'; label.textContent = `Enter ${venue.name}`;
+    label.addEventListener('click', () => { host.focus(); void walkTo(venue.npcId); });
+    host.appendChild(label);
+    return { venue, label };
+  });
   const ring = new THREE.Mesh(new THREE.RingGeometry(.48,.55,32),new THREE.MeshBasicMaterial({color:"#bd624c",transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
   ring.rotation.x=-Math.PI/2; ring.visible=false; scene.add(ring);
   function resetInput() {input.clear();step=null;stopWalking();sendMovement([0,0],walkingYaw,false);}
@@ -177,8 +188,12 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     }
     if(action==="interact"&&!cameraRig.isTransitioning) {
       const player=entities.players.find(p=>p.id===entities.localPlayerId);
-      const nearby=player&&!player.vehicleId&&entities.npcs.filter(n=>new THREE.Vector3(...n.position).distanceTo(new THREE.Vector3(...player.position))<=n.interactionRadius).sort((a,b)=>new THREE.Vector3(...a.position).distanceToSquared(new THREE.Vector3(...player.position))-new THREE.Vector3(...b.position).distanceToSquared(new THREE.Vector3(...player.position)))[0];
+      const nearby=player&&!player.vehicleId&&entities.npcs.filter(n=>canTalkToNpc(environment,n,player.position)).sort((a,b)=>new THREE.Vector3(...a.position).distanceToSquared(new THREE.Vector3(...player.position))-new THREE.Vector3(...b.position).distanceToSquared(new THREE.Vector3(...player.position)))[0];
       if(nearby)callbacks.onInteract(nearby.id);
+      else if (player && !player.vehicleId) {
+        const entrance = environment.venues?.find(venue => !isInsideVenue(venue, player.position) && new THREE.Vector3(...venue.entry).distanceTo(new THREE.Vector3(...player.position)) < 2.8);
+        if (entrance) void walkTo(entrance.npcId);
+      }
     }
   }
   function keyUp(event:KeyboardEvent){input.keyUp(event);}
@@ -203,7 +218,13 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   let frame=0,previous=performance.now(),lastLabelCheck=0;
   const forward=new THREE.Vector3(),right=new THREE.Vector3(),velocity=new THREE.Vector3(), projected=new THREE.Vector3();
   const render=(now:number)=>{
-    if(stopped||paused)return; const dt=Math.min((now-previous)/1000,.1);previous=now;
+    if(stopped||paused)return;
+    // Reserve main-thread/GPU time for live video while the world is a backdrop.
+    // Camera transitions and normal exploration still use every animation frame.
+    if (entities.encounterNpcId && !cameraRig.isTransitioning && !resizePending && now - previous < 1000 / 30 - 0.5) {
+      frame=requestAnimationFrame(render); return;
+    }
+    const dt=Math.min((now-previous)/1000,.1);previous=now;
     if (resizePending) {
       resizePending = false;
       const width = Math.max(host.clientWidth, 1), height = Math.max(host.clientHeight, 1);
@@ -223,8 +244,8 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       if (walk) {
         const player = entities.players.find(p => p.id === entities.localPlayerId), npc = entities.npcs.find(n => n.id === walk!.npcId);
         if (!player || !npc) stopWalking();
-        else if (Math.hypot(...player.position.map((v, i) => v - npc.position[i])) <= npc.interactionRadius - 0.2) {
-          stopWalking(`You are close to ${npc.name}. Start the conversation when you are ready.`);
+        else if (Math.hypot(...player.position.map((v, i) => v - walk!.goal[i])) <= walk.radius - 0.2 && (walk.destination === 'entry' || canTalkToNpc(environment, npc, player.position))) {
+          stopWalking(walk.destination === 'entry' ? 'You are back outside.' : `${venueForNpc(environment, npc.id) ? 'You are inside with' : 'You are close to'} ${npc.name}. Press E or Talk when you are ready.`);
         } else {
           if (Math.hypot(player.position[0] - walk.lastPosition[0], player.position[2] - walk.lastPosition[2]) > 0.12) { walk.lastPosition = [...player.position]; walk.progressed = now; }
           while (walk.route.length && Math.hypot(player.position[0] - walk.route[0][0], player.position[2] - walk.route[0][2]) < 0.22) walk.route.shift();
@@ -294,6 +315,10 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     cutaway.update(occlusionHits,now,dt,(local?.root.position??spawn).clone().add(new THREE.Vector3(0,1.2,0)),camera);
     const checkLabels=now-lastLabelCheck>=120;
     for (const actor of actors.values()) {
+      // Hidden labels need neither layout writes nor expensive scenery raycasts.
+      const venue = actor.npcId ? venueForNpc(environment, actor.npcId) : undefined;
+      const player = entities.players.find(player => player.id === entities.localPlayerId);
+      if (entities.encounterNpcId || (venue && (!player || !isInsideVenue(venue, player.position)))) { actor.label.style.display = "none"; continue; }
       const head=actor.root.position.clone().add(new THREE.Vector3(0,2.1,0));
       projected.copy(head).project(camera);
       const outside=projected.z>1||projected.z< -1||Math.abs(projected.x)>1.05||Math.abs(projected.y)>1.05;
@@ -305,6 +330,15 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       actor.label.style.display=entities.encounterNpcId||outside||actor.labelBlocked?"none":"block";
       actor.label.style.left=`${(projected.x*.5+.5)*host.clientWidth}px`;
       actor.label.style.top=`${(-projected.y*.5+.5)*host.clientHeight}px`;
+    }
+    for (const { venue, label } of venueLabels) {
+      const player = entities.players.find(player => player.id === entities.localPlayerId);
+      projected.set(...venue.entry).add(new THREE.Vector3(0, 1.5, 0)).project(camera);
+      const nearby = player && Math.hypot(...player.position.map((value, axis) => value - venue.entry[axis])) < 22;
+      const visible = enabled && player && !player.vehicleId && !entities.encounterNpcId && !isInsideVenue(venue, player.position) && (nearby || entities.selectedNpcId === venue.npcId) && Math.abs(projected.x) < 1 && Math.abs(projected.y) < 1 && Math.abs(projected.z) < 1;
+      label.hidden = !visible;
+      label.style.left = `${(projected.x * .5 + .5) * host.clientWidth}px`;
+      label.style.top = `${(-projected.y * .5 + .5) * host.clientHeight}px`;
     }
     if(checkLabels)lastLabelCheck=now;
     const selected=entities.npcs.find(n=>n.id===entities.selectedNpcId);ring.visible=Boolean(selected)&&!entities.encounterNpcId;if(selected)ring.position.set(selected.position[0],selected.position[1]+.04,selected.position[2]);
@@ -351,6 +385,6 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       }
       for(const [key,actor]of actors)if(!present.has(key)){actor.avatar?.dispose();scene.remove(actor.root);disposeObject(actor.root);actor.label.remove();actors.delete(key);}
     },
-    dispose(){stopped=true;predictor?.dispose();environmentRequest.abort();cancelAnimationFrame(frame);resize.disconnect();resetInput();clearTimeout(movementTimer);pendingMovement=undefined;cameraRig.dispose();atmosphere.dispose();vehicles.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);document.removeEventListener("visibilitychange",visibility);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
+    dispose(){stopped=true;predictor?.dispose();environmentRequest.abort();cancelAnimationFrame(frame);resize.disconnect();resetInput();clearTimeout(movementTimer);pendingMovement=undefined;cameraRig.dispose();atmosphere.dispose();vehicles.dispose();venueLabels.forEach(({label})=>label.remove());host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);document.removeEventListener("visibilitychange",visibility);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
   };
 }

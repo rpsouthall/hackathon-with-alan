@@ -51,3 +51,9 @@
 .lesson-practice-switcher { position: fixed; z-index: 70; bottom: 10px; left: 15px; display: flex; gap: 5px; padding: 5px; border-radius: 8px; background: #f6f3eefa; box-shadow: 0 2px 10px #15362320; }.lesson-practice-switcher button { cursor: pointer; border: 0; background: transparent; color: #55735c; padding: 7px 10px; font-size: 10px; border-radius: 5px; }.lesson-practice-switcher button[aria-pressed='true'] { background: #dce7d4; }
 @media(max-width: 760px) { .lesson-body { display: flex; flex-direction: column; padding: 22px 20px 80px; gap: 30px; }.lesson-avatar-column { position: static; width: 100%; }.lesson-avatar-stage { height: 320px; }.lesson-avatar-placeholder .lesson-avatar-orbit { width: 64px; height: 64px; margin-bottom: 20px; }.lesson-avatar-placeholder h1 { font-size: 38px; }.lesson-avatar-tag { margin-top: 10px; }.lesson-content-column { width: 100%; }.lesson-header { height: 60px; }.lesson-location { font-size: 10px; }.lesson-feedback-actions { flex-wrap: wrap; }.lesson-feedback-actions button { flex: 1; white-space: nowrap; } }
 @media(prefers-reduced-motion: reduce) { .lesson-spin { animation: none; } }
+
+.lesson-level-choice h2 { font-size: clamp(24px, 3vw, 36px); line-height: 1.2; margin: 16px 0; }
+.lesson-level-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 24px 0; }
+.lesson-level-buttons button { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; text-align: left; white-space: normal; padding: 20px; }
+.lesson-level-buttons button span { font-size: 14px; line-height: 1.5; font-weight: 400; }
+@media (max-width: 600px) { .lesson-level-buttons { grid-template-columns: 1fr; } }

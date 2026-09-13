@@ -1,13 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import Link from "next/link";
 import Image from 'next/image';
 import { ChevronRight, CircleStop, Headphones, Languages, Map, Mic, RotateCcw, Sparkles, Volume2, Users, Shirt, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { LessonDialogue } from "@/components/lesson/lesson-dialogue";
 import { lessonNpcForWorldNpc } from "@/lib/lesson/world-lessons";
-import { lessonCharacterForWorldNpc } from "@/lib/lesson/characters";
+import { lessonCharacterForWorldNpc, scenarioForCharacter } from "@/lib/lesson/characters";
 import { VoiceWelcome } from "@/components/game/voice-welcome";
 import { ProximityVoicePanel } from "@/components/game/proximity-voice";
 import { CharacterEditor, type CharacterJoinSettings } from "@/components/game/character-editor";
@@ -17,6 +16,7 @@ import { WorldViewport } from "@/components/world/world-viewport";
 import { KYOTO_ENVIRONMENT, KYOTO_NPCS } from "@/lib/world/kyoto";
 import { createHostedTransport, createLocalTransport, createWebSocketTransport, type WorldTransport } from "@/lib/world/transport";
 import { distance } from "@/lib/world/room";
+import { canTalkToNpc, isInsideVenue, venueForNpc } from '@/lib/world/venues';
 import { npcs, npcPresentation, type ExperiencePhase, type NpcDefinition, type TranscriptLine } from "@/lib/game/contracts";
 
 const encounterContent: Record<NpcDefinition["id"], { lines: TranscriptLine[]; replies: string[]; feedback: string; next: string }> = {
@@ -142,22 +142,24 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
   const localSpeaking = speakingPlayerIds.includes(localPlayerId ?? "");
   const [showRoom, setShowRoom] = useState(false);
   const [showCharacter, setShowCharacter] = useState(false);
-  const [showCast, setShowCast] = useState(false);
-  const [walkingRequest, setWalkingRequest] = useState<{ npcId: string; sequence: number } | null>(null);
+  const [showCast, setShowCast] = useState(true);
+  const [walkingRequest, setWalkingRequest] = useState<{ npcId: string; sequence: number; destination?: 'tutor' | 'entry' } | null>(null);
   const [walking, setWalking] = useState(false);
   const [walkingNotice, setWalkingNotice] = useState('');
   const [appearanceNotice, setAppearanceNotice] = useState("");
   const restoredFor = useRef<string | null>(null);
   const preferredAppearance = useRef<PlayerAppearance | undefined>(session.appearance);
   const pendingAppearance = useRef<PlayerAppearance | null>(null);
-  const [selectedNpcId, setSelectedNpcId] = useState<NpcDefinition["id"]>(npcs[0].id);
+  const [selectedNpcId, setSelectedNpcId] = useState<NpcDefinition["id"]>(() => typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('tutor') ?? npcs[0].id : npcs[0].id);
   const [result, setResult] = useState<{ npcId: string; playerId: string | null } | null>(null);
   const [transcriptCount, setTranscriptCount] = useState(1);
   const [showTranslations, setShowTranslations] = useState(true);
   const active = snapshot?.encounters.find((e) => e.participantIds.includes(localPlayerId ?? ""));
   const showingResult = !!result && result.playerId === localPlayerId && connection === "connected";
   const cast = snapshot?.npcs.map(npcPresentation) ?? [];
-  const selectedNpc = cast.find((npc) => npc.id === (showingResult ? result.npcId : active?.npcId ?? selectedNpcId)) ?? cast[0] ?? npcs[0];
+  const tutors = cast.filter(npc => lessonCharacterForWorldNpc(npc.id)?.avatarId.trim() && lessonNpcForWorldNpc(npc.id));
+  const selectableCast = showCast && !active && !showingResult ? tutors : cast;
+  const selectedNpc = selectableCast.find((npc) => npc.id === (showingResult ? result.npcId : active?.npcId ?? selectedNpcId)) ?? selectableCast[0] ?? npcs[0];
   const phase: ExperiencePhase = showingResult ? "results" : active ? "conversation" : "explore";
   const lessonNpcId = lessonNpcForWorldNpc(selectedNpc.id);
   const liveCharacter = lessonCharacterForWorldNpc(selectedNpc.id);
@@ -165,15 +167,21 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
   const visibleTranscript = useMemo(() => encounter.lines.slice(0, transcriptCount), [encounter.lines, transcriptCount]);
   const localPlayer = snapshot?.players.find((p) => p.id === localPlayerId);
   const target = snapshot?.npcs.find(npc => npc.id === selectedNpc.id);
-  const targetDistance = localPlayer && target ? distance(localPlayer.position, target.position) : null;
-  const inRange = targetDistance !== null && !!target && targetDistance <= target.interactionRadius;
+  const targetVenue = snapshot && target ? venueForNpc(snapshot.environment, target.id) : undefined;
+  const currentVenue = snapshot?.environment.venues?.find(venue => localPlayer && isInsideVenue(venue, localPlayer.position));
+  const nearbyEntrance = snapshot?.environment.venues?.find(venue => localPlayer && !isInsideVenue(venue, localPlayer.position) && distance(venue.entry, localPlayer.position) < 2.8);
+  const inRange = !!(snapshot && localPlayer && target && canTalkToNpc(snapshot.environment, target, localPlayer.position));
   const targetEncounter = snapshot?.encounters.find(e => e.npcId === selectedNpc.id);
-  const closest = snapshot?.npcs.filter((npc) => localPlayer && distance(localPlayer.position, npc.position) <= npc.interactionRadius).sort((a, b) => distance(localPlayer!.position, a.position) - distance(localPlayer!.position, b.position))[0];
+  const closest = snapshot?.npcs.filter((npc) => localPlayer && canTalkToNpc(snapshot.environment, npc, localPlayer.position)).sort((a, b) => distance(localPlayer!.position, a.position) - distance(localPlayer!.position, b.position))[0];
 
   function requestConversation(npcId = selectedNpc.id) {
     if (connection !== "connected" || active || localPlayer?.vehicleId) return;
     const presentation = cast.find((npc) => npc.id === npcId);
     if (!presentation) return;
+    const venue = snapshot && venueForNpc(snapshot.environment, npcId);
+    if (venue && localPlayer && !isInsideVenue(venue, localPlayer.position)) {
+      setSelectedNpcId(npcId); setWalkingNotice(`Enter ${venue.name} to meet ${presentation.name}.`); return;
+    }
     setSelectedNpcId(presentation.id);
     setTranscriptCount(1);
     setResult(null);
@@ -277,7 +285,7 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
       <section className="world-stage" aria-label={`${snapshot?.environment.name ?? "World"} interactive preview`}>
         {snapshot && <WorldViewport environment={snapshot.environment} players={snapshot.players} npcs={snapshot.npcs} localPlayerId={localPlayerId} selectedNpcId={selectedNpc.id} encounters={snapshot.encounters} speakingPlayerIds={speakingPlayerIds}
           inputEnabled={phase === "explore" && connection === "connected" && !showRoom && !showCharacter}
-          renderPaused={phase === "results" || showCharacter || showRoom}
+          renderPaused={phase === "results" || (phase === "conversation" && !!lessonNpcId) || showCharacter || showRoom}
           encounterNpcId={phase === "conversation" ? selectedNpc.id : undefined}
           walkingRequest={walkingRequest} onWalking={(walking, message) => { setWalking(walking); setWalkingNotice(message); }}
           onMove={(direction, yaw, sprint) => send({ type: "move", direction, yaw, sprint, sequence: 0 })} onEmote={(name) => send({ type: "emote", name })}
@@ -318,33 +326,37 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
 
       {phase === "explore" && <>
         {closest && !localPlayer?.vehicleId && <button className="hud-interact" onClick={() => requestConversation(closest.id)}><kbd>E</kbd><span>Talk to <strong>{closest.name}</strong></span></button>}
+        {!closest && nearbyEntrance && !localPlayer?.vehicleId && <button className="hud-interact" onClick={() => { setSelectedNpcId(nearbyEntrance.npcId); setWalkingRequest({ npcId: nearbyEntrance.npcId, sequence: Date.now() }); }}><kbd>E</kbd><span>Enter <strong>{nearbyEntrance.name}</strong></span></button>}
+        {currentVenue && <aside className="hud-current-venue" aria-label="Current shop"><small>YOU ARE INSIDE</small><strong>{currentVenue.name}</strong><span>Find {cast.find(npc => npc.id === currentVenue.npcId)?.name} and press E to talk.</span><button disabled={!!localPlayer?.vehicleId} onClick={() => setWalkingRequest({ npcId: currentVenue.npcId, destination: 'entry', sequence: Date.now() })}>Leave shop <ChevronRight size={14} /></button></aside>}
         <div className="hud-key-hints"><span><kbd>WASD</kbd> Move</span><span><kbd>Shift</kbd> Sprint</span><span><kbd>G</kbd> Emotes</span></div>
       </>}
       {phase === "explore" && <>
         <button className="hud-lesson-toggle" onClick={() => setShowCast(value => !value)} aria-expanded={showCast} aria-controls="world-cast"><Languages />{showCast ? "Close lessons" : "Find a Japanese lesson"}</button>
         {showCast && <aside className="hud-lesson-picker" aria-label="Japanese lessons">
           <div className="hud-lesson-heading"><div><small>LEARN BY TALKING</small><h1>Meet your tutor</h1></div><button aria-label="Close lessons" onClick={() => setShowCast(false)}><X /></button></div>
-          <p>Choose a resident. Walk to them, then start your lesson.</p>
-          <div className="character-picker" id="world-cast">{cast.filter(npc => lessonNpcForWorldNpc(npc.id)).map(npc => {
+          <p>Choose a teacher and walk to their location. Shop tutors are waiting inside.</p>
+          <div className="character-picker" id="world-cast">{tutors.map(npc => {
+            const tutor = lessonCharacterForWorldNpc(npc.id);
             const character = snapshot?.npcs.find(entry => entry.id === npc.id);
             const meters = localPlayer && character ? distance(localPlayer.position, character.position) : null;
-            return <button key={npc.id} aria-pressed={npc.id === selectedNpc.id} onClick={() => { setWalkingRequest(null); setSelectedNpcId(npc.id); }}><span className="cast-dot" style={{ background: npc.accent }} /><span><strong>{npc.name}</strong><small>{npc.role}</small></span><small>{meters !== null ? `${meters.toFixed(0)} m` : "…"}</small></button>;
+            const venue = snapshot && venueForNpc(snapshot.environment, npc.id);
+            return <button key={npc.id} aria-pressed={npc.id === selectedNpc.id} onClick={() => { setWalkingRequest(null); setSelectedNpcId(npc.id); }}>{tutor && <Image className="tutor-avatar-portrait" src={tutor.preview} alt={`${npc.name}'s HeyGen avatar`} width={44} height={44} unoptimized />}<span><strong>{npc.name}</strong><small>{venue?.name ?? npc.role}</small></span><small>{meters !== null ? `${meters.toFixed(0)} m` : "…"}</small></button>;
           })}</div>
-          <div className="hud-lesson-selected">
+          {tutors.length > 0 ? <><div className="hud-lesson-selected">
             {liveCharacter && <Image src={liveCharacter.preview} alt={`${selectedNpc.name}'s live avatar`} width={48} height={48} unoptimized />}
-            <div><strong>{selectedNpc.name}</strong><p>{selectedNpc.objective}</p></div>
+            <div><strong>{selectedNpc.name}</strong>{targetVenue && <p>Inside {targetVenue.name}</p>}<p>{liveCharacter ? scenarioForCharacter(liveCharacter).title : selectedNpc.objective}</p></div>
           </div>
-          <Button disabled={!target || connection !== "connected" || !!localPlayer?.vehicleId} onClick={() => {
+          <Button disabled={!liveCharacter?.avatarId.trim() || !lessonNpcId || !target || connection !== "connected" || !!localPlayer?.vehicleId} onClick={() => {
             if (walking) setWalkingRequest(null);
             else if (inRange) requestConversation();
             else setWalkingRequest({ npcId: selectedNpc.id, sequence: Date.now() });
-          }}>{localPlayer?.vehicleId ? "Dismount to meet your tutor" : walking ? "Stop walking" : inRange ? targetEncounter ? "Join encounter" : "Start lesson" : "Walk to tutor"}<ChevronRight /></Button>
-          <Link href="/environments">Explore the lesson settings <ChevronRight size={14} /></Link>
+          }}>{localPlayer?.vehicleId ? "Dismount to meet your tutor" : walking ? "Stop walking" : inRange ? targetEncounter ? "Join encounter" : "Start lesson" : targetVenue ? "Walk into the shop" : "Walk to tutor"}<ChevronRight /></Button></> : <p role="status">No live teachers are available here yet.</p>}
+          <a href="/environments">Explore the lesson settings <ChevronRight size={14} /></a>
         </aside>}
-        {walkingNotice && <div className="walking-notice" role="status">{walkingNotice}</div>}
+        {walkingNotice && !closest && !nearbyEntrance && <div className="walking-notice" role="status">{walkingNotice}</div>}
       </>}
 
-      {phase === "conversation" && lessonNpcId && <LessonDialogue key={active?.id} npcId={lessonNpcId} worldNpcId={selectedNpc.id} onClose={returnToWorld} />}
+      {phase === "conversation" && lessonNpcId && <LessonDialogue key={active?.id} npcId={lessonNpcId} worldNpcId={selectedNpc.id} onClose={returnToWorld} returnLabel={currentVenue ? `Back to ${currentVenue.name}` : undefined} />}
       {phase === "conversation" && !lessonNpcId && (
         <section className="conversation-layout" aria-label={`Conversation with ${selectedNpc.name}`}>
           <div className="conversation-focus">

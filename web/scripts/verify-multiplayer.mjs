@@ -28,8 +28,8 @@ await build({ entryPoints: [join(web, 'multiplayer/worker.ts')], outfile: worker
   build.onResolve({ filter: /\.wasm$/ }, () => ({ path: './rapier_wasm3d_bg.wasm', external: true }));
 } }] });
 await copyFile(join(web, 'multiplayer/generated-rapier/rapier_wasm3d_bg.wasm'), wasmPath);
-await build({ stdin: { contents: `export * from ${JSON.stringify(join(web, 'lib/world/hosted-ticket.ts'))}; export * from ${JSON.stringify(join(web, 'lib/world/schema.ts'))};`, sourcefile: 'ticket-client.ts', resolveDir: web, loader: 'ts' }, outfile: join(out, 'client-contracts.mjs'), bundle: true, format: 'esm', platform: 'node', target: 'es2022' });
-const { PROTOCOL_VERSION, signWorldTicket, appearanceSchema, serverMessageSchema } = await import(pathToFileURL(join(out, 'client-contracts.mjs')));
+await build({ stdin: { contents: `export * from ${JSON.stringify(join(web, 'lib/world/hosted-ticket.ts'))}; export * from ${JSON.stringify(join(web, 'lib/world/schema.ts'))}; export * from ${JSON.stringify(join(web, 'lib/world/navigation.ts'))}; export * from ${JSON.stringify(join(web, 'lib/world/venues.ts'))};`, sourcefile: 'ticket-client.ts', resolveDir: web, loader: 'ts' }, outfile: join(out, 'client-contracts.mjs'), bundle: true, format: 'esm', platform: 'node', target: 'es2022' });
+const { PROTOCOL_VERSION, signWorldTicket, appearanceSchema, serverMessageSchema, createWalkingMap, venueForNpc, isInsideVenue, canTalkToNpc } = await import(pathToFileURL(join(out, 'client-contracts.mjs')));
 const options = {
   compatibilityDate: '2026-05-15', compatibilityFlags: ['nodejs_compat'],
   modulesRoot: out, modules: [{ type: 'ESModule', path: workerPath }, { type: 'CompiledWasm', path: wasmPath }],
@@ -169,7 +169,16 @@ try {
     assert.ok(!messages.some(m => m.type === 'welcome')); socket.close(1000, 'QA cleanup');
   });
   await check('NPC turn ownership and disconnect cleanup propagate', async () => {
-    await Promise.all([follow(alice, [[5, 1.85], [7.3, 1.85]]), follow(bob, [[5, 1.85], [7.3, 1.85]])]);
+    const environment = alice.welcomes[0].snapshot.environment;
+    const tutor = alice.latest.npcs.find(npc => npc.id === 'cafe_owner');
+    const venue = venueForNpc(environment, tutor.id);
+    const map = await createWalkingMap(environment);
+    await Promise.all([alice, bob].map(async client => {
+      const route = map.route(position(client), tutor, point => !venue || isInsideVenue(venue, point));
+      assert.ok(route?.length, 'The encounter route must enter the current cafe through its doorway');
+      await follow(client, route.map(point => [point[0], point[2]]));
+      assert.ok(canTalkToNpc(environment, tutor, position(client)), 'The learner is inside and within tutor range');
+    }));
     command(alice, { type: 'interact', npcId: 'cafe_owner' });
     const encounter = await until(() => bob.latest.encounters.find(e => e.npcId === 'cafe_owner'), 'cafe encounter');
     command(bob, { type: 'join-encounter', encounterId: encounter.id });

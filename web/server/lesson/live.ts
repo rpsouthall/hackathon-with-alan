@@ -1,14 +1,17 @@
 // Protocol adapted from HeyGen's MIT-licensed liveavatar-gpt-live-demos.
 // See ../../lib/lesson/HEYGEN-LICENSE.txt.
-import WebSocket from 'ws';
+import type { LessonSocket, SocketFactory } from './socket';
+import type { LessonRuntime } from './runtime';
+import { speechInstruction } from '../../lib/lesson/difficulty';
 import { TurnProjector } from './turns';
+import { voiceForAvatar } from '../../lib/lesson/characters';
 import type { Feedback, NativeLanguage, Question, Scenario, Turn } from '../../lib/lesson/types';
 
 const MAX_BUFFER = 2 * 1024 * 1024;
-async function avatarPost(path: string, body: object, token?: string) {
+async function avatarPost(runtime: LessonRuntime, path: string, body: object, token?: string) {
   const response = await fetch(`https://api.liveavatar.com/v1/sessions/${path}`, {
     method: 'POST', signal: AbortSignal.timeout(path === 'stop' ? 8000 : 20000),
-    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : { 'X-API-KEY': process.env.LIVEAVATAR_API_KEY! }) },
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : { 'X-API-KEY': runtime.LIVEAVATAR_API_KEY! }) },
     body: JSON.stringify(body),
   });
   if (!response.ok) {
@@ -31,8 +34,8 @@ export interface LiveSink {
 
 /** One GPT-Live stream drives one LITE avatar. Only room credentials reach the browser. */
 export class LiveBridge {
-  private gpt?: WebSocket;
-  private media?: WebSocket;
+  private gpt?: LessonSocket;
+  private media?: LessonSocket;
   private avatarId?: string;
   private closed = false;
   private startPromise?: Promise<void>;
@@ -48,15 +51,15 @@ export class LiveBridge {
   private current: Question;
   private turns: TurnProjector;
 
-  constructor(private scenario: Scenario, private language: NativeLanguage, question: Question, private sink: LiveSink, private configuredAvatarId = process.env.LIVEAVATAR_AVATAR_ID, private connect: (url: string, options: WebSocket.ClientOptions) => WebSocket = (url, options) => new WebSocket(url, options)) {
+  constructor(private scenario: Scenario, private language: NativeLanguage, question: Question, private sink: LiveSink, private configuredAvatarId = process.env.LIVEAVATAR_AVATAR_ID, private connect: SocketFactory = () => { throw new Error('Live socket adapter is not configured.'); }, private runtime: LessonRuntime = process.env) {
     this.current = question;
     this.turns = new TurnProjector({ onTurn: turn => sink.turn(turn), onUserTurnStarted: () => {
       // Discard queued avatar speech when the learner starts speaking.
       if (this.mediaReady) this.send(this.media, { type: 'agent.interrupt' });
     } });
   }
-  private send(ws: WebSocket | undefined, event: object) {
-    if (this.closed || ws?.readyState !== WebSocket.OPEN) return;
+  private send(ws: LessonSocket | undefined, event: object) {
+    if (this.closed || ws?.readyState !== 1) return;
     if (ws.bufferedAmount > MAX_BUFFER) { this.fail('The live connection is too slow. Reconnect to resume.'); return; }
     ws.send(JSON.stringify(event));
   }
@@ -73,11 +76,11 @@ export class LiveBridge {
     this.readyTimer = setTimeout(() => this.fail('The avatar took too long to connect. Please try again.'), 45000);
     try {
       // Voice and avatar provisioning are independent; overlap their startup.
-      this.gpt = this.connect('wss://api.openai.com/v1/live/sessions', { headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` }, maxPayload: 8 * 1024 * 1024 });
+      this.gpt = this.connect('wss://api.openai.com/v1/live/sessions', { headers: { Authorization: `Bearer ${this.runtime.OPENAI_API_KEY}` }, maxPayload: 8 * 1024 * 1024 });
       this.gpt.on('open', () => this.send(this.gpt, { type: 'session.start', event_id: 'start', session: {
         model: 'gpt-live-1',
-        instructions: `あなたは「${this.scenario.name}」、やさしい日本語の先生です。場面は「${this.scenario.title}」。音声では、ゆっくりした初心者向けの日本語だけを話してください。英語と${this.language}の答えも理解し、正しい意味なら認めて自然な日本語の例を伝えます。日本語の間違いは一つだけやさしく直し、正しい答えに間違いを作らないでください。返事は短い一、二文。アプリが次の問題を送るまで、今の問題だけを練習します。アプリから話し始める指示が届くまで黙って待ってください。最初の質問：「${this.current.japanese}」。説明や採点はアプリにも表示されます。`,
-        audio: { format: { type: 'audio/pcm', rate: 24000 }, output: { voice: 'marin' } },
+        instructions: `You are ${this.scenario.name}, a supportive Japanese tutor in ${this.scenario.title}. Understand English and ${this.language}; accept native-language answers and model natural Japanese. Correct one meaningful error kindly, without inventing errors. Never claim to assess pronunciation from transcripts. Follow the app's current task and difficulty. Before a level is chosen, ask the easy-or-difficult preference in English and Japanese and wait. After selection, speak Japanese at the selected level, one or two concise sentences at a time. Do not advance questions without the app. Wait silently until the app tells you to begin.`,
+        audio: { format: { type: 'audio/pcm', rate: 24000 }, output: { voice: voiceForAvatar(this.configuredAvatarId) } },
       } }));
       this.gpt.on('message', raw => {
         try {
@@ -90,22 +93,25 @@ export class LiveBridge {
           if (this.started && (event.type === 'session.input_transcript.delta' || event.type === 'session.output_transcript.delta')) {
             this.turns.fragment(event.type === 'session.input_transcript.delta' ? 'user' : 'assistant', event.delta || '', typeof event.start_ms === 'number' ? event.start_ms : null, typeof event.end_ms === 'number' ? event.end_ms : null);
           }
-          if (event.type === 'session.delegation.created' && event.delegation?.target === 'client' && typeof event.delegation.id === 'string') this.append('commentary', `追加の情報はありません。日本語で短く返事をして、現在の質問「${this.current.japanese}」の練習を続けてください。`, event.delegation.id);
+          if (event.type === 'session.delegation.created' && event.delegation?.target === 'client' && typeof event.delegation.id === 'string') this.append('commentary', speechInstruction(this.current), event.delegation.id);
           if (event.type === 'session.instructions.appended' && event.client_event_id === this.pendingSpeech) {
             this.pendingSpeech = null;
-            this.append('commentary', '上の指示に従い、今すぐ日本語で話し始めてください。');
+            this.append('commentary', 'Follow the current task instructions and speak now.');
           }
           if (event.type === 'error') this.fail('GPT-Live could not continue. Check model access and API credits, then reconnect.');
           if (event.type === 'session.closed') this.gpt?.close();
         } catch { this.fail('The voice service returned an unreadable message.'); }
       });
-      this.gpt.on('error', () => this.fail('GPT-Live could not connect. Check model access and API credits.'));
+      this.gpt.on('error', cause => {
+        const status = cause instanceof Error ? cause.message.match(/\(HTTP \d{3}\)/)?.[0] : undefined;
+        this.fail(`GPT-Live could not connect${status ? ` ${status}` : ''}. Please reconnect.`);
+      });
       this.gpt.on('close', () => this.fail('The voice session ended. You can keep practising with text.'));
-      const token = await avatarPost('token', { mode: 'LITE', avatar_id: this.configuredAvatarId });
+      const token = await avatarPost(this.runtime, 'token', { mode: 'LITE', avatar_id: this.configuredAvatarId });
       this.avatarId = token.session_id;
       if (!this.avatarId || !token.session_token) throw new Error('HeyGen did not return a session token.');
       if (this.closed) return;
-      const session = await avatarPost('start', {}, token.session_token);
+      const session = await avatarPost(this.runtime, 'start', {}, token.session_token);
       // A close may have already stopped the token while start was in flight.
       if (this.closed) return;
       if (!session.ws_url || !session.livekit_url || !session.livekit_client_token) throw new Error('HeyGen did not return the LITE media connection.');
@@ -141,7 +147,7 @@ export class LiveBridge {
     this.current = question;
     if (!this.started) return;
     this.send(this.media, { type: 'agent.interrupt' });
-    this.pendingSpeech = this.append('instructions', `相手は聞いています。相手が話すのを待たずに、今すぐ日本語で次の質問を声に出してください：「${question.japanese}」。質問の後は黙って答えを待ってください。学習者の課題：${question.task}。次の問題には進まないでください。`);
+    this.pendingSpeech = this.append('instructions', speechInstruction(question));
   }
   feedback(feedback: Feedback) {
     this.append('thinking', `App assessment: ${JSON.stringify({ verdict: feedback.verdict, naturalJapanese: feedback.japanese, meaning: feedback.meaning })}`.slice(0, 800));
@@ -153,7 +159,7 @@ export class LiveBridge {
   private async dispose() {
     this.closed = true;
     clearTimeout(this.readyTimer); clearTimeout(this.lifetime); this.turns.dispose();
-    if (this.gpt?.readyState === WebSocket.OPEN) {
+    if (this.gpt?.readyState === 1) {
       this.gpt.send(JSON.stringify({ type: 'session.close', event_id: 'close' }));
       const socket = this.gpt;
       const drain = setTimeout(() => socket.terminate(), 3000);
@@ -170,7 +176,7 @@ export class LiveBridge {
     this.avatarId = undefined;
     if (id) {
       for (let attempt = 0; attempt < 2; attempt++) {
-        try { await avatarPost('stop', { session_id: id }); return; }
+        try { await avatarPost(this.runtime, 'stop', { session_id: id }); return; }
         catch { if (attempt === 1) console.warn('HeyGen session cleanup was not confirmed. Check active sessions in LiveAvatar.'); }
       }
     }

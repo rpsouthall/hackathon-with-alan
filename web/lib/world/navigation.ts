@@ -38,7 +38,7 @@ export async function createWalkingMap(environment: EnvironmentManifest) {
     const point = (key: number): Vec3 => [min[0] + (key % width) * CELL, heights[key], min[2] + Math.floor(key / width) * CELL];
     const valid = (key: number) => key >= 0 && key < heights.length && Number.isFinite(heights[key]);
     return {
-      route(start: Vec3, npc: Pick<NpcSnapshot, 'position' | 'interactionRadius'>): Vec3[] | null {
+      route(start: Vec3, npc: Pick<NpcSnapshot, 'position' | 'interactionRadius'>, canStop: (position: Vec3) => boolean = () => true): Vec3[] | null {
         let first = -1, nearest = 1;
         for (let key = 0; key < heights.length; key++) if (valid(key)) {
           const p = point(key), d = Math.hypot(p[0] - start[0], p[1] - start[1], p[2] - start[2]);
@@ -52,7 +52,7 @@ export async function createWalkingMap(environment: EnvironmentManifest) {
         while (open.size) {
           let current = -1, best = Infinity;
           for (const key of open) if (score.get(key)! < best) { current = key; best = score.get(key)!; }
-          if (goalDistance(current) <= radius) {
+          if (goalDistance(current) <= radius && canStop(point(current))) {
             const result: Vec3[] = [];
             for (let key: number | undefined = current; key !== undefined; key = parent.get(key)) result.push(point(key));
             return result.reverse();

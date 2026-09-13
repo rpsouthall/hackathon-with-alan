@@ -4,6 +4,7 @@ import { RoomPhysics, PHYSICS_TIMESTEP, type ActorProfile } from "./physics";
 import { EMOTES, WALK_SPEED, SPRINT_SPEED } from "./player-actions";
 import { VEHICLE_CONFIG, VEHICLE_MOUNT_DISTANCE } from "./vehicle-contract";
 import { sampleWorldClock } from "./world-clock";
+import { isInsideVenue, venueForNpc } from './venues';
 
 export const PLAYER_RADIUS = 0.3;
 export function distance(a: Vec3, b: Vec3) { return Math.hypot(...a.map((v, i) => v - b[i])); }
@@ -129,6 +130,8 @@ export class WorldRoom {
       if (active) return "Leave your current encounter first";
       const npc = this.state.npcs.find((n) => n.id === command.npcId);
       if (!npc) return "Unknown character";
+      const venue = venueForNpc(this.state.environment, npc.id);
+      if (venue && !isInsideVenue(venue, player.position)) return `Enter ${venue.name} to talk to ${npc.name}`;
       if (distance(player.position, npc.position) > npc.interactionRadius) return "Move closer to the character";
       if (this.state.encounters.some((e) => e.npcId === npc.id)) return "Character is busy; join their encounter";
       this.state.encounters.push({ id: `encounter_${++this.nextEncounter}`, npcId: npc.id, ownerId: playerId, participantIds: [playerId], speakerId: null });
@@ -139,6 +142,8 @@ export class WorldRoom {
     if (command.type === "join-encounter") {
       if (active) return "Leave your current encounter first";
       const npc = this.state.npcs.find((n) => n.id === encounter.npcId)!;
+      const venue = venueForNpc(this.state.environment, npc.id);
+      if (venue && !isInsideVenue(venue, player.position)) return `Enter ${venue.name} to join ${npc.name}`;
       if (distance(player.position, npc.position) > npc.interactionRadius) return "Move closer to join";
       encounter.participantIds.push(playerId); this.inputs.delete(playerId); player.animation = "idle"; player.emote = null;
     } else {

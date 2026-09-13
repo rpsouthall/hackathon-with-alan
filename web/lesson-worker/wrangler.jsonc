@@ -1,0 +1,12 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "kyoto-alan-lessons",
+  "account_id": "4fbbf3827eda00b5b5d1174265db31d7",
+  "main": "worker.ts",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "ratelimits": [{ "name": "LESSON_ADMISSION", "namespace_id": "2026091302", "simple": { "limit": 12, "period": 60 } }],
+  "vars": { "LESSON_ALLOWED_ORIGIN": "https://kyoto-avatar-conversations.alan438227.chatgpt.site" },
+  "observability": { "enabled": false }
+}

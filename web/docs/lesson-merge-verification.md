@@ -24,7 +24,7 @@ The frontend runs on 5173, room server on 8788, lesson companion on 8790. The co
 
 ## Publishing boundary
 
-The frontend builds as a Sites artifact; the signed multiplayer Worker remains a separate deployment. The lesson companion is currently loopback-only Node/WebSocket hosting, and Vite's `/lesson-api` development proxy is not a production backend. Publishing the frontend alone does **not** publish live lessons. A production lesson service still requires authenticated WebSocket hosting, admission tied to the deployed room service, origin configuration, and routing for `/lesson-api/config` and `/lesson-api/session`. No production deployment was changed by this merge.
+The Sites artifact now includes authenticated native-Worker lesson routes for `/lesson-api/config` and `/lesson-api/session`; Vite's development proxy remains local-only. Production provider secrets must be configured through Sites. The signed multiplayer Worker remains a separate deployment, and lesson conversations remain private to each learner. See [lesson hosting and verification](../server/lesson/README.md#validation-and-deployment) for limits and checks. The prepared hosted routes have passed a local built-Worker connection check, but have not been published to the named live Site: the connected Sites account currently cannot access that project.
 
 ## Verification
 

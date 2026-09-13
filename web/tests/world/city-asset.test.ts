@@ -4,7 +4,7 @@ import { readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Mesh, Vector3 } from "three";
-import { KYOTO_ENVIRONMENT, KYOTO_NPCS } from "../../lib/world/kyoto";
+import { KYOTO_ENVIRONMENT, KYOTO_NPCS, KYOTO_PLACEMENT_SOURCE } from "../../lib/world/kyoto";
 import release from "../../public/models/kyoto/RELEASE.json";
 
 test("city geometry, collision data, markers and complete cast belong to the same release", async () => {
@@ -13,7 +13,7 @@ test("city geometry, collision data, markers and complete cast belong to the sam
   assert.equal(createHash("sha256").update(asset).digest("hex"), release.files["kyoto_city_lod1.glb"].sha256);
   assert.equal(createHash("sha256").update(gameplay).digest("hex"), release.files["kyoto_city_gameplay.json"].sha256);
   // Gameplay adds the vehicle fleet while the frozen city geometry release stays intact.
-  assert.equal(KYOTO_ENVIRONMENT.revision, "kyoto-city-v3-vehicles-20260913");
+  assert.equal(KYOTO_ENVIRONMENT.revision, "kyoto-city-v4-tutor-shops-20260913");
   assert.equal(release.revision, "kyoto-city-v2-final-20260913");
   assert.equal(KYOTO_ENVIRONMENT.vehicleSpawns?.length, 6);
   assert.equal(KYOTO_ENVIRONMENT.physics?.colliders.length, 294);
@@ -34,6 +34,7 @@ test("city geometry, collision data, markers and complete cast belong to the sam
   assert.ok(vertexColors, "preserve canopy vertex colours");
   for (const npc of KYOTO_NPCS) {
     assert.ok(markers.has(npc.id), `GLB includes ${npc.id}`);
-    assert.ok(markers.get(npc.id)!.distanceTo(new Vector3(...npc.position)) < .0001, `matching world coordinates for ${npc.id}`);
+    const markerId = KYOTO_PLACEMENT_SOURCE[npc.id] ?? npc.id;
+    assert.ok(markers.get(markerId)!.distanceTo(new Vector3(...npc.position)) < .0001, `matching supported marker coordinates for ${npc.id}`);
   }
 });

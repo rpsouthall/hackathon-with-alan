@@ -14,6 +14,8 @@ export const vehicleSchema = vehicleSpawnSchema.extend({ riderId: id.nullable(),
 export type VehicleSnapshot = z.infer<typeof vehicleSchema>;
 const assetUrl = z.string().max(2048).refine((value) => /^\/(?!\/)/.test(value) || /^https:\/\//.test(value), "Use a root-relative asset path or HTTPS URL");
 const boxSchema = z.object({ min: vectorSchema, max: vectorSchema }).refine(({ min, max }) => min.every((v, i) => v < max[i]), "Box minimum must be below maximum");
+export const venueSchema = z.object({ id, name: z.string().min(1).max(80), npcId: id, entry: vectorSchema, meetingPoint: vectorSchema, bounds: boxSchema });
+export type WorldVenue = z.infer<typeof venueSchema>;
 const quaternionSchema = z.tuple([z.number().finite(), z.number().finite(), z.number().finite(), z.number().finite()])
   .refine((value) => Math.abs(Math.hypot(...value) - 1) < 0.01, "Collider rotation must be a unit quaternion");
 export const physicsSchema = z.object({
@@ -33,6 +35,7 @@ export const environmentSchema = z.object({
   assetUrl: assetUrl.nullable(), spawn: vectorSchema,
   bounds: boxSchema, colliders: z.array(boxSchema).max(256),
   npcSpawns: z.record(id, vectorSchema),
+  venues: z.array(venueSchema).max(32).optional(),
   vehicleSpawns: z.array(vehicleSpawnSchema).max(32).optional(),
   // When present these exported, rotated collision boxes drive Rapier on the authority.
   physics: physicsSchema.optional(),

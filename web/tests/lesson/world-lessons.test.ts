@@ -15,8 +15,20 @@ test('the playable city reaches all lessons through matching characters', () => 
 });
 
 test('unrelated city residents do not accidentally start the coffee lesson', () => {
-  for (const npc of ['bookshop_tsuki_host', 'unknown']) {
+  for (const npc of ['bookshop_tsuki_host', 'shopkeeper', 'unknown']) {
     assert.equal(lessonNpcForWorldNpc(npc), undefined, npc);
+  }
+});
+
+test('teachers without an avatar or a valid lesson cannot be selected or routed', () => {
+  const base = lessonCharacters[0];
+  for (const change of [{ avatarId: '' }, { avatarId: '   ' }, { scenarioId: 'missing-lesson' }]) {
+    const candidate = { ...base, ...change, id: 'unassigned-teacher' };
+    lessonCharacters.push(candidate);
+    try {
+      assert.equal(lessonCharacterForWorldNpc(candidate.id), undefined);
+      assert.equal(lessonNpcForWorldNpc(candidate.id), undefined);
+    } finally { lessonCharacters.pop(); }
   }
 });
 
