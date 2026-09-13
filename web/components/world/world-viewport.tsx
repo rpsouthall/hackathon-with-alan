@@ -25,7 +25,7 @@ export interface WorldViewportProps {
   encounters?: EncounterSnapshot[];
   selectedNpcId?: string;
   encounterNpcId?: string;
-  walkingRequest?: { npcId: string; sequence: number } | null;
+  walkingRequest?: { npcId: string; sequence: number; destination?: 'tutor' | 'entry' } | null;
   onWalking?: (walking: boolean, message: string) => void;
   onMove: (direction: [number, number], yaw: number, sprint?: boolean) => number | void;
   onEmote: (name: EmoteName) => void;
@@ -100,7 +100,7 @@ export function WorldViewport(props: WorldViewportProps) {
     runtime.current?.setPaused(props.renderPaused === true);
   }, [sceneState, blocked, emotesOpen, props.renderPaused]);
   useEffect(() => {
-    if (props.walkingRequest) { host.current?.focus(); void runtime.current?.walkTo(props.walkingRequest.npcId); }
+    if (props.walkingRequest) { host.current?.focus(); void runtime.current?.walkTo(props.walkingRequest.npcId, props.walkingRequest.destination); }
     else runtime.current?.cancelWalk();
   }, [props.walkingRequest]);
   useEffect(() => {

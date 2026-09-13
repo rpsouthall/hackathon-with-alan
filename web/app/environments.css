@@ -13,13 +13,17 @@
 .environment-japanese { display: block; margin-top: 22px; color: #e8b783; letter-spacing: .24em; font-size: 17px; }
 .environment-story h1 { margin: 8px 0 16px; font-family: Georgia, 'Yu Mincho', serif; font-size: clamp(36px, 4.4vw, 66px); line-height: 1.06; font-weight: 400; letter-spacing: -.035em; text-wrap: balance; }
 .environment-story p { font-size: 15px; line-height: 1.7; color: #e5ded2; max-width: 460px; margin: 0; }
-.environment-practice { position: absolute; right: 5%; bottom: 172px; width: 280px; padding: 25px; border: 1px solid #fff3dc38; border-radius: 16px; background: #1b2823bd; backdrop-filter: blur(18px); }
+.environment-practice { position: absolute; right: 5%; bottom: 156px; width: 280px; max-height: calc(100svh - 256px); overflow-y: auto; padding: 20px; border: 1px solid #fff3dc38; border-radius: 16px; background: #1b2823bd; backdrop-filter: blur(18px); }
 .environment-practice h2 { font-family: Georgia, serif; font-size: 27px; font-weight: 400; margin: 12px 0 4px; }
 .environment-practice p { font-size: 12px; color: #d4d7ce; }
 .environment-practice ol { list-style: none; margin: 20px 0; padding: 0; }
 .environment-practice li { display: flex; align-items: center; gap: 12px; padding: 9px 0; font-size: 12px; border-top: 1px solid #ffffff18; }
 .environment-practice li span { color: #dab789; font-size: 10px; }
 .environment-note { display: block; font-size: 10px; color: #bdc4b8; }
+.environment-host-portrait { display: block; width: 100%; height: 120px; object-fit: cover; object-position: center 24%; border-radius: 10px; margin-top: 16px; }
+.environment-enter { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 12px 14px; border: 1px solid #f2d6aa; border-radius: 9px; background: #efcf9f; color: #1a3027; font-size: 15px; font-weight: 600; cursor: pointer; }
+.environment-enter:hover { background: #ffe2b8; }
+.environment-enter:focus-visible { outline: 3px solid #fff; outline-offset: 4px; }
 .environment-choices { position: absolute; bottom: 32px; left: 5%; right: 5%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
 .environment-choice { display: flex; align-items: center; gap: 16px; padding: 10px; text-align: left; border: 1px solid #ffffff2b; border-radius: 12px; background: #17241de6; transition: background .2s, border-color .2s; cursor: pointer; min-width: 0; }
 .environment-choice[aria-pressed='true'] { background: #f4ecdc; color: #24322a; border-color: #f4ecdc; }
@@ -49,7 +53,7 @@
   .environment-preview-label, .environment-wordmark span { display: none; }
   .environment-story { position: relative; left: auto; bottom: auto; max-width: none; margin: max(50px, 16vh) 24px 24px; }
   .environment-story h1 { max-width: 520px; font-size: 40px; }
-  .environment-practice { position: relative; right: auto; bottom: auto; width: auto; margin: 0 24px 24px; padding: 18px; }
+  .environment-practice { position: relative; right: auto; bottom: auto; width: auto; max-height: none; overflow: visible; margin: 0 24px 24px; padding: 18px; }
   .environment-practice ol { margin: 12px 0; }
   .environment-choices { position: relative; bottom: auto; left: auto; right: auto; margin: auto 24px 24px; gap: 8px; }
   .environment-choice { flex-direction: column; align-items: stretch; gap: 6px; padding: 7px; }
@@ -66,6 +70,7 @@
 .lesson-cinematic { background: transparent; color: #f3eee4; overflow: hidden; --encounter-muted: #bec4bc; }
 .lesson-cinematic::before { background: linear-gradient(90deg, #09131015 20%, #09131035 50%, #09131080), linear-gradient(0deg, #08110fdb, transparent 48%, #09131070); }
 .lesson-in-world .lesson-environment { display: none; }
+.lesson-in-world.lesson-in-shop .lesson-environment { display: block; }
 .lesson-cinematic .lesson-header { height: 76px; padding: 0 3%; border: 0; color: #ece6d9; }
 .lesson-cinematic .lesson-back { color: #ece6d9; letter-spacing: .06em; }
 .lesson-cinematic .lesson-icon-button { background: #19241c70; border-color: #e5d8ba40; }
@@ -218,6 +223,9 @@
 .lesson-immersive .lesson-body { inset: 76px 3% 24px; width: auto; display: grid; grid-template-columns: minmax(240px, .7fr) minmax(420px, 1.3fr); align-items: start; gap: 24px; padding: 24px; background: linear-gradient(130deg,#25372dda,#111e19ef); }
 .lesson-immersive .lesson-avatar-column { position: sticky; top: 0; padding: 0; }
 .lesson-immersive .lesson-avatar-stage { height: clamp(240px, 48vh, 620px); }
+.lesson-in-shop.lesson-immersive .lesson-body { background: linear-gradient(130deg,#25372d8c,#111e19d9); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.lesson-in-shop .lesson-shop-portrait, .lesson-in-shop .lesson-avatar-stage video { position: absolute; inset: 8% 14% 12%; width: 72%; height: 80%; border-radius: 16px; background-size: cover; background-position: center 25%; object-fit: cover; object-position: center 25%; box-shadow: 0 12px 32px #0007; }
+.lesson-in-shop .lesson-avatar-stage .lesson-avatar-placeholder { justify-content: flex-end; padding-bottom: 55px; pointer-events: none; background: linear-gradient(0deg,#101b19ba,transparent 50%); }
 .lesson-immersive .lesson-content-column { min-width: 0; padding: 0 6px 12px; }
 .lesson-immersive .lesson-title-row h2 { font-family: var(--font-sans); font-size: 18px; font-weight: 500; color: #c8d1c0; }
 .lesson-tutor-line { padding: 18px 20px; margin: 0 0 18px; border-left: 3px solid #9ab4a0; background: #ffffff06; border-radius: 0 10px 10px 0; }
@@ -265,3 +273,38 @@
 .lesson-immersive .lesson-next-reading { font-size: clamp(17px, 1.6vw, 22px); color: #e2e9d7; }
 .lesson-english-meaning { margin: 22px 0 4px; font-size: 19px; line-height: 1.5; color: #c7d2bd; }
 .lesson-english-meaning span { display: block; font-size: 10px; letter-spacing: .12em; color: #b6c1ab; margin-bottom: 6px; }
+
+/* Compact lessons leave the surrounding shop visible. */
+.lesson-immersive .lesson-body {
+  inset: 76px 0 auto; width: min(1080px, calc(100% - 40px));
+  max-height: calc(100dvh - 100px); margin: 0 auto;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 20px; padding: 20px;
+}
+.lesson-immersive .lesson-avatar-stage { height: clamp(220px, 32vh, 320px); }
+.lesson-immersive .lesson-tutor-line { padding: 14px 16px; margin-bottom: 14px; }
+.lesson-immersive .lesson-tutor-line h3,
+.lesson-immersive .lesson-next-line h3,
+.lesson-immersive .lesson-next-japanese,
+.lesson-immersive .lesson-feedback-fix,
+.lesson-immersive .lesson-retry-phrase > p[lang] {
+  font-size: clamp(21px, 2vw, 28px); font-weight: 600; line-height: 1.5;
+}
+.lesson-immersive .lesson-tutor-line p {
+  font-size: 15px; font-weight: 400; line-height: 1.6; margin-top: 10px;
+}
+.lesson-immersive .lesson-level-choice h2 { font-size: clamp(22px, 2.3vw, 28px); margin: 12px 0; line-height: 1.3; }
+.lesson-immersive .lesson-level-choice p[lang] { font-size: 21px; font-weight: 500; }
+.lesson-immersive .lesson-level-choice p[role="status"] { font-size: 13px; color: #bec4bc; }
+.lesson-immersive .lesson-level-buttons { gap: 10px; margin: 18px 0; }
+.lesson-immersive .lesson-level-buttons button { padding: 14px; min-height: 44px; }
+.lesson-immersive .lesson-level-buttons button span { font-size: 13px; }
+.lesson-immersive .lesson-next-line { padding: 16px; }
+.lesson-immersive .lesson-next-line .lesson-japanese-answer { font-size: clamp(26px, 2.6vw, 34px); font-weight: 700; margin: 12px 0 8px; }
+.lesson-immersive .lesson-next-reading { font-size: 16px; }
+.lesson-immersive .lesson-english-meaning { font-size: 16px; margin-top: 14px; }
+@media(max-width: 800px) {
+  .lesson-immersive .lesson-body { top: 62px; width: calc(100% - 24px); max-height: calc(100dvh - 74px); display: block; padding: 14px; }
+  .lesson-immersive .lesson-avatar-stage { height: 160px; }
+  .lesson-immersive .lesson-content-column { padding-top: 16px; }
+}

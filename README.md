@@ -1,8 +1,31 @@
-# Hackathon with Alan
+# Kyoto Conversations · Komorebi
 
-Komorebi is a Three.js browser game for exploring a Kyoto-inspired city together. The consolidated game includes character creation, 15 residents, shared encounters, sprinting, emotes, scooters, skateboards and a local day/night presentation. Hosted rooms support up to 32 players and opted-in player proximity voice. Japanese NPC speech, GPT/HeyGen sessions, lessons and real assessment remain future integrations.
+A Kyoto-inspired 3D language-learning game built at the Astra Hackathon. Explore together, meet local characters, and practise everyday Japanese through guided conversations and quizzes.
 
-## Run and play
+- **Public game:** https://kyoto-avatar-conversations.alan438227.chatgpt.site/
+- **Shared demo room:** https://kyoto-avatar-conversations.alan438227.chatgpt.site/?room=alan-hackathon
+- **Environment gallery:** https://kyoto-avatar-conversations.alan438227.chatgpt.site/environments
+
+## Try the demo
+
+1. Open the game, choose your appearance and display name, and select **Join Kyoto**. Friends should use the same room code. **Play solo** explores the city privately.
+2. Enable nearby voice if you want to talk with other players. Allow microphone access, walk near one another, and **hold T** or the talk button to speak.
+3. Choose a tutor and walk to their location. Café and restaurant tutors are inside their shops. Start a lesson when you are close enough.
+4. Sign in with ChatGPT for a private live lesson. Choose easy or difficult, then respond in English or practise Japanese. Each scenario contains ten questions with feedback and a phrase recap.
+
+The public world is accessible without signing in. Live lessons use server-side OpenAI and HeyGen LiveAvatar credentials. Each learner's avatar conversation is private, including in shared rooms.
+
+## What is included
+
+- A Three.js city with Rapier collision, character customisation, emotes, scooters and skateboards.
+- Shared rooms for up to 32 players, server-authoritative movement, local movement prediction and synchronised world time.
+- Opt-in proximity voice with push-to-talk, audio activity indicators and up to seven nearby peers within 12 metres.
+- Lesson-backed tutors with assigned HeyGen avatars, shop-entry guidance, native-language support, quizzes and AI feedback.
+- Coffee, fruit-market and restaurant environments, plus directions, inn and tea lessons.
+
+Movement and room state run on a Cloudflare Durable Object service. The public Site serves the game and issues short-lived room tickets. The separate lesson service handles private voice/avatar sessions; provider keys are never shipped to the browser.
+
+## Local development
 
 Use Node.js 22.13 or newer. From the repository root:
 
@@ -12,32 +35,23 @@ npm ci
 npm run dev:game
 ```
 
-Open **http://localhost:5173**. Create your traveller in the welcome editor, enter a display name and room name, then choose **Join Kyoto**. Open another tab with a different name and the same room to explore together. **Play solo** runs the same city privately.
+Open **http://localhost:5173**. This starts the frontend and the local Node gameplay server. Local gameplay does not include the hosted proximity-voice service by default. See the [multiplayer guide](web/multiplayer/README.md) for hosted-path development and [Alan's deployment guide](web/multiplayer/ALAN-DEPLOYMENT.md) for the submission server.
 
-- Click the world, then use **WASD / arrows** or the on-screen walking buttons. Right-drag to orbit; scroll to zoom.
-- Hold **Shift** to sprint, press **G** for emotes, **F** to mount/dismount a nearby vehicle and **V** to switch camera views.
-- Walk near a resident and press **E**, click their label, or use **Start encounter**. Another nearby learner can join the encounter and take a speaking turn.
-- Use **Character** to change your look; accepted changes appear for everyone in the room. **Room** changes the room connection.
-- **View town** opens the overview; **Follow player** returns to walking. **Escape** leaves an encounter.
+For local avatar lessons, configure an ignored environment file and follow the [lesson service guide](web/server/lesson/README.md). Production secrets belong in the hosting providers' runtime settings, not Git or frontend variables.
 
-The local launcher starts both the frontend and Node room server for gameplay. For alternate ports, run `GAME_PORT=5183 WORLD_PORT=8789 npm run dev:game`. Both services bind to this computer; this command does not publish a multiplayer server. Nearby voice is available through the hosted transport and its Durable Object signaling service; solo and the direct Node development transport do not enable microphones or send voice messages.
+## Controls
 
-## Consolidated game
+- **WASD / arrows:** walk; **Shift:** sprint.
+- **E:** interact with a nearby tutor; **Escape:** leave an encounter.
+- **T:** hold to talk to nearby players when voice is enabled.
+- **G:** emotes; **F:** mount or dismount a nearby vehicle; **V:** change camera view.
+- **Menu:** edit your character or room; **View town:** open the overview.
 
-The city contains a 68 × 54 m world, two bridges and eight furnished venues with open entrances. The gameplay manifest is `kyoto-city-v3-vehicles-20260913`, using the existing depth-corrected City v2 artwork. Client and server use **protocol 2**. Players share authoritative Rapier movement, validated cosmetics, six vehicles, NPC reservations and exclusive speaking turns. Any encounter participant can claim an available turn; departure clears that speaker and transfers encounter ownership when needed.
+## Validation and demo limits
 
-Hosted player voice uses push-to-talk and actual audio activity for speaking indicators, with at most seven voice peers within 12 metres. NPC conversations and feedback remain labelled examples; sample scores are not earned progress. TURN is not provisioned, and decoded microphone audio between real computers on separate networks has not been verified.
+From `web/`, run `npm run test:world`, `npm run test:lesson`, `npm run test:multiplayer`, `npx tsc --noEmit` and `npm run lint`. The [integration notes](web/docs/lesson-merge-verification.md) describe lesson behaviour and the separate provider, microphone and media checks.
 
-See [the world integration guide](web/lib/world/README.md) for asset provenance, Blender export contracts, multiplayer configuration and verification. Run `npm run test:world`, `npx tsc --noEmit` and `npm run lint` from `web/` for the integration checks. The `/world-lab` route retains the smaller blockout and asset-loading checks.
-
-The [hosted multiplayer guide](web/multiplayer/README.md) covers the Cloudflare
-Durable Object server, signed Site admission, 32-player rooms, deployment and
-`npm run test:multiplayer`. Cloudflare authorization and email verification are
-complete. The deployed server is `https://kyoto-shared-world.hello-d5e.workers.dev`;
-real remote clients verified shared rooms, room isolation, movement, cosmetics,
-voice signaling and disconnect cleanup. The public Site uses runtime configuration
-to issue signed joins to this service. The [partner handoff](web/docs/partner-integration-handoff.md)
-defines the future NPC voice, HeyGen and lessons boundary.
+Rooms are temporary: reconnecting does not preserve a traveller's world position or progress. Nearby voice uses a bounded peer graph, so it does not promise that every nearby person is audible in a busy room. Cross-device audio and restrictive-network connectivity need a real-device check; passing signalling tests alone does not establish audible voice. A live avatar demo also needs working provider access and available credits.
 
 ## Join the project
 

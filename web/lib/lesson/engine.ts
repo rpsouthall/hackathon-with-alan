@@ -7,7 +7,7 @@ export class LessonEngine {
   private busy = false;
   private awards = new Map<string, { spoken: boolean; correct: boolean }>();
   constructor(readonly scenario: Scenario) {
-    this.state = { scenarioId: scenario.id, index: 0, attempts: 0, feedback: null, completed: false, reviewed: 0, rewards: { points: 0, answered: 0, spoken: 0, correct: 0, quizzesAnswered: 0, quizzesCorrect: 0, lastEarned: 0 } };
+    this.state = { difficulty: scenario.difficulty ?? null, scenarioId: scenario.id, index: 0, attempts: 0, feedback: null, completed: false, reviewed: 0, rewards: { points: 0, answered: 0, spoken: 0, correct: 0, quizzesAnswered: 0, quizzesCorrect: 0, lastEarned: 0 } };
   }
   get question(): Question { return this.scenario.questions[this.state.index]; }
   begin(questionId: string): number {

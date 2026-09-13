@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createWalkingMap } from '../../lib/world/navigation';
 import { KYOTO_ENVIRONMENT, KYOTO_NPCS } from '../../lib/world/kyoto';
 import { WorldRoom, distance } from '../../lib/world/room';
+import { isInsideVenue, venueForNpc } from '../../lib/world/venues';
 
 test('Walk closer routes each featured neighbour through real city physics', async () => {
   const map = await createWalkingMap(KYOTO_ENVIRONMENT);
@@ -10,11 +11,13 @@ test('Walk closer routes each featured neighbour through real city physics', asy
     const room = new WorldRoom(`walk-${npc.id}`, KYOTO_ENVIRONMENT, KYOTO_NPCS);
     try {
       room.join('walker', 'Walker');
-      const route = map.route(room.snapshot().players[0].position, npc);
+      const venue = venueForNpc(KYOTO_ENVIRONMENT, npc.id);
+      const canStop = (position: [number, number, number]) => !venue || isInsideVenue(venue, position);
+      const route = map.route(room.snapshot().players[0].position, npc, canStop);
       assert.ok(route?.length, `${npc.name}: a walking route is available`);
       for (let frame = 0; frame < 2000; frame++) {
         const position = room.snapshot().players[0].position;
-        if (distance(position, npc.position) <= npc.interactionRadius - 0.2) break;
+        if (distance(position, npc.position) <= npc.interactionRadius - 0.2 && canStop(position)) break;
         while (route.length && Math.hypot(position[0] - route[0][0], position[2] - route[0][2]) < 0.22) route.shift();
         const next = route[0];
         assert.ok(next, `${npc.name}: route should end within talking distance`);

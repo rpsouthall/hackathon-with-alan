@@ -837,6 +837,15 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .minimal-game-hud .hud-audio button { background: #ffffff0a; color: #eff2ed; border-color: #ffffff25; font-size: 11px; }
 .hud-interact { position: absolute; bottom: 83px; left: 50%; transform: translateX(-50%); z-index: 22; display: flex; align-items: center; gap: 12px; padding: 12px 20px; border: 0; border-radius: 4px; background: #15242be0; color: #f8f3e8; font: 400 14px system-ui; box-shadow: 0 4px 24px #0003; cursor: pointer; }
 .hud-interact strong { font-weight: 600; }
+.world-venue-label { position: absolute; transform: translate(-50%, -100%); max-width: 230px; border: 1px solid #efcc98; border-radius: 8px; padding: 9px 13px; background: #20382ff0; color: #fff1d8; font: 600 12px system-ui; box-shadow: 0 5px 20px #0004; cursor: pointer; }
+.world-venue-label[hidden] { display: none; }
+.world-venue-label:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.hud-current-venue { position: absolute; left: 24px; top: 180px; z-index: 20; display: flex; flex-direction: column; gap: 8px; width: 210px; padding: 15px; border: 1px solid #edcda840; border-radius: 12px; background: #182e27ec; color: #fff3df; }
+.hud-current-venue small { font-size: 9px; letter-spacing: .13em; color: #d8bb8e; }
+.hud-current-venue strong { font-size: 16px; }
+.hud-current-venue span { font-size: 12px; line-height: 1.5; color: #d0dbd1; }
+.hud-current-venue button { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; color: #efd3a8; font-size: 12px; cursor: pointer; }
+@media (max-width: 700px) { .hud-current-venue { left: 16px; top: 138px; width: 175px; padding: 12px; } }
 .hud-interact kbd { background: #f4eddf; color: #22343a; padding: 5px 8px; }
 .hud-key-hints { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); display: flex; gap: 18px; white-space: nowrap; color: #f0f1e8c9; font: 11px system-ui; text-shadow: 0 1px 4px #000b; pointer-events: none; }
 .hud-key-hints span { display: flex; align-items: center; gap: 7px; }
@@ -889,6 +898,8 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .hud-lesson-picker > p { color: #c7d2c9; font-size: 13px; line-height: 1.6; margin: 12px 0; }
 .hud-lesson-picker .character-picker { max-height: 240px; overflow: auto; margin: 16px 0; }
 .hud-lesson-picker .character-picker button { color: #fff5e1; border-color: #f4ead32b; }
+.hud-lesson-picker .character-picker .tutor-avatar-portrait { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 10px; object-fit: cover; object-position: center 25%; }
+.hud-lesson-picker .character-picker button:hover { background: #ffffff20; }
 .hud-lesson-picker .character-picker button[aria-pressed="true"] { background: #e0c99a24; border-color: #dfc38e; }
 .hud-lesson-picker .character-picker small { color: #c7d2c9; }
 .hud-lesson-selected { display: flex; align-items: center; gap: 12px; margin: 12px 0 18px; }
