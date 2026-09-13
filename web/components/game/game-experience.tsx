@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronRight, CircleStop, Headphones, Languages, Map, MicOff, RotateCcw, Sparkles, Volume2, Users } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { ChevronRight, CircleStop, Headphones, Languages, Map, MicOff, RotateCcw, Sparkles, Volume2, Users, Shirt, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { CharacterEditor, type CharacterJoinSettings } from "@/components/game/character-editor";
+import { appearanceSchema, type PlayerAppearance } from "@/lib/world/schema";
 import { WorldProvider, useWorld } from "@/components/world/world-provider";
 import { WorldViewport } from "@/components/world/world-viewport";
-import { createWebSocketTransport, type WorldTransport } from "@/lib/world/transport";
+import { KYOTO_ENVIRONMENT, KYOTO_NPCS } from "@/lib/world/kyoto";
+import { createLocalTransport, createWebSocketTransport, type WorldTransport } from "@/lib/world/transport";
 import { distance } from "@/lib/world/room";
-import { npcs, type ExperiencePhase, type NpcDefinition, type TranscriptLine } from "@/lib/game/contracts";
+import { npcs, npcPresentation, type ExperiencePhase, type NpcDefinition, type TranscriptLine } from "@/lib/game/contracts";
 
 const encounterContent: Record<NpcDefinition["id"], { lines: TranscriptLine[]; replies: string[]; feedback: string; next: string }> = {
   cafe_owner: {
@@ -33,62 +35,116 @@ const encounterContent: Record<NpcDefinition["id"], { lines: TranscriptLine[]; r
     feedback: "You confirmed the key direction in your own words, which made the exchange clear.",
     next: "Use 「曲がる」when you repeat the route: 「橋の手前を左に曲がります」.",
   },
-  shopkeeper: {
+  inn_host: {
     lines: [
-      { id: "1", speaker: "npc", japanese: "いらっしゃい！お土産を見ていきませんか？", translation: "Welcome! Would you like to look at some souvenirs?" },
-      { id: "2", speaker: "learner", japanese: "この扇子はいくらですか？", translation: "How much is this folding fan?" },
-      { id: "3", speaker: "npc", japanese: "二千円です。青と赤がありますよ。", translation: "It is 2,000 yen. We have blue and red." },
-      { id: "4", speaker: "learner", japanese: "では、青い扇子をください。", translation: "Then, please give me the blue fan." },
+      { id: "1", speaker: "npc", japanese: "ようこそ。ご予約のお名前をお願いします。", translation: "Welcome. May I have the name on your reservation?" },
+      { id: "2", speaker: "learner", japanese: "田中です。一泊で予約しています。", translation: "It is Tanaka. I have a reservation for one night." },
+      { id: "3", speaker: "npc", japanese: "ありがとうございます。朝食は七時からです。", translation: "Thank you. Breakfast starts at seven." },
+      { id: "4", speaker: "learner", japanese: "朝食はどこで食べられますか？", translation: "Where can I have breakfast?" },
     ],
-    replies: ["これはいくらですか？", "青い物をください。", "少し考えます。"],
-    feedback: "You asked the price clearly and used 「ください」naturally to make your choice.",
-    next: "Attach the color directly to the item: 「青い扇子をください」.",
+    replies: ["予約しています。", "朝食は何時からですか？", "もう一度お願いします。"],
+    feedback: "The example learner introduces their reservation clearly and asks a useful follow-up question.",
+    next: "Try introducing your reservation with 「一泊で予約しています」.",
+  },
+  greeting: {
+    lines: [
+      { id: "1", speaker: "npc", japanese: "こんにちは。京都へようこそ。", translation: "Hello. Welcome to Kyoto." },
+      { id: "2", speaker: "learner", japanese: "こんにちは。日本語を勉強しています。", translation: "Hello. I am studying Japanese." },
+      { id: "3", speaker: "npc", japanese: "そうですか。今日はどちらへ行きますか？", translation: "I see. Where are you going today?" },
+      { id: "4", speaker: "learner", japanese: "町を散歩したいです。おすすめはありますか？", translation: "I would like to walk around town. Do you have any recommendations?" },
+    ],
+    replies: ["日本語を勉強しています。", "おすすめはありますか？", "ゆっくり話してください。"],
+    feedback: "The example learner introduces themselves and keeps the exchange going with a question.",
+    next: "Use 「ゆっくり話してください」to ask someone to speak more slowly.",
   },
 };
 
+const APPEARANCE_STORAGE_KEY = "kyoto-character-appearance-v1";
+type SessionSettings = { transport?: WorldTransport; roomId: string; name: string; serverUrl: string; appearance?: PlayerAppearance };
+
 export function GameExperience() {
-  const [session, setSession] = useState<{ transport?: WorldTransport; roomId: string; name: string }>({ roomId: "courtyard", name: "Learner" });
-  const [showRoom, setShowRoom] = useState(false);
-  return <WorldProvider transport={session.transport} roomId={session.roomId} playerName={session.name}>
-    <GameSession onRoomSettings={() => setShowRoom(true)} />
-    {showRoom && <section className="results-overlay room-settings" role="dialog" aria-modal="true" aria-label="Room settings">
-      <form className="results-card room-form" onSubmit={(event) => {
-        event.preventDefault(); const data = new FormData(event.currentTarget);
-        const url = String(data.get("server")).trim();
-        setSession({ name: String(data.get("name")), roomId: String(data.get("room")), transport: url ? createWebSocketTransport(url) : undefined });
-        setShowRoom(false);
-      }}>
-        <h1>Learn together</h1>
-        <p>Use the same room and server as your friends. Leave the server blank for a private local preview.</p>
-        <label>Your name<input name="name" defaultValue={session.name} required maxLength={32} autoFocus /></label>
-        <label>Room name<input name="room" defaultValue={session.roomId} required pattern="[a-zA-Z0-9_-]+" maxLength={64} /></label>
-        <label>Multiplayer server<input name="server" placeholder="wss://your-room-server/world" /></label>
-        <div className="results-actions"><Button type="button" variant="outline" onClick={() => setShowRoom(false)}>Cancel</Button><Button type="submit">Join room</Button></div>
-      </form>
-    </section>}
+  const [session, setSession] = useState<SessionSettings | null>(null);
+  const hydrated = useSyncExternalStore(subscribeToHydration, () => true, () => false);
+  const localTransport = useMemo(() => createLocalTransport({ environment: KYOTO_ENVIRONMENT, npcs: KYOTO_NPCS }), []);
+  function join(next: Omit<SessionSettings, "transport">) {
+    setSession({ ...next, transport: next.serverUrl ? createWebSocketTransport(next.serverUrl) : undefined });
+  }
+  if (!session) return <main className="game-shell iso-game-shell welcome-stage" aria-label="Welcome to Kyoto Conversations">
+    <div className="welcome-wordmark" aria-hidden="true">京都で話そう<small>Kyoto Conversations</small></div>
+    {hydrated ? <WelcomeCreator onJoin={join} /> : <p role="status">Preparing your traveller…</p>}
+  </main>;
+  return <WorldProvider transport={session.transport ?? localTransport} roomId={session.roomId} playerName={session.name}>
+    <GameSession session={session} onJoin={join} />
   </WorldProvider>;
 }
 
-function GameSession({ onRoomSettings }: { onRoomSettings: () => void }) {
+function subscribeToHydration() { return () => {}; }
+function WelcomeCreator({ onJoin }: { onJoin: (settings: CharacterJoinSettings) => void }) {
+  const [welcome] = useState<CharacterJoinSettings>(() => {
+    let appearance = appearanceSchema.parse({});
+    try {
+      const saved = localStorage.getItem(APPEARANCE_STORAGE_KEY);
+      const parsed = saved ? appearanceSchema.safeParse(JSON.parse(saved)) : null;
+      if (parsed?.success) appearance = parsed.data;
+    } catch { /* Local storage is optional. */ }
+    const configuredServer = (import.meta as ImportMeta & { env?: Record<string, string> }).env?.VITE_WORLD_SERVER_URL?.trim();
+    const localHost = ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname);
+    return { name: "Learner", roomId: "kyoto", appearance, serverUrl: configuredServer ?? (localHost ? "ws://127.0.0.1:8788/world" : "") };
+  });
+  return <CharacterEditor appearance={welcome.appearance} connected onSave={() => {}} joining={{ defaults: welcome, onJoin }} />;
+}
+
+function RoomSettings({ session, onJoin, onClose }: {
+  session: SessionSettings; onJoin: (session: Omit<SessionSettings, "transport">) => void; onClose: () => void;
+}) {
+  const dialog = useRef<HTMLDialogElement>(null);
+  useEffect(() => { const node = dialog.current; node?.showModal(); return () => node?.close(); }, []);
+  return <dialog ref={dialog} className="room-dialog" aria-labelledby="room-title" onCancel={(event) => { event.preventDefault(); onClose(); }}>
+    <form className="room-form" onSubmit={(event) => {
+      event.preventDefault(); const data = new FormData(event.currentTarget);
+      onJoin({ name: String(data.get("name")).trim(), roomId: String(data.get("room")).trim(), serverUrl: String(data.get("server")).trim() });
+      onClose();
+    }}>
+      <div className="editor-heading"><div><small>Share the same streets</small><h1 id="room-title">Learn together</h1></div><Button type="button" variant="ghost" size="icon" aria-label="Close room settings" onClick={onClose}><X /></Button></div>
+      <p>Use the same room and server as your friends. Leave the server blank to explore on your own.</p>
+      <label>Your name<input name="name" defaultValue={session.name} required maxLength={32} autoFocus /></label>
+      <label>Room name<input name="room" defaultValue={session.roomId} required pattern="[a-zA-Z0-9_-]+" maxLength={64} /></label>
+      <label>Multiplayer server<input name="server" defaultValue={session.serverUrl} placeholder="wss://your-room-server/world" /></label>
+      <div className="editor-actions"><Button type="button" variant="outline" onClick={onClose}>Cancel</Button><Button type="submit">Join room</Button></div>
+    </form>
+  </dialog>;
+}
+
+function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (session: Omit<SessionSettings, "transport">) => void }) {
   const { snapshot, localPlayerId, connection, mode, error, clearError, send } = useWorld();
+  const [showRoom, setShowRoom] = useState(false);
+  const [showCharacter, setShowCharacter] = useState(false);
+  const [showCast, setShowCast] = useState(true);
+  const [appearanceNotice, setAppearanceNotice] = useState("");
+  const restoredFor = useRef<string | null>(null);
+  const preferredAppearance = useRef<PlayerAppearance | undefined>(session.appearance);
+  const pendingAppearance = useRef<PlayerAppearance | null>(null);
   const [selectedNpcId, setSelectedNpcId] = useState<NpcDefinition["id"]>(npcs[0].id);
   const [result, setResult] = useState<{ npcId: NpcDefinition["id"]; playerId: string | null } | null>(null);
   const [showTranslations, setShowTranslations] = useState(true);
   const [transcriptCount, setTranscriptCount] = useState(1);
   const active = snapshot?.encounters.find((e) => e.participantIds.includes(localPlayerId ?? ""));
   const showingResult = !!result && result.playerId === localPlayerId && connection === "connected";
-  const selectedNpc = npcs.find((npc) => npc.id === (showingResult ? result.npcId : active?.npcId ?? selectedNpcId)) ?? npcs[0];
+  const cast = snapshot?.npcs.map(npcPresentation) ?? [];
+  const selectedNpc = cast.find((npc) => npc.id === (showingResult ? result.npcId : active?.npcId ?? selectedNpcId)) ?? cast[0] ?? npcs[0];
   const phase: ExperiencePhase = showingResult ? "results" : active ? "conversation" : "explore";
-  const encounter = encounterContent[selectedNpc.id];
+  const encounter = encounterContent[selectedNpc.id] ?? encounterContent.greeting;
   const visibleTranscript = useMemo(() => encounter.lines.slice(0, transcriptCount), [encounter.lines, transcriptCount]);
   const localPlayer = snapshot?.players.find((p) => p.id === localPlayerId);
   const target = snapshot?.npcs.find((npc) => npc.id === selectedNpc.id);
-  const inRange = !!localPlayer && !!target && distance(localPlayer.position, target.position) <= target.interactionRadius;
+  const targetDistance = localPlayer && target ? distance(localPlayer.position, target.position) : null;
+  const inRange = targetDistance !== null && !!target && targetDistance <= target.interactionRadius;
+  const closest = snapshot?.npcs.filter((npc) => localPlayer && distance(localPlayer.position, npc.position) <= npc.interactionRadius).sort((a, b) => distance(localPlayer!.position, a.position) - distance(localPlayer!.position, b.position))[0];
   const targetEncounter = snapshot?.encounters.find((e) => e.npcId === selectedNpc.id);
 
   function requestConversation(npcId = selectedNpc.id) {
     if (connection !== "connected" || active) return;
-    const presentation = npcs.find((npc) => npc.id === npcId);
+    const presentation = cast.find((npc) => npc.id === npcId);
     if (!presentation) return;
     setSelectedNpcId(presentation.id); setResult(null); setTranscriptCount(1);
     const existing = snapshot?.encounters.find((e) => e.npcId === npcId);
@@ -104,14 +160,51 @@ function GameSession({ onRoomSettings }: { onRoomSettings: () => void }) {
   }
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.code === "Escape" && active) send({ type: "leave-encounter" });
+      if (event.code === "Escape" && active && !showCharacter && !showRoom) send({ type: "leave-encounter" });
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [active, send]);
+  }, [active, send, showCharacter, showRoom]);
 
-  const actions = useRef({ requestConversation, finishConversation, active, connection, selectedNpc });
-  useEffect(() => { actions.current = { requestConversation, finishConversation, active, connection, selectedNpc }; });
+  useEffect(() => {
+    if (connection !== "connected" || !localPlayerId || !localPlayer) return;
+    if (restoredFor.current !== localPlayerId) {
+      restoredFor.current = localPlayerId;
+      pendingAppearance.current = null;
+      let appearance = preferredAppearance.current;
+      if (!appearance) try {
+        const stored = localStorage.getItem(APPEARANCE_STORAGE_KEY);
+        const saved = stored ? appearanceSchema.safeParse(JSON.parse(stored)) : null;
+        if (saved?.success) appearance = saved.data;
+      } catch { /* Storage may be disabled; the character still works for this visit. */ }
+      if (appearance) { pendingAppearance.current = appearance; send({ type: "set-appearance", appearance }); }
+    }
+    if (pendingAppearance.current && JSON.stringify(localPlayer.appearance) === JSON.stringify(pendingAppearance.current)) {
+      try { localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(localPlayer.appearance)); }
+      catch { /* The server has accepted this appearance even without persistence. */ }
+      preferredAppearance.current = pendingAppearance.current;
+      pendingAppearance.current = null;
+      setAppearanceNotice("Your character is updated.");
+    }
+  }, [connection, localPlayerId, localPlayer, send]);
+
+  function saveAppearance(appearance: PlayerAppearance) {
+    if (connection !== "connected" || !localPlayer) return;
+    if (JSON.stringify(localPlayer.appearance) === JSON.stringify(appearance)) {
+      try { localStorage.setItem(APPEARANCE_STORAGE_KEY, JSON.stringify(appearance)); } catch { /* Appearance is already accepted by the room. */ }
+      preferredAppearance.current = appearance;
+      setAppearanceNotice("Your character is updated.");
+      setShowCharacter(false);
+      return;
+    }
+    pendingAppearance.current = appearance;
+    setAppearanceNotice("Saving your character…");
+    send({ type: "set-appearance", appearance });
+    setShowCharacter(false);
+  }
+
+  const actions = useRef({ requestConversation, finishConversation, active, connection, selectedNpc, cast });
+  useEffect(() => { actions.current = { requestConversation, finishConversation, active, connection, selectedNpc, cast }; });
 
   useEffect(() => {
     type ToolRegistration = { name: string; title: string; description: string; inputSchema: object; annotations: { readOnlyHint: boolean; untrustedContentHint: boolean }; execute: (input: unknown) => unknown };
@@ -123,11 +216,11 @@ function GameSession({ onRoomSettings }: { onRoomSettings: () => void }) {
     void Promise.resolve(context.registerTool({
       name: "start_japanese_encounter", title: "Request Japanese encounter",
       description: "Request a nearby character encounter; room authority validates membership and distance. Voice is not connected.",
-      inputSchema: { type: "object", properties: { npcId: { type: "string", enum: npcs.map((npc) => npc.id) } }, required: ["npcId"], additionalProperties: false },
+      inputSchema: { type: "object", properties: { npcId: { type: "string", minLength: 1 } }, required: ["npcId"], additionalProperties: false },
       annotations: { readOnlyHint: false, untrustedContentHint: false },
       execute(input) {
         const id = typeof input === "object" && input !== null ? (input as { npcId?: unknown }).npcId : undefined;
-        const npc = npcs.find((candidate) => candidate.id === id);
+        const npc = actions.current.cast.find((candidate) => candidate.id === id);
         if (!npc || actions.current.connection !== "connected" || actions.current.active) throw new Error("Connect and leave any current encounter before requesting a valid character.");
         actions.current.requestConversation(npc.id);
         return { requested: true, npcId: npc.id, confirmed: false };
@@ -147,13 +240,16 @@ function GameSession({ onRoomSettings }: { onRoomSettings: () => void }) {
   }, []);
 
   return (
-    <main className="game-shell">
+    <main className="game-shell iso-game-shell">
       <section className="world-stage" aria-label={`${snapshot?.environment.name ?? "World"} interactive preview`}>
-        {snapshot && <WorldViewport environment={snapshot.environment} players={snapshot.players} npcs={snapshot.npcs} localPlayerId={localPlayerId}
-          inputEnabled={phase === "explore" && connection === "connected"}
+        {snapshot && <WorldViewport environment={snapshot.environment} players={snapshot.players} npcs={snapshot.npcs} localPlayerId={localPlayerId} selectedNpcId={selectedNpc.id} encounters={snapshot.encounters}
+          inputEnabled={phase === "explore" && connection === "connected" && !showRoom && !showCharacter}
           onMove={(direction, yaw) => send({ type: "move", direction, yaw, sequence: 0 })}
           onInteract={(npcId) => requestConversation(npcId as NpcDefinition["id"])} />}
       </section>
+      {appearanceNotice && <div className="appearance-notice" role="status">{appearanceNotice}<button aria-label="Dismiss appearance update" onClick={() => setAppearanceNotice("")}>×</button></div>}
+      {showCharacter && localPlayer && <CharacterEditor appearance={localPlayer.appearance} connected={connection === "connected"} onSave={saveAppearance} onClose={() => setShowCharacter(false)} />}
+      {showRoom && <RoomSettings session={session} onJoin={onJoin} onClose={() => setShowRoom(false)} />}
       {error && <div className="world-error" role="alert">{error} <button onClick={clearError}>Dismiss</button></div>}
 
       <header className="topbar">
@@ -161,36 +257,42 @@ function GameSession({ onRoomSettings }: { onRoomSettings: () => void }) {
           <span className="brand-mark" aria-hidden="true">京</span>
           <span><strong>Kyoto Conversations</strong><small>京都で話そう</small></span>
         </div>
-        <div className="session-status"><span className="status-light" />{mode === "local" ? "Local preview" : "Multiplayer"} · {connection} · {snapshot?.players.length ?? 0} players</div>
+        <div className="session-status"><span className={`status-light ${connection === "connected" ? "" : "is-offline"}`} />{mode === "local" ? "Solo exploration" : `Room ${session.roomId}`} · {connection} · {snapshot?.players.length ?? 0} players</div>
         <Button variant="ghost" size="sm" className="hud-button" onClick={() => setShowTranslations((value) => !value)}>
           <Languages /> {showTranslations ? "Hide English" : "Show English"}
         </Button>
-        <Button className="room-button" variant="outline" size="sm" onClick={onRoomSettings}><Users /> Room</Button>
+        <Button className="room-button" variant="outline" size="sm" disabled={!localPlayer} onClick={() => setShowCharacter(true)}><Shirt /><span>Character</span></Button>
+        <Button className="room-button" variant="outline" size="sm" onClick={() => setShowRoom(true)}><Users /><span>Room</span></Button>
       </header>
 
       {phase === "explore" && (
         <>
-          <aside className="mission-card" aria-label="Current mission">
-            <div className="eyebrow"><Map /> Current mission</div>
-            <h1>A quiet afternoon in Kyoto</h1>
-            <p>Complete three conversations on your way to the temple.</p>
-            <div className="mission-progress-row"><span>0 verified encounters</span><span>Voice not connected</span></div>
-            <Progress value={0} aria-label="Verified mission progress" />
-            <div className="character-picker">{npcs.map((npc) => <button key={npc.id} aria-pressed={npc.id === selectedNpc.id} onClick={() => setSelectedNpcId(npc.id)}>{npc.name}</button>)}</div>
-            <small>{snapshot?.players.map((p) => p.name).join(" · ")}</small>
+          <aside className={`mission-card iso-rail ${showCast ? "" : "is-collapsed"}`} aria-label="Explore Kyoto">
+            <div className="rail-title" aria-hidden="true"><span>京都で</span><span>話そう</span><small>Speak in Kyoto</small></div>
+            <div className="rail-rule" aria-hidden="true" />
+            <div className="eyebrow"><Map /> Your afternoon</div>
+            <div className="mission-title-row"><h1>Meet the neighbourhood</h1><button className="cast-toggle" onClick={() => setShowCast(!showCast)} aria-expanded={showCast} aria-controls="world-cast">{showCast ? "Hide" : "Show"}</button></div>
+            <p>Find a local, walk over and press E. Explore the streets together in a shared room.</p>
+            <div className="character-picker" id="world-cast" hidden={!showCast}>{cast.map((npc) => {
+              const character = snapshot?.npcs.find((entry) => entry.id === npc.id);
+              const meters = localPlayer && character ? distance(localPlayer.position, character.position) : null;
+              const occupied = snapshot?.encounters.some((entry) => entry.npcId === npc.id);
+              return <button key={npc.id} aria-pressed={npc.id === selectedNpc.id} onClick={() => setSelectedNpcId(npc.id)}><span className="cast-dot" style={{ background: npc.accent }} /><span><strong>{npc.name}</strong><small>{npc.role}</small></span><small>{meters !== null ? `${meters.toFixed(0)} m` : "…"}{occupied ? " · Group" : ""}</small></button>;
+            })}</div>
+            <p className="rail-caption">言葉で、もっと近くに。<br /><span>Voice and assessment are coming next.</span></p>
           </aside>
 
-          <aside className="location-card" aria-label="Selected character">
+          <aside className="location-card iso-character-card" aria-label="Selected character">
             <span className="npc-monogram" style={{ background: selectedNpc.accent }}>{selectedNpc.nameJapanese}</span>
-            <div><small>{selectedNpc.role} · {selectedNpc.level}</small><h2>{selectedNpc.name}</h2><p>{selectedNpc.objective}</p></div>
+            <div><small>{selectedNpc.role} · {selectedNpc.level}</small><h2>{selectedNpc.name}</h2><p>{selectedNpc.objective}</p><span className="distance-label">{inRange ? "Within talking distance" : targetDistance !== null ? `${targetDistance.toFixed(1)} m away` : "Joining the world…"}</span></div>
           </aside>
 
-          <div className="interaction-prompt">
-            <span className="keycap">E</span>
-            <span><small>Talk to</small>{selectedNpc.name}</span>
+          <div className="interaction-prompt iso-interaction-prompt">
+            <span className="keycap" aria-hidden="true">話</span>
+            <span><small>Selected character</small>{selectedNpc.name}</span>
             <Button size="sm" disabled={!inRange || connection !== "connected"} onClick={() => requestConversation()}>{inRange ? targetEncounter ? "Join encounter" : "Start encounter" : "Walk closer"} <ChevronRight /></Button>
           </div>
-          <div className="movement-hint"><span>W A S D</span> Move <span>E</span> Talk nearby · Click the world to focus</div>
+          <div className="movement-hint iso-movement-hint"><span>W A S D</span> Move <span>E</span> {closest ? `Talk to ${closest.name}` : "Talk nearby"} · Click the world to focus</div>
         </>
       )}
 
@@ -223,7 +325,7 @@ function GameSession({ onRoomSettings }: { onRoomSettings: () => void }) {
             </div>
             <div className="conversation-controls">
               <Button variant="outline" size="icon" disabled aria-label="Microphone unavailable until voice is connected"><MicOff /></Button>
-              <div className="voice-state"><Volume2 /><span><strong>Microphone off</strong><small>GPT-Live connection placeholder</small></span></div>
+              <div className="voice-state"><Volume2 /><span><strong>Microphone off</strong><small>Voice service not connected</small></span></div>
               <Button variant="destructive" onClick={finishConversation}><CircleStop /> Finish</Button>
             </div>
           </aside>
@@ -235,16 +337,11 @@ function GameSession({ onRoomSettings }: { onRoomSettings: () => void }) {
           <div className="results-card">
             <div className="results-heading">
               <span className="result-icon"><Sparkles /></span>
-              <div><small>Example feedback · not your score</small><h1>Feedback preview</h1><p>This illustrates the future assessment for the {selectedNpc.role.toLowerCase()} challenge.</p></div>
-              <div className="score-ring"><strong>84</strong><span>/ 100</span></div>
+              <div><small>Practice preview</small><h1>Keep the conversation going</h1><p>This illustrates the future assessment for the {selectedNpc.role.toLowerCase()} challenge.</p></div>
             </div>
-            <div className="score-grid">
-              {[["Task completion", 92], ["Comprehension", 86], ["Grammar", 78], ["Politeness", 82]].map(([label, value]) => (
-                <div key={label as string}><span>{label}<strong>{value}</strong></span><Progress value={value as number} /></div>
-              ))}
-            </div>
+            <div className="assessment-placeholder"><strong>No score yet</strong><p>This was a sample dialogue. A real Japanese conversation will receive feedback once the voice and assessment services are connected.</p></div>
             <div className="feedback-grid">
-              <article className="feedback-good"><small>Example strength</small><h2>You kept the exchange moving.</h2><p>{encounter.feedback}</p></article>
+              <article className="feedback-good"><small>Example strength</small><h2>A useful follow-up question.</h2><p>{encounter.feedback}</p></article>
               <article className="feedback-next"><small>Example suggestion</small><h2>Make one phrase more natural.</h2><p>{encounter.next}</p></article>
             </div>
             <div className="results-actions">

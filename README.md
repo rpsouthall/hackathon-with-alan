@@ -1,6 +1,31 @@
 # Hackathon with Alan
 
-Shared workspace for Ryan and Alan’s new Blender project.
+Komorebi is a browser game for exploring a Kyoto-inspired city together and practising Japanese with its residents. The consolidated Three.js game includes the city, character editor, complete cast and multiplayer encounters. Live voice and real assessment are the next integration step.
+
+## Run and play
+
+Use Node.js 22.13 or newer. From the repository root:
+
+```sh
+cd web
+npm ci
+npm run dev:game
+```
+
+Open **http://127.0.0.1:5173**. Create your traveller in the welcome editor, enter a display name and room name, then choose **Join shared room**. Open another tab with a different name and the same room to explore together. **Play solo** runs the same city privately.
+
+- Click the world, then use **WASD / arrows** or the on-screen walking buttons. Right-drag to orbit; scroll to zoom.
+- Walk near a resident and press **E**, click their label, or use **Start encounter**. Another nearby learner can join the encounter and take a speaking turn.
+- Use **Character** to change your look; accepted changes appear for everyone in the room. **Room** changes the room connection.
+- **View town** opens the overview; **Follow player** returns to walking. **Escape** leaves an encounter.
+
+The local launcher starts both the frontend and room server. For alternate ports, run `GAME_PORT=5183 WORLD_PORT=8789 npm run dev:game`. Both services bind to this computer; this command does not publish a multiplayer server.
+
+## Consolidated game
+
+The current city release, `kyoto-city-v2-final-20260913`, contains a 68 × 54 m world, two bridges, eight furnished venues with open entrances, and 15 distinct residents. Players share authoritative Rapier movement, validated character cosmetics, NPC reservations and exclusive speaking turns. Conversations and feedback are clearly labelled examples; no microphone or GPT-Live voice session is connected, and sample scores are not earned progress.
+
+See [the world integration guide](web/lib/world/README.md) for asset provenance, Blender export contracts, multiplayer configuration and verification. Run `npm run test:world`, `npx tsc --noEmit` and `npm run lint` from `web/` for the integration checks. The `/world-lab` route retains the smaller blockout and asset-loading checks.
 
 ## Join the project
 
@@ -31,9 +56,3 @@ Direct Blender control also requires the Blender MCP connection described in the
 - Use a separate branch for each piece of work and open a pull request.
 - Coordinate before editing the same Blender scene; binary .blend files cannot be merged like source code.
 - Keep decisions and setup instructions in this repository so both agents can read them.
-
-## Current status
-
-The `web/` frontend now includes the Kyoto conversation UI, a replaceable GLB viewport, and a shared world-state layer. A local WebSocket room server verifies multiplayer movement, NPC reservations, shared encounters and speaking turns. GPT-Live audio routing and real conversation assessment are not connected yet.
-
-See [the world integration guide](web/lib/world/README.md) for frontend contracts, Blender export requirements, multiplayer setup and known limitations. The `/world-lab` route tests the world independently of the game UI. Run `npm run test:world` from `web/` for the room, network and GLB loader checks.

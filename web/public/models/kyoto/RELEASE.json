@@ -1,0 +1,53 @@
+{
+  "revision": "kyoto-city-v2-final-20260913",
+  "status": "final environment export",
+  "units": "metres",
+  "up_axis": "Y",
+  "footprint_m": [
+    68,
+    54
+  ],
+  "required_runtime_files": [
+    "kyoto_city.glb",
+    "kyoto_city_gameplay.json"
+  ],
+  "optional_runtime_files": [
+    "kyoto_city_lod1.glb",
+    "kyoto_city_collision.glb"
+  ],
+  "files": {
+    "kyoto_city.glb": {
+      "bytes": 22392928,
+      "sha256": "c7ab5b967097652767f312ed8e4c8be3b4c78a9149c67fc2eff3343eb9575140"
+    },
+    "kyoto_city_collision.glb": {
+      "bytes": 378380,
+      "sha256": "a1818cef22eaafb95efc759a9a3ae5c9ef26c234feb129bae5309c20e8f7e6b4"
+    },
+    "kyoto_city_gameplay.json": {
+      "bytes": 137183,
+      "sha256": "fcf0eb34ccadbab6422c54c4faec0e7a23439320f35fe778b99ab93ae2c764ac"
+    },
+    "kyoto_city_lod1.glb": {
+      "bytes": 14014860,
+      "sha256": "54f24eb271c7aee2efdf022f5ba9440471a9c71f26485d9dc4b80b1e08512700"
+    }
+  },
+  "npc_ids": [
+    "cafe_owner",
+    "local_guide",
+    "inn_host",
+    "market_produce",
+    "market_tea",
+    "market_fish",
+    "market_dango",
+    "kissa_aoi_host",
+    "ramen_akari_host",
+    "bookshop_tsuki_host",
+    "sakura_bakery_host",
+    "izakaya_tomo_host",
+    "tea_hanami_host",
+    "market_provisions_host",
+    "restaurant_momiji_host"
+  ]
+}

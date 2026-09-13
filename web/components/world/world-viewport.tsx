@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { EnvironmentManifest, PlayerSnapshot, NpcSnapshot } from "@/lib/world/schema";
+import type { EnvironmentManifest, PlayerSnapshot, NpcSnapshot, EncounterSnapshot } from "@/lib/world/schema";
 import type { mountWorldScene } from "@/lib/world/scene";
 
 export interface WorldViewportProps {
@@ -9,6 +9,8 @@ export interface WorldViewportProps {
   players: PlayerSnapshot[];
   npcs: NpcSnapshot[];
   localPlayerId: string | null;
+  encounters?: EncounterSnapshot[];
+  selectedNpcId?: string;
   onMove: (direction: [number, number], yaw: number) => void;
   onInteract: (npcId: string) => void;
   inputEnabled?: boolean;
@@ -20,6 +22,7 @@ export function WorldViewport(props: WorldViewportProps) {
   const runtime = useRef<ReturnType<typeof mountWorldScene> | null>(null);
   const latest = useRef(props);
   const [status, setStatus] = useState({ phase: "loading", error: "" });
+  const [overview, setOverview] = useState(false);
   // Snapshot objects change on network updates; reload only when the manifest changes.
   const manifest = JSON.stringify(props.environment);
   useEffect(() => {
@@ -46,8 +49,9 @@ export function WorldViewport(props: WorldViewportProps) {
     <nav aria-label="Walking controls" style={{ position: "absolute", right: 16, top: "45%", display: "grid", gridTemplateColumns: "repeat(3, 32px)", gap: 3 }}>
       {([{ label: "Move forward", direction: [0, -1], symbol: "↑", column: 2 }, { label: "Move left", direction: [-1, 0], symbol: "←", column: 1 }, { label: "Move backward", direction: [0, 1], symbol: "↓", column: 2 }, { label: "Move right", direction: [1, 0], symbol: "→", column: 3 }] as const).map((control, index) => <button key={control.label} type="button" aria-label={control.label} disabled={props.inputEnabled === false} onClick={() => runtime.current?.step([...control.direction])} style={{ gridColumn: control.column, gridRow: index === 0 ? 1 : 2, height: 32, color: "#203c30", background: "#ffffffe8", borderRadius: 6, border: "1px solid #849c8d" }}>{control.symbol}</button>)}
     </nav>
+    <button type="button" onClick={() => { runtime.current?.setOverview(!overview); setOverview(!overview); }} style={{position:"absolute",right:16,top:125,padding:"8px 12px",borderRadius:8,background:"#fff9e8",border:"1px solid #d9ccb2",color:"#35404a",fontSize:12}}>{overview ? "Follow player" : "View town"}</button>
     <div role="status" style={{ position: "absolute", top: 12, left: 12, maxWidth: "90%", padding: "6px 10px", background: "#ffffffed", color: "#26372d", borderRadius: 8, fontSize: 12, pointerEvents: "none" }}>
-      {status.error || (status.phase === "loading" ? "Loading environment…" : status.phase === "placeholder" ? "Walkable blockout · WASD / arrows · E to talk" : "WASD / arrows to walk · E to talk")}
+      {status.error || (status.phase === "loading" ? "Loading environment…" : status.phase === "placeholder" ? "Walkable blockout · WASD / arrows · E to talk" : "WASD · E to talk · Right drag to orbit · Scroll to zoom")}
     </div>
   </div>;
 }
