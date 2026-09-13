@@ -34,4 +34,6 @@ Direct Blender control also requires the Blender MCP connection described in the
 
 ## Current status
 
-Project repository initialized. The project brief and first Blender scene are still to be defined.
+The `web/` frontend now includes the Kyoto conversation UI, a replaceable GLB viewport, and a shared world-state layer. A local WebSocket room server verifies multiplayer movement, NPC reservations, shared encounters and speaking turns. GPT-Live audio routing and real conversation assessment are not connected yet.
+
+See [the world integration guide](web/lib/world/README.md) for frontend contracts, Blender export requirements, multiplayer setup and known limitations. The `/world-lab` route tests the world independently of the game UI. Run `npm run test:world` from `web/` for the room, network and GLB loader checks.
