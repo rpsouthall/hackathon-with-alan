@@ -121,17 +121,58 @@ eligible connections. This bounded graph does not guarantee every nearby player
 is audible. Clients that have not opted in receive no unsolicited voice roster.
 Audio activity, rather than an open microphone alone, drives speaking indicators.
 
-The default ICE configuration contains STUN. TURN is not provisioned. Real decoded
-microphone audio between computers on separate networks has not been verified;
-local tests do not establish restrictive-network connectivity. The Worker handles
-signaling, not media forwarding: media range enforcement also depends on the
-supplied browser client closing audio when the roster changes.
+The default ICE configuration contains Cloudflare STUN. The optional TURN broker
+is implemented, but account activation and production credentials are still
+pending at this checkpoint. Real decoded microphone audio between computers on
+separate networks has not been verified. The local in-app browser test completed
+SDP/ICE signaling but did not establish a media connection, so it does not prove
+decoded playback. The Worker handles signaling and credential issuance, not media
+forwarding; media range enforcement also depends on the supplied browser client
+closing audio when the roster changes.
+
+## Optional TURN relay setup
+
+The account owner must activate Cloudflare Realtime TURN and accept its billing
+terms before provisioning a key. Create a TURN key in that account and enter the
+key ID and its API token as **Worker secrets**, using protected prompts from `web/`:
+
+```sh
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js secret put TURN_KEY_ID --config multiplayer/wrangler.jsonc
+node --import ./scripts/sites-env.mjs ./node_modules/wrangler/bin/wrangler.js secret put TURN_KEY_API_TOKEN --config multiplayer/wrangler.jsonc
+```
+
+These secrets belong only to the multiplayer Worker. Do not put them in the Site,
+`VITE_` variables, source, URLs, logs or browser code. The broker uses Cloudflare's
+[credential generation API](https://developers.cloudflare.com/realtime/turn/generate-credentials/)
+to issue a separate one-hour credential bundle for each admitted voice socket.
+Only explicit voice opt-in triggers issuance. When configured, the initial voice
+graph waits at most five seconds for the provider; gameplay continues throughout.
+Missing configuration or a failed request falls back to direct STUN connections,
+and the client says the relay is unavailable. This fallback may fail on restrictive
+networks; it is not equivalent to a tested relay connection.
+
+Each socket retains at most one cached bundle and one request. Requests have a
+16 KiB response bound, reject redirects, and retry at most once per minute. Active
+voice refreshes credentials after 50 minutes. Changed credentials update the
+receiver's ICE configuration and renew affected peer sessions, so a brief voice
+reconnection can occur. Opt-out aborts pending issuance; stale completions cannot
+rejoin voice. Disconnect clears the socket cache. Per-player rosters contain only
+that player's short-lived credentials, never another player's bundle or the key's
+API token. Provider errors are not logged or forwarded.
+
+After provisioning, test two browsers on separate networks. Enable voice, stay
+within 12 metres, hold T, and use **Check audio** to inspect microphone level,
+selected direct/relay route, received packets, decoded samples and audio energy.
+Verify a selected relay route and decoded speech, not just a microphone indicator
+or successful signaling. **Resume audio** recovers browser-paused output without
+reopening capture. Test release, disable, range departure and reconnect as well.
 
 ## Verification checkpoint
 
-On 2026-09-13, the combined release passed 146 world/controller/asset tests,
-14 multiplayer checks and nine hosted player-voice checks in Miniflare/workerd.
-The local capability gate adds four targeted regression tests. TypeScript and
+On 2026-09-13, the updated release passed 197 world/controller/asset tests,
+including TURN lifecycle, credential isolation and playback recovery coverage.
+The existing 14 multiplayer and nine hosted player-voice checks use Miniflare/workerd.
+TypeScript and
 lint checks are run separately from production builds. Use these commands from
 `web/` to verify the current checkout:
 

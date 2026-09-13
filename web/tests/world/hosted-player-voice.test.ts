@@ -128,3 +128,30 @@ test("gameplay-only clients receive no unsolicited voice frames",()=>{
   assert.deepEqual(leave.filter(d=>d.to==="p0"),[{to:"p0",message:{type:"voice-peers",peers:[],iceServers:[],radius:12}}]);
   assert.ok(leave.every(d=>d.to!=="p2"));assert.deepEqual(room.refresh(ps),[]);
 });
+
+test("TURN credentials belong only to their opted-in player and rotation resets both pair sessions",()=>{
+  const { room, ps, rosters, ingest } = setup(3);
+  const before = rosters.get("p0")![0].sessionId;
+  const ice = [{ urls: "turns:turn.cloudflare.com:443?transport=tcp", username: "fake-p0", credential: "fake-p0-credential" }];
+  room.setIceServers("p0", ice);
+  const updates = ingest(room.refresh(ps));
+  const own = updates.find((delivery)=>delivery.to === "p0")!.message;
+  assert.equal(own.type, "voice-peers"); if (own.type === "voice-peers") assert.deepEqual(own.iceServers, ice);
+  assert.ok(updates.filter((delivery)=>delivery.to !== "p0").every((delivery)=>!JSON.stringify(delivery).includes("fake-p0")));
+  assert.notEqual(rosters.get("p0")![0].sessionId, before);
+  assert.equal(room.handle("p0",signal("p1",before),ps).at(-1)?.message.type,"voice-error");
+  room.setIceServers("p0", ice); assert.deepEqual(room.refresh(ps), []);
+  room.handle("p0",{type:"voice-leave"},ps); room.setIceServers("p0", ice);
+  const rejoin = room.handle("p0",{type:"voice-join"},ps);
+  assert.ok(rejoin.every((delivery)=>!JSON.stringify(delivery).includes("fake-p0")));
+});
+
+test("first voice roster uses pre-issued per-player credentials without an intermediate direct-only graph",()=>{
+  const room = new PlayerVoiceRoom([]), ps = players(2);
+  const ice = [{ urls: "turn:turn.cloudflare.com:3478?transport=udp", username: "fake-initial", credential: "fake-initial-credential" }];
+  room.handle("p0",{type:"voice-join"},ps,ice);
+  const updates = room.handle("p1",{type:"voice-join"},ps);
+  const own = updates.find((delivery)=>delivery.to === "p0")!.message;
+  if (own.type === "voice-peers") assert.deepEqual(own.iceServers, ice); else assert.fail("Expected roster");
+  assert.ok(updates.filter((delivery)=>delivery.to !== "p0").every((delivery)=>!JSON.stringify(delivery).includes("fake-initial")));
+});

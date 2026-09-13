@@ -158,6 +158,20 @@ export class RoomPhysics {
     return [p.x, p.y - actor.profile.height / 2, p.z];
   }
 
+  verticalVelocity(id: string): number { return this.actors.get(id)?.verticalVelocity ?? 0; }
+
+  /** Restore only trusted authority state before replaying browser input. */
+  restore(id: string, feet: Vec3, verticalVelocity = 0) {
+    const actor = this.actors.get(id);
+    if (!actor || this.disposed || !feet.every(Number.isFinite)) return;
+    const center = { x: feet[0], y: feet[1] + actor.profile.height / 2, z: feet[2] };
+    actor.body.setTranslation(center, true);
+    actor.body.setNextKinematicTranslation(center);
+    actor.verticalVelocity = Math.max(-8, Math.min(0, verticalVelocity));
+    actor.safeFeet = [...feet];
+    this.accumulator = 0;
+  }
+
   /** Velocities are server-derived, never positions or speeds supplied by clients. */
   tick(delta: number, velocities: Map<string, Vec3>) {
     if (this.disposed || !Number.isFinite(delta)) return;

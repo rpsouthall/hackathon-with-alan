@@ -3,6 +3,7 @@ import { commandSchema, environmentSchema, npcSchema, playerSchema, roomSchema, 
 import { RoomPhysics, PHYSICS_TIMESTEP, type ActorProfile } from "./physics";
 import { EMOTES, WALK_SPEED, SPRINT_SPEED } from "./player-actions";
 import { VEHICLE_CONFIG, VEHICLE_MOUNT_DISTANCE } from "./vehicle-contract";
+import { sampleWorldClock } from "./world-clock";
 
 export const PLAYER_RADIUS = 0.3;
 export function distance(a: Vec3, b: Vec3) { return Math.hypot(...a.map((v, i) => v - b[i])); }
@@ -11,7 +12,7 @@ export function distance(a: Vec3, b: Vec3) { return Math.hypot(...a.map((v, i) =
  * metadata enables Rapier; the tiny blockout retains its flat AABB fallback. */
 export class WorldRoom {
   private state: RoomSnapshot;
-  private inputs = new Map<string, { x: number; z: number; yaw: number; sequence: number; receivedAt: number; sprint: boolean }>();
+  private inputs = new Map<string, { x: number; z: number; yaw: number; sequence: number; receivedAt: number; sprint: boolean; elapsedSeconds: number }>();
   private nextEncounter = 0;
   private nextEmote = 0;
   private physics?: RoomPhysics;
@@ -31,12 +32,12 @@ export class WorldRoom {
       vehicle.position = supported;
     }
   }
-  snapshot(): RoomSnapshot { return structuredClone(this.state); }
+  snapshot(now = Date.now()): RoomSnapshot { return structuredClone({ ...this.state, worldClock: sampleWorldClock(now) }); }
   get snapshotRevision(): number { return this.state.revision; }
   get playerCount(): number { return this.state.players.length; }
-  dynamicSnapshot(): RoomStateSnapshot {
+  dynamicSnapshot(now = Date.now()): RoomStateSnapshot {
     const { environment, ...dynamic } = this.state;
-    return structuredClone({ ...dynamic, environmentRevision: environment.revision });
+    return structuredClone({ ...dynamic, environmentRevision: environment.revision, worldClock: sampleWorldClock(now) });
   }
   private changed() { this.state.revision++; }
   join(playerId: string, name: string) {
@@ -117,7 +118,7 @@ export class WorldRoom {
     if (command.type === "move") {
       const previous = this.inputs.get(playerId);
       if (previous && command.sequence <= previous.sequence) return null;
-      this.inputs.set(playerId, { x: active ? 0 : command.direction[0], z: active ? 0 : command.direction[1], yaw: command.yaw, sequence: command.sequence, receivedAt: now, sprint: !active && !!command.sprint });
+      this.inputs.set(playerId, { x: active ? 0 : command.direction[0], z: active ? 0 : command.direction[1], yaw: command.yaw, sequence: command.sequence, receivedAt: now, sprint: !active && !!command.sprint, elapsedSeconds: 0 });
       if (!active && player.emote && command.direction.some((value) => value !== 0)) { player.emote = null; this.changed(); }
       return null;
     }
@@ -208,6 +209,17 @@ export class WorldRoom {
       const motion = this.vehicleMotion.get(vehicle.id); if (motion) motion.speed = 0;
     }
   }
+  private acknowledgeMovement(dt: number) {
+    let changed = false;
+    for (const player of this.state.players) {
+      const input = this.inputs.get(player.id);
+      if (!input) continue;
+      input.elapsedSeconds = Math.min(1, input.elapsedSeconds + dt);
+      if (player.movementAck?.sequence !== input.sequence) changed = true;
+      player.movementAck = { sequence: input.sequence, elapsedSeconds: input.elapsedSeconds, verticalVelocity: this.physics?.verticalVelocity(player.id) ?? 0 };
+    }
+    if (changed) this.changed();
+  }
   tick(deltaSeconds: number, now = performance.now()) {
     if (this.disposed) return;
     const dt = Math.min(Math.max(deltaSeconds, 0), 0.1);
@@ -242,6 +254,7 @@ export class WorldRoom {
         player.position = position; player.animation = animation; player.yaw = yaw;
       }
       if (changed) this.changed();
+      this.acknowledgeMovement(dt);
       return;
     }
     let changed = false;
@@ -276,6 +289,7 @@ export class WorldRoom {
       player.animation = animation; player.yaw = yaw;
     }
     if (changed) this.changed();
+    this.acknowledgeMovement(dt);
   }
   dispose() {
     if (this.disposed) return;

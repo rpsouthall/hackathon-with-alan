@@ -1,6 +1,6 @@
 # Consolidated world integration
 
-The game renders the final Kyoto City v2 environment and all 15 residents in Three.js. A shared character editor creates each player's traveller. Rapier resolves player movement against the exported city collision boxes; local solo play and the multiplayer server use the same `WorldRoom` implementation. The runtime uses protocol 2 and includes sprint, emotes, six shared vehicles and local day/night controls. Hosted rooms include player proximity voice. Japanese NPC conversations and feedback remain labelled samples; NPC audio, GPT/HeyGen sessions, lessons and real assessment are not connected.
+The game renders the final Kyoto City v2 environment and all 15 residents in Three.js. A shared character editor creates each player's traveller. Rapier resolves player movement against the exported city collision boxes; local solo play and the multiplayer server use the same `WorldRoom` implementation. The runtime uses protocol 3 and includes sprint, emotes, six shared vehicles and a synchronized day/night clock with optional personal lighting. Hosted rooms include player proximity voice. Japanese NPC conversations and feedback remain labelled samples; NPC audio, GPT/HeyGen sessions, lessons and real assessment are not connected.
 
 ## Run and play
 
@@ -125,4 +125,4 @@ The combined release checkpoint passed **146 world/controller/asset tests**, **1
 The depth-corrected city render release is `kyoto-city-v2-depth-fix-20260913`; its gameplay data and marker contract are unchanged. Venue surfaces are separated to remove coplanar flicker. The runtime smooths scenery cutaways and supports an optional third-person view: press V or use the camera button to switch smoothly from the default isometric view. Regression tests cover camera interpolation and visibility rays during projection transitions. See [graphics polish](../../docs/graphics-polish.md) and [the asset repair](../../../asset-fixes/venue-depth/README.md) for the asset repair and targeted graphics verification.
 
 
-Atmosphere controls affect each browser's presentation only; they do not synchronize a shared clock or change authority state. See [atmosphere](../../docs/atmosphere.md), [player actions](../../docs/player-actions.md) and [vehicles](../../docs/vehicles.md).
+The atmosphere follows a shared server clock across joins, reconnects and background tabs. Time presets and pause switch only that browser to explicitly labelled personal lighting; **Return to shared time** restores the room's current phase. See [atmosphere](../../docs/atmosphere.md), [player actions](../../docs/player-actions.md) and [vehicles](../../docs/vehicles.md).

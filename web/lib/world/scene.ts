@@ -2,6 +2,9 @@ import * as THREE from "three";
 import { loadEnvironment } from "./load-environment";
 import { GameCameraRig, type CameraView } from "./camera-rig";
 import { PlayerInput } from "./player-input";
+import { LocalMovementPredictor } from "./movement-prediction";
+import { initWorldPhysics } from "./physics";
+import { MovementSendThrottle, type MovementInput } from "./movement-input";
 import { WorldVehicles } from "./vehicle-visuals";
 import { VEHICLE_MOUNT_DISTANCE } from "./vehicle-contract";
 import { EMOTES } from "./player-actions";
@@ -10,11 +13,12 @@ import { updateSpeakingAnimation } from "../characters/speaking-animation";
 import { SceneryCutaway, setOcclusionRay, isOccludingScenery } from "./occlusion";
 import { createWorldAtmosphere } from "./atmosphere";
 import type { WorldTime } from "./day-cycle";
+import type { WorldClockAnchor } from "./world-clock";
 import { CHARACTER_PRESETS } from "../characters/presets";
 import type { EnvironmentManifest, NpcSnapshot, PlayerSnapshot, EncounterSnapshot, VehicleSnapshot } from "./schema";
 
-export interface SceneEntities { speakingPlayerIds?: readonly string[]; speakingNpcIds?: readonly string[]; vehicles?: VehicleSnapshot[]; players: PlayerSnapshot[]; npcs: NpcSnapshot[]; localPlayerId: string | null; encounters?: EncounterSnapshot[]; selectedNpcId?: string }
-export interface SceneCallbacks { onMountVehicle?: (id: string) => void; onDismountVehicle?: () => void; onMove: (direction: [number, number], yaw: number, sprint?: boolean) => void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void; onToggleView?: () => void; onOpenEmotes?: () => void; onTime?: (time: WorldTime) => void }
+export interface SceneEntities { worldClock?: WorldClockAnchor | null; speakingPlayerIds?: readonly string[]; speakingNpcIds?: readonly string[]; vehicles?: VehicleSnapshot[]; players: PlayerSnapshot[]; npcs: NpcSnapshot[]; localPlayerId: string | null; encounters?: EncounterSnapshot[]; selectedNpcId?: string }
+export interface SceneCallbacks { onMountVehicle?: (id: string) => void; onDismountVehicle?: () => void; onMove: (direction: [number, number], yaw: number, sprint?: boolean) => number | void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void; onToggleView?: () => void; onOpenEmotes?: () => void; onTime?: (time: WorldTime) => void }
 function disposeObject(root: THREE.Object3D) {
   const textures = new Set<THREE.Texture>(), materials = new Set<THREE.Material>(), geometries = new Set<THREE.BufferGeometry>();
   root.traverse((object) => { if (object instanceof THREE.Mesh) {
@@ -29,7 +33,7 @@ function disposeObject(root: THREE.Object3D) {
   textures.forEach((texture) => { texture.dispose(); if (typeof ImageBitmap !== "undefined" && texture.image instanceof ImageBitmap) texture.image.close(); });
 }
 
-/** All positions are authority snapshots. This adapter renders and interpolates them. */
+/** Authority snapshots reconcile local prediction; remote actors are interpolated. */
 export function mountWorldScene(host: HTMLElement, environment: EnvironmentManifest, callbacks: SceneCallbacks) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
@@ -102,10 +106,40 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   const actors = new Map<string, Actor>();
   let entities: SceneEntities = {players:[],npcs:[],localPlayerId:null};
   let enabled = true, overview = false, walkingYaw = 0;
+  let predictor: LocalMovementPredictor | undefined;
+  const syncPrediction = () => {
+    const player = entities.players.find((candidate) => candidate.id === entities.localPlayerId);
+    if (!player) return;
+    predictor?.setBlocked(!enabled, performance.now());
+    predictor?.reconcile(player, entities.vehicles?.find((vehicle) => vehicle.id === player.vehicleId), performance.now());
+  };
+  (environment.physics ? initWorldPhysics() : Promise.resolve()).then(() => {
+    if (stopped) return;
+    predictor = new LocalMovementPredictor(environment); syncPrediction();
+  }).catch((error) => console.error("Local movement prediction could not initialize", error));
+  const movementThrottle = new MovementSendThrottle();
+  let pendingMovement: MovementInput | undefined;
+  let movementTimer: ReturnType<typeof setTimeout> | undefined;
+  function flushMovement(now = performance.now()) {
+    if (!pendingMovement) return;
+    const movement = pendingMovement;
+    if (movementThrottle.take(movement, now)) {
+      pendingMovement = undefined;
+      const sequence = callbacks.onMove(movement.direction, movement.yaw, movement.sprint);
+      if (typeof sequence === "number") predictor?.recordInput(sequence, movement.direction, movement.yaw, movement.sprint, now);
+    } else if (movementTimer === undefined) {
+      movementTimer = setTimeout(() => { movementTimer = undefined; flushMovement(); }, Math.max(1, movementThrottle.retryAfter(movement, now)));
+    }
+  }
+  function sendMovement(direction: [number, number], yaw: number, sprint: boolean, now = performance.now()) {
+    predictor?.recordLocalInput(direction, yaw, sprint, now);
+    pendingMovement = { direction, yaw, sprint };
+    flushMovement(now);
+  }
   const input = new PlayerInput(); let step: {direction:[number,number];until:number;sprint:boolean}|null=null;
   const ring = new THREE.Mesh(new THREE.RingGeometry(.48,.55,32),new THREE.MeshBasicMaterial({color:"#bd624c",transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
   ring.rotation.x=-Math.PI/2; ring.visible=false; scene.add(ring);
-  function resetInput() {input.clear();step=null;callbacks.onMove([0,0],walkingYaw,false);}
+  function resetInput() {input.clear();step=null;sendMovement([0,0],walkingYaw,false);}
   function visibility() {if(document.hidden)resetInput();}
   function keyDown(event:KeyboardEvent) {
     if(!enabled)return;
@@ -138,14 +172,35 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   document.addEventListener("visibilitychange",visibility);
   renderer.domElement.addEventListener("pointerdown",pointerDown);renderer.domElement.addEventListener("click",click);
   const resize=new ResizeObserver(()=>{const width=Math.max(host.clientWidth,1),height=Math.max(host.clientHeight,1);renderer.setSize(width,height);cameraRig.resize(width,height);});resize.observe(host);
-  let frame=0,previous=performance.now(),lastInput=0,lastLabelCheck=0;
+  let frame=0,previous=performance.now(),lastLabelCheck=0;
   const forward=new THREE.Vector3(),right=new THREE.Vector3(),velocity=new THREE.Vector3(), projected=new THREE.Vector3();
   const render=(now:number)=>{
     if(stopped)return; const dt=Math.min((now-previous)/1000,.1);previous=now;
     atmosphere.update(dt);
+    const simulationNow=performance.now();
+    // Sample controls every rendered frame. Changes go out immediately; held
+    // controls refresh at 20Hz. Drawing never waits for an authority reply.
+    if(enabled&&!cameraRig.isTransitioning){
+      const [keyX,keyZ]=input.direction;
+      const x=keyX||(step&&now<step.until?step.direction[0]:0);
+      const z=keyZ||(step&&now<step.until?step.direction[1]:0);
+      camera.getWorldDirection(forward);forward.y=0;forward.normalize();right.crossVectors(forward,THREE.Object3D.DEFAULT_UP).normalize();
+      velocity.copy(right).multiplyScalar(x).addScaledVector(forward,-z);if(velocity.length()>1)velocity.normalize();
+      if(x||z)walkingYaw=Math.atan2(velocity.x,velocity.z);
+      const direction:[number,number]=[velocity.x,velocity.z];
+      const sprint=Boolean((x||z)&&(input.sprinting||(step&&now<step.until&&step.sprint)));
+      sendMovement(direction,walkingYaw,sprint,simulationNow);
+    }
+    const predicted=predictor?.advance(simulationNow,dt);
     vehicles.update(dt);
-    for(const actor of actors.values()) {
-      actor.previous.copy(actor.root.position);actor.root.position.lerp(actor.target,1-Math.exp(-18*dt));
+    const riding=entities.players.find(player=>player.id===entities.localPlayerId)?.vehicleId;
+    const predictedVehicle=riding?vehicles.items.get(riding):undefined;
+    if(predicted&&predictedVehicle){predictedVehicle.root.position.fromArray(predicted.position);predictedVehicle.root.rotation.y=predicted.yaw;}
+    for(const [key,actor] of actors) {
+      actor.previous.copy(actor.root.position);
+      const localPrediction=key===`player:${entities.localPlayerId}`?predicted:null;
+      if(localPrediction){actor.root.position.fromArray(localPrediction.position);actor.yaw=localPrediction.yaw;actor.animation=localPrediction.animation;if(localPrediction.animation!=="idle")actor.emote=null;}
+      else actor.root.position.lerp(actor.target,1-Math.exp(-18*dt));
       const turn=Math.atan2(Math.sin(actor.yaw-actor.root.rotation.y),Math.cos(actor.yaw-actor.root.rotation.y));actor.root.rotation.y+=turn*(1-Math.exp(-12*dt));
       const ride=actor.vehicleId?vehicles.items.get(actor.vehicleId):undefined;
       if(ride){actor.root.position.copy(ride.root.position);actor.root.rotation.y=ride.root.rotation.y;}
@@ -168,14 +223,6 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     camera = cameraRig.camera;
     host.dataset.cameraView = overview ? "overview" : cameraRig.view;
     host.dataset.cameraTransition = String(cameraRig.isTransitioning);
-    if(now-lastInput>=50&&enabled&&!cameraRig.isTransitioning){
-      const [keyX,keyZ]=input.direction;
-      const x=keyX||(step&&now<step.until?step.direction[0]:0);
-      const z=keyZ||(step&&now<step.until?step.direction[1]:0);
-      camera.getWorldDirection(forward);forward.y=0;forward.normalize();right.crossVectors(forward,THREE.Object3D.DEFAULT_UP).normalize();
-      velocity.copy(right).multiplyScalar(x).addScaledVector(forward,-z);if(velocity.length()>1)velocity.normalize();
-      if(x||z)walkingYaw=Math.atan2(velocity.x,velocity.z);callbacks.onMove([velocity.x,velocity.z],walkingYaw,Boolean((x||z)&&(input.sprinting||(step&&now<step.until&&step.sprint))));lastInput=now;
-    }
     // Ray tests are throttled; smoothing still runs every rendered frame.
     if(now-lastOcclusionCheck>=50) {
       occlusionHits = new Set<THREE.Mesh>();
@@ -218,11 +265,13 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     retryEnvironment(){loadWorld();},
     setHour(hours:number,animate=true){atmosphere.setHour(hours,animate);},
     setTimePlaying(playing:boolean){atmosphere.setPlaying(playing);},
+    returnToSharedTime(){atmosphere.returnToSharedTime();},
     step(direction:[number,number],sprint=false){if(enabled)step={direction,until:performance.now()+240,sprint};},
     setView(value:CameraView){resetInput();overview=false;const local=actors.get(`player:${entities.localPlayerId}`);cameraRig.setView(value,local?.root.rotation.y??0);},
     setOverview(value:boolean){overview=value;resetInput();cameraRig.setOverview(value);},
     update(next:SceneEntities,inputEnabled:boolean){
-      entities=next;vehicles.sync(next.vehicles??[]);if(enabled&&!inputEnabled)resetInput();enabled=inputEnabled;cameraRig.setInputEnabled(inputEnabled);const present=new Set<string>();
+      atmosphere.syncWorldClock(next.worldClock ?? null);
+      entities=next;vehicles.sync(next.vehicles??[]);if(enabled&&!inputEnabled)resetInput();enabled=inputEnabled;cameraRig.setInputEnabled(inputEnabled);syncPrediction();const present=new Set<string>();
       const items=[...next.players.map(p=>({key:`player:${p.id}`,position:p.position,yaw:p.yaw,name:p.id===next.localPlayerId?`${p.name} · you`:p.name,npcId:null as string|null,appearance:p.appearance,animation:p.animation,emote:p.emote,vehicleId:p.vehicleId})),...next.npcs.map(n=>({key:`npc:${n.id}`,position:n.position,yaw:n.yaw??0,name:n.name,npcId:n.id,appearance:CHARACTER_PRESETS[n.id as keyof typeof CHARACTER_PRESETS]?.appearance??CHARACTER_PRESETS.local_guide.appearance,animation:"idle" as const,emote:null,vehicleId:null}))];
       for(const item of items){present.add(item.key);let actor=actors.get(item.key);
         if(!actor){const root=new THREE.Group();root.position.fromArray(item.position);root.userData.npcId=item.npcId;const capsule=new THREE.Mesh(new THREE.CapsuleGeometry(.28,1.14,4,8),new THREE.MeshStandardMaterial({color:item.npcId?"#bf7865":"#5c7f89"}));capsule.position.y=.85;root.add(capsule);scene.add(root);
@@ -245,6 +294,6 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       }
       for(const [key,actor]of actors)if(!present.has(key)){actor.avatar?.dispose();scene.remove(actor.root);disposeObject(actor.root);actor.label.remove();actors.delete(key);}
     },
-    dispose(){stopped=true;environmentRequest.abort();cancelAnimationFrame(frame);resize.disconnect();resetInput();cameraRig.dispose();atmosphere.dispose();vehicles.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);document.removeEventListener("visibilitychange",visibility);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
+    dispose(){stopped=true;predictor?.dispose();environmentRequest.abort();cancelAnimationFrame(frame);resize.disconnect();resetInput();clearTimeout(movementTimer);pendingMovement=undefined;cameraRig.dispose();atmosphere.dispose();vehicles.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);document.removeEventListener("visibilitychange",visibility);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
   };
 }

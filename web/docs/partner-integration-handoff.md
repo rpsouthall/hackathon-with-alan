@@ -29,7 +29,7 @@ The hosted Worker relays signaling only; audio flows through browser WebRTC peer
 
 The browser starts microphone tracks silent and enables transmission only while the talk control is held. Release, disable, focus loss and connection teardown stop transmission. Actual microphone or decoded remote audio activity drives the HUD and Talk animation. The gameplay transport exposes whether player voice is supported so unsupported local transports do not request a microphone or emit voice messages.
 
-STUN discovery is configured. **TURN is not provisioned**, and decoded microphone audio between real computers on separate networks has not been verified. Local controller/signaling tests do not establish WAN connectivity, microphone quality or production capacity. Range-based signaling and the supplied client's media cleanup are not an SFU-enforced media boundary.
+STUN discovery is configured. The optional per-player TURN credential broker is implemented, with one-hour credentials and a refresh after 50 minutes; **account activation and Worker secrets are still pending**. See [the operator setup](../multiplayer/README.md#optional-turn-relay-setup). Decoded microphone audio between real computers on separate networks has not been verified. The local browser test completed signaling but did not establish a media connection. Local controller/signaling tests do not establish WAN connectivity, microphone quality or production capacity. Range-based signaling and the supplied client's media cleanup are not an SFU-enforced media boundary.
 
 ## Shared NPC encounter semantics
 

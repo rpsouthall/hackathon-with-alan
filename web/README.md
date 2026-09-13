@@ -2,7 +2,7 @@
 
 The consolidated Three.js game runs on [vinext](https://github.com/cloudflare/vinext) and ChatGPT Sites. It uses protocol 2 for shared movement, character appearances, emotes, sprinting and vehicles. The hosted Durable Object service supports 32-player rooms and opted-in player proximity voice. NPC voice, GPT/HeyGen sessions, lessons, grading and saved learner progress are not implemented.
 
-Start with [the project README](../README.md), [world contracts](lib/world/README.md), [hosted rooms and voice](multiplayer/README.md), and [the partner handoff](docs/partner-integration-handoff.md). `npm run dev:game` starts local gameplay; the direct Node development transport and solo mode do not support voice. The signed hosted transport supports player voice, including local testing against the Durable Object service. TURN and real cross-network decoded microphone audio remain unverified.
+Start with [the project README](../README.md), [world contracts](lib/world/README.md), [hosted rooms and voice](multiplayer/README.md), and [the partner handoff](docs/partner-integration-handoff.md). `npm run dev:game` starts local gameplay; the direct Node development transport and solo mode do not support voice. The signed hosted transport supports player voice, including local testing against the Durable Object service. The optional TURN broker is implemented; account activation and Worker secrets are still pending. Real cross-network decoded microphone audio remains unverified. See [TURN setup and verification](multiplayer/README.md#optional-turn-relay-setup).
 
 The remaining sections describe the underlying Sites/Vinext tooling and optional identity/database features. Those helpers do not make the current guest-room identity a durable learner account.
 
