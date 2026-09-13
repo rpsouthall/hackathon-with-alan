@@ -36,7 +36,7 @@ export interface WorldViewportProps {
 }
 
 export function WorldViewport(props: WorldViewportProps) {
-  const { snapshot, worldClock, send } = useWorld();
+  const { snapshot, worldClock, send, mode } = useWorld();
   const host = useRef<HTMLDivElement>(null);
   const runtime = useRef<ReturnType<typeof mountWorldScene> | null>(null);
   const vehicles = props.vehicles ?? snapshot?.vehicles ?? EMPTY_VEHICLES;
@@ -79,6 +79,18 @@ export function WorldViewport(props: WorldViewportProps) {
   }, [send]);
   const [status, setStatus] = useState({ phase: "loading", error: "" });
   const [time, setTime] = useState<WorldTime>({ hours: INITIAL_HOUR, playing: true, source: "local" });
+  const [running, setRunning] = useState(false);
+  const runningRef = useRef(false);
+  const jump = useCallback(() => {
+    const state = latest.current;
+    const player = state.players.find(candidate => candidate.id === state.localPlayerId);
+    if (!state.inputEnabled || !player || player.vehicleId || mode !== "local" || !state.environment.physics) return;
+    runtime.current?.cancelWalk(); send({ type: "jump" }); host.current?.focus();
+  }, [send, mode]);
+  function toggleRunning() {
+    const next = !runningRef.current; runningRef.current = next; setRunning(next);
+    runtime.current?.setRunning(next); host.current?.focus();
+  }
   const [overview, setOverview] = useState(false);
   const [view, setView] = useState<CameraView>("isometric");
   const cameraState = useRef({ view, overview });
@@ -116,24 +128,28 @@ export function WorldViewport(props: WorldViewportProps) {
         onWalking: (walking, message) => latest.current.onWalking?.(walking, message),
         onOpenEmotes: openEmotes,
         onTime: (next) => { if (!cancelled) setTime(next); },
+        onJump: jump,
         onMountVehicle: mountVehicle,
         onDismountVehicle: dismountVehicle,
       });
       runtime.current = mounted;
+      mounted.setRunning(runningRef.current);
       mounted.update(latest.current, latest.current.inputEnabled !== false);
       mounted.setView(cameraState.current.view);
       if (cameraState.current.overview) mounted.setOverview(true);
       mounted.setPaused(latest.current.renderPaused === true);
     }).catch(() => { if (!cancelled) setStatus({ phase: "unavailable", error: "3D rendering is unavailable on this device. You can still use the character list." }); });
     return () => { cancelled = true; mounted?.dispose(); runtime.current = null; };
-  }, [manifest, toggleView, openEmotes, mountVehicle, dismountVehicle]);
+  }, [manifest, toggleView, openEmotes, mountVehicle, dismountVehicle, jump]);
   return <div className={props.className} style={{ position: "relative", minHeight: 320, height: "100%" }}>
-    <div ref={host} tabIndex={0} role="application" aria-label="3D world. WASD or arrow keys to walk or ride. Hold Shift to sprint on foot. Press F to mount or dismount a vehicle, G for emotes, V to change view, E to interact." style={{ position: "absolute", inset: 0, outlineOffset: -3 }} />
+    <div ref={host} tabIndex={0} role="application" aria-label="3D world. WASD or arrow keys to walk or ride. Hold Shift to sprint on foot. Press Space to jump in solo mode. Press F to mount or dismount a vehicle, G for emotes, V to change view, E to interact." style={{ position: "absolute", inset: 0, outlineOffset: -3 }} />
     <AtmosphereControls time={time} onHour={(hours, animate) => runtime.current?.setHour(hours, animate)} onPlaying={playing => runtime.current?.setTimePlaying(playing)} onSharedTime={() => runtime.current?.returnToSharedTime()} />
     <nav aria-label="Walking controls" style={{ position: "absolute", right: 16, top: "45%", display: "grid", gridTemplateColumns: "repeat(3, 32px)", gap: 3 }}>
       {([{ label: "Move forward", direction: [0, -1], symbol: "↑", column: 2 }, { label: "Move left", direction: [-1, 0], symbol: "←", column: 1 }, { label: "Move backward", direction: [0, 1], symbol: "↓", column: 2 }, { label: "Move right", direction: [1, 0], symbol: "→", column: 3 }] as const).map((control, index) => <button key={control.label} type="button" aria-label={control.label} disabled={blocked || emotesOpen} onClick={(event) => runtime.current?.step([...control.direction], event.shiftKey)} style={{ gridColumn: control.column, gridRow: index === 0 ? 1 : 2, height: 32, color: "#203c30", background: "#ffffffe8", borderRadius: 6, border: "1px solid #849c8d" }}>{control.symbol}</button>)}
     </nav>
     <nav className="world-camera-controls" aria-label="View and character controls" data-view={overview ? "overview" : view}>
+      <button type="button" disabled={blocked || mountedVehicle || emotesOpen} aria-pressed={running} onClick={toggleRunning} title="Toggle running while moving; hold Shift to run temporarily">{running ? "Run: on" : "Run"} <kbd>Shift</kbd></button>
+      <button type="button" disabled={blocked || mountedVehicle || emotesOpen || mode !== "local" || !props.environment.physics} onClick={jump} aria-keyshortcuts="Space" title={mode !== "local" ? "Jump is available in solo mode" : "Jump (Space)"}>Jump <kbd>Space</kbd></button>
       <button type="button" disabled={blocked || emotesOpen} onClick={toggleView}
         aria-label={view === "isometric" ? "Switch to third-person view" : "Switch to isometric view"} aria-keyshortcuts="V" title="Change camera view (V)">
         <span aria-hidden="true">{view === "isometric" ? "◉" : "◇"}</span> {view === "isometric" ? "Third person" : "Isometric"} <kbd>V</kbd>

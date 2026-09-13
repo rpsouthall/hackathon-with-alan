@@ -78,6 +78,13 @@ export class WorldRoom {
       player.appearance = command.appearance; this.changed(); return null;
     }
     const active = this.state.encounters.find((e) => e.participantIds.includes(playerId));
+    if (command.type === "jump") {
+      if (player.vehicleId) return "Dismount before jumping";
+      if (active) return "Finish your conversation before jumping";
+      if (!this.physics) return "Jumping is unavailable in this environment";
+      if (!this.physics.jump(playerId)) return null;
+      player.emote = null; this.changed(); return null;
+    }
     if (command.type === "mount-vehicle") {
       if (player.vehicleId) return "Dismount your current vehicle first";
       if (active) return "Finish your conversation before riding";

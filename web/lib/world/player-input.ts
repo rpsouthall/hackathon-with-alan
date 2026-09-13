@@ -11,14 +11,15 @@ export class PlayerInput {
       Number(this.keys.has("s") || this.keys.has("arrowdown")) - Number(this.keys.has("w") || this.keys.has("arrowup"))];
   }
   clear(): void { this.keys.clear(); this.shifts.clear(); }
-  keyDown(event: InputKey): "view" | "emotes" | "interact" | "vehicle" | undefined {
+  keyDown(event: InputKey): "view" | "emotes" | "interact" | "vehicle" | "jump" | undefined {
     const editing = (event.target as Element | null)?.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"]');
     if (editing || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
     const key = event.key.toLowerCase();
     if (key === "shift") { this.shifts.add(event.code || "Shift"); return; }
     if (movementKeys.has(key)) { event.preventDefault(); this.keys.add(key); return; }
+    if (key === " ") event.preventDefault();
     if (event.repeat) return;
-    const action = key === "v" ? "view" : key === "g" ? "emotes" : key === "e" ? "interact" : key === "f" ? "vehicle" : undefined;
+    const action = key === " " ? "jump" : key === "v" ? "view" : key === "g" ? "emotes" : key === "e" ? "interact" : key === "f" ? "vehicle" : undefined;
     if (action) event.preventDefault();
     return action;
   }

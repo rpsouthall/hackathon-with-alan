@@ -18,7 +18,7 @@ import { CHARACTER_PRESETS } from "../characters/presets";
 import type { EnvironmentManifest, NpcSnapshot, PlayerSnapshot, EncounterSnapshot, VehicleSnapshot, Vec3 } from "./schema";
 
 export interface SceneEntities { worldClock?: WorldClockAnchor | null; speakingPlayerIds?: readonly string[]; speakingNpcIds?: readonly string[]; vehicles?: VehicleSnapshot[]; players: PlayerSnapshot[]; npcs: NpcSnapshot[]; localPlayerId: string | null; encounters?: EncounterSnapshot[]; selectedNpcId?: string; encounterNpcId?: string }
-export interface SceneCallbacks { onMountVehicle?: (id: string) => void; onDismountVehicle?: () => void; onMove: (direction: [number, number], yaw: number, sprint?: boolean) => number | void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void; onToggleView?: () => void; onOpenEmotes?: () => void; onTime?: (time: WorldTime) => void; onWalking?: (walking: boolean, message: string) => void }
+export interface SceneCallbacks { onJump?: () => void; onMountVehicle?: (id: string) => void; onDismountVehicle?: () => void; onMove: (direction: [number, number], yaw: number, sprint?: boolean) => number | void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void; onToggleView?: () => void; onOpenEmotes?: () => void; onTime?: (time: WorldTime) => void; onWalking?: (walking: boolean, message: string) => void }
 import type { createWalkingMap } from "./navigation";
 function disposeObject(root: THREE.Object3D) {
   const textures = new Set<THREE.Texture>(), materials = new Set<THREE.Material>(), geometries = new Set<THREE.BufferGeometry>();
@@ -138,6 +138,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     pendingMovement = { direction, yaw, sprint };
     flushMovement(now);
   }
+  let runEnabled = false;
   const input = new PlayerInput(); let step: {direction:[number,number];until:number;sprint:boolean}|null=null;
   let walkingMap: Promise<Awaited<ReturnType<typeof createWalkingMap>>> | undefined;
   let walkGeneration = 0;
@@ -168,6 +169,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     if(!enabled)return;
     const action=input.keyDown(event);
     if (["w","a","s","d","arrowup","arrowleft","arrowdown","arrowright"].includes(event.key.toLowerCase())) stopWalking();
+    if(action==="jump") { stopWalking(); callbacks.onJump?.(); }
     if(action==="view") { resetInput(); callbacks.onToggleView?.(); }
     if(action==="emotes"&&!entities.players.find(p=>p.id===entities.localPlayerId)?.vehicleId) { resetInput(); callbacks.onOpenEmotes?.(); }
     if(action==="vehicle"&&!cameraRig.isTransitioning) {
@@ -235,7 +237,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       }
       if(velocity.lengthSq())walkingYaw=Math.atan2(velocity.x,velocity.z);
       const direction:[number,number]=[velocity.x,velocity.z];
-      const sprint=Boolean(!walk&&(x||z)&&(input.sprinting||(step&&now<step.until&&step.sprint)));
+      const sprint=Boolean(!walk&&(x||z)&&(runEnabled||input.sprinting||(step&&now<step.until&&step.sprint)));
       sendMovement(direction,walkingYaw,sprint,simulationNow);
     }
     const predicted=predictor?.advance(simulationNow,dt);
@@ -323,6 +325,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     setHour(hours:number,animate=true){atmosphere.setHour(hours,animate);},
     setTimePlaying(playing:boolean){atmosphere.setPlaying(playing);},
     returnToSharedTime(){atmosphere.returnToSharedTime();},
+    setRunning(value:boolean){runEnabled=value;},
     step(direction:[number,number],sprint=false){if(enabled){stopWalking();step={direction,until:performance.now()+240,sprint};}},
     setView(value:CameraView){resetInput();overview=false;const local=actors.get(`player:${entities.localPlayerId}`);cameraRig.setView(value,local?.root.rotation.y??0);},
     setOverview(value:boolean){overview=value;resetInput();cameraRig.setOverview(value);},

@@ -158,6 +158,15 @@ export class RoomPhysics {
     return [p.x, p.y - actor.profile.height / 2, p.z];
   }
 
+  /** One grounded jump; never accept a client-supplied force. */
+  jump(id: string): boolean {
+    const actor = this.actors.get(id);
+    if (this.disposed || !actor || actor.profile.vehicle || actor.verticalVelocity > 0 || !actor.controller.computedGrounded()) return false;
+    actor.verticalVelocity = 5;
+    actor.controller.disableSnapToGround();
+    return true;
+  }
+
   verticalVelocity(id: string): number { return this.actors.get(id)?.verticalVelocity ?? 0; }
 
   /** Restore only trusted authority state before replaying browser input. */
@@ -167,7 +176,7 @@ export class RoomPhysics {
     const center = { x: feet[0], y: feet[1] + actor.profile.height / 2, z: feet[2] };
     actor.body.setTranslation(center, true);
     actor.body.setNextKinematicTranslation(center);
-    actor.verticalVelocity = Math.max(-8, Math.min(0, verticalVelocity));
+    actor.verticalVelocity = Math.max(-8, Math.min(5, verticalVelocity));
     actor.safeFeet = [...feet];
     this.accumulator = 0;
   }
@@ -188,11 +197,14 @@ export class RoomPhysics {
           if (!this.groundPosition(next, actor.profile, 0.22, 0.35)) horizontal = [0, 0, 0];
         }
         actor.verticalVelocity = Math.max(-8, actor.verticalVelocity + this.environment.physics!.gravity * PHYSICS_TIMESTEP);
+        if (actor.verticalVelocity > 0) actor.controller.disableSnapToGround();
+        else if (this.environment.physics!.groundSnap > 0) actor.controller.enableSnapToGround(this.environment.physics!.groundSnap);
         actor.controller.computeColliderMovement(actor.collider, {
           x: horizontal[0] * PHYSICS_TIMESTEP, y: actor.verticalVelocity * PHYSICS_TIMESTEP, z: horizontal[2] * PHYSICS_TIMESTEP,
         }, undefined, undefined, (collider) => this.staticHandles.has(collider.handle));
         const p = actor.body.translation(), move = actor.controller.computedMovement();
         actor.body.setNextKinematicTranslation({ x: p.x + move.x, y: p.y + move.y, z: p.z + move.z });
+        if (actor.verticalVelocity > 0 && move.y + 0.001 < actor.verticalVelocity * PHYSICS_TIMESTEP) actor.verticalVelocity = 0;
         if (actor.controller.computedGrounded()) {
           actor.verticalVelocity = 0;
           if (actor.profile.vehicle) actor.safeFeet = [p.x, p.y - actor.profile.height / 2, p.z];

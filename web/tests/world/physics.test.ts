@@ -223,3 +223,26 @@ for (const venue of cityGameplay.markers.filter((marker) => marker.properties.ki
     assert.ok(Math.min(...walker.trace.map((position) => position[1])) > 0.15, "Venue route stays on supported ground");
   });
 }
+
+test('grounded players jump, reject repeated airborne lift, and land safely', () => {
+  const room = routeRoom();
+  try {
+    room.join('jumper', 'Jumper');
+    for (let i = 0; i < 20; i++) room.tick(0.05, i * 50);
+    const floor = room.snapshot().players[0].position[1];
+    assert.equal(room.command('jumper', { type: 'jump' }, 1000), null);
+    let peak = floor;
+    for (let i = 0; i < 40; i++) {
+      room.tick(0.025, 1000 + i * 25);
+      peak = Math.max(peak, room.snapshot().players[0].position[1]);
+      if (i < 8) room.command('jumper', { type: 'jump' }, 1000 + i * 25);
+    }
+    assert.ok(peak > floor + 0.5, `Expected an actual jump, rose ${peak - floor}`);
+    assert.ok(peak < floor + 1.5, 'Repeated airborne jumps must not add lift');
+    for (let i = 0; i < 20; i++) room.tick(0.05, 2000 + i * 50);
+    assert.ok(Math.abs(room.snapshot().players[0].position[1] - floor) < 0.06, 'Must land on supported ground');
+    assert.equal(room.command('jumper', { type: 'jump' }, 3000), null);
+    room.tick(0.05, 3050);
+    assert.ok(room.snapshot().players[0].position[1] > floor + 0.1, 'Can jump again after landing');
+  } finally { room.dispose(); }
+});

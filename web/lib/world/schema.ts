@@ -78,7 +78,7 @@ export const playerSchema = z.object({
   appearance: appearanceSchema.default({}),
   vehicleId: id.nullable().default(null),
   // Last input actually simulated, and its duration in the authority clock.
-  movementAck: z.object({ sequence: z.number().int().nonnegative(), elapsedSeconds: z.number().finite().min(0).max(1), verticalVelocity: z.number().finite().min(-8).max(0) }).nullable().optional(),
+  movementAck: z.object({ sequence: z.number().int().nonnegative(), elapsedSeconds: z.number().finite().min(0).max(1), verticalVelocity: z.number().finite().min(-8).max(5) }).nullable().optional(),
 });
 export type PlayerSnapshot = z.infer<typeof playerSchema>;
 export const encounterSchema = z.object({
@@ -106,6 +106,7 @@ export type RoomSnapshot = z.infer<typeof roomSchema>;
 export const roomStateSchema = roomSchema.omit({ environment: true }).extend({ environmentRevision: id });
 export type RoomStateSnapshot = z.infer<typeof roomStateSchema>;
 export const commandSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("jump") }).strict(),
   z.object({ type: z.literal("move"), direction: z.tuple([z.number().finite().min(-1).max(1), z.number().finite().min(-1).max(1)]), yaw: z.number().finite().min(-Math.PI).max(Math.PI), sequence: z.number().int().nonnegative(), sprint: z.boolean().optional() }).strict(),
   z.object({ type: z.literal("emote"), name: z.enum(EMOTE_NAMES) }).strict(),
   z.object({ type: z.literal("mount-vehicle"), vehicleId: id }).strict(),
