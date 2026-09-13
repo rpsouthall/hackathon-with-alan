@@ -44,13 +44,13 @@ export function CharacterEditor({ appearance, connected, onSave, onClose, joinin
       } else onSave(parsed.data);
     }}>
       <header className="editor-heading"><span className="editor-stamp" aria-hidden="true"><Shirt /></span><div><small>{joining ? "Your story starts here" : "Make yourself at home"}</small><h1 id="character-editor-title">{joining ? "Welcome to Kyoto" : "Your character"}</h1></div>{onClose && <Button type="button" variant="ghost" size="icon" aria-label="Close character editor" onClick={onClose}><X /></Button>}</header>
-      <p className="editor-description">{joining ? "Create your traveller and join Kyoto. Everyone using the same room code explores the same streets." : "Choose your look, then return to the streets. Everyone in your room sees your saved character."}</p>
-      {joining && <fieldset className="editor-join-fields"><legend>Your visit</legend>
+      <p className="editor-description">{joining ? "Before you join, make your avatar your own. Try a style below, then personalise your hair, outfit and colours — or jump in with your current look." : "Choose your look, then return to the streets. Everyone in your room sees your saved character."}</p>
+      {joining && <fieldset className="editor-join-fields"><legend>Your visit</legend><p className="editor-room-hint">Exploring together? Use the same room code to meet in Kyoto.</p>
         <label>Your name<input name="name" defaultValue={joining.defaults.name} required maxLength={32} autoFocus /></label>
         <label>Room code<input name="room" defaultValue={joining.defaults.roomId} required pattern="[a-zA-Z0-9_-]+" maxLength={48} /></label>
       </fieldset>}
       <div className="editor-workspace"><CharacterPreview appearance={draft} /><div className="editor-customization">
-      <fieldset className="editor-presets"><legend>Start with a style</legend>{presets.map((preset) => <button type="button" key={preset.name} onClick={() => setDraft({ ...preset.appearance })}><span aria-hidden="true" style={{ background: preset.appearance.top }} />{preset.name}</button>)}</fieldset>
+      <fieldset className="editor-presets"><legend>{joining ? "Choose your avatar style" : "Start with a style"}</legend>{presets.map((preset) => <button type="button" key={preset.name} onClick={() => setDraft({ ...preset.appearance })}><span aria-hidden="true" style={{ background: preset.appearance.top }} />{preset.name}</button>)}</fieldset>
       <div className="editor-grid">
         <label>Hair style<select value={draft.hair} onChange={(event) => update("hair", event.target.value as PlayerAppearance["hair"])}><option value="crop">Short crop</option><option value="bob">Bob</option><option value="topknot">Topknot</option></select></label>
         <label>Outfit<select value={draft.outfit} onChange={(event) => update("outfit", event.target.value as PlayerAppearance["outfit"])}><option value="jacket">Jacket</option><option value="apron">Apron</option><option value="haori">Haori</option></select></label>

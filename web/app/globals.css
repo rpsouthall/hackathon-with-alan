@@ -900,3 +900,5 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 640px) { .hud-lesson-toggle { top: 78px; white-space: nowrap; } .hud-lesson-picker { top: 130px; max-height: calc(100dvh - 210px); } }
 
 .cinematic-encounter .world-stage button { visibility: hidden; pointer-events: none; }
+
+.editor-room-hint { grid-column: 1 / -1; margin: 0; color: #74685d; font-size: 13px; line-height: 1.5; }
