@@ -74,6 +74,7 @@ export function WorldViewport(props: WorldViewportProps) {
     </nav>
     <div role="status" style={{ position: "absolute", top: 12, left: 12, maxWidth: "90%", padding: "6px 10px", background: "#ffffffed", color: "#26372d", borderRadius: 8, fontSize: 12, pointerEvents: "none" }}>
       {status.error || (status.phase === "loading" ? "Loading environment…" : `${overview ? "Town overview" : view === "isometric" ? "Isometric" : "Third person · 360°"} · ${view === "third-person" && !overview ? "Drag to look around" : "Right drag to rotate"} · Scroll to zoom`)}
+      {status.phase === "fallback" && <button type="button" onClick={() => runtime.current?.retryEnvironment()} style={{pointerEvents: "auto", marginLeft: 10, padding: "5px 9px", border: "1px solid #849c8d", borderRadius: 5, background: "#fff9e8", color: "#26372d", cursor: "pointer"}}>Retry loading Kyoto</button>}
     </div>
   </div>;
 }

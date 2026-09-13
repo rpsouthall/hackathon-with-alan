@@ -42,3 +42,13 @@ repair separates these layers and shelf framing in the source geometry. Lighting
 and cutaway shaders are unchanged. See `asset-fixes/venue-depth` at the repository
 root for the generator patch and saved-scene migration. Three actual-GLB depth
 regressions reproduce the original issue and pass the corrected export.
+
+## Hosted model loading
+
+The lossless `.glb.gz` companion downloads 3,010,267 bytes instead of 14,014,860.
+The loader reports download progress and preparation, validates the GLB header,
+aborts abandoned scenes, and exposes a retry after a stalled/failed download.
+Raw GLB loading remains available if gzip support or the companion file is absent.
+Regenerate the companion with `node scripts/compress-city.mjs` from `web` whenever
+the render model changes. The compressed round-trip test verifies every decoded
+byte against the original model, including the corrected venue surfaces.

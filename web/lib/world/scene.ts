@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { loadEnvironment } from "./load-environment";
 import { GameCameraRig, type CameraView } from "./camera-rig";
 import { createAvatar, loadAvatarTemplate, disposeAvatarTemplate } from "../characters/avatar";
 import { SceneryCutaway, setOcclusionRay, isOccludingScenery } from "./occlusion";
@@ -56,10 +56,20 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   const cutaway = new SceneryCutaway();
   let occlusionHits = new Set<THREE.Mesh>();
   let lastOcclusionCheck = -Infinity;
-  if (environment.assetUrl) {
-    callbacks.onStatus("loading");
-    new GLTFLoader().load(environment.assetUrl, (gltf) => {
-      if (stopped) { disposeObject(gltf.scene); return; }
+  let environmentRequest = new AbortController();
+  const loadWorld = () => {
+    if (!environment.assetUrl || loaded || stopped) return;
+    environmentRequest.abort();
+    const request = new AbortController();
+    environmentRequest = request;
+    callbacks.onStatus("loading", "Downloading Kyoto…");
+    let lastProgress = "";
+    loadEnvironment(environment.assetUrl, { signal: request.signal, onProgress: ({stage, loaded: bytes, total}) => {
+      if (stopped || request.signal.aborted) return;
+      const message = stage === "prepare" ? "Preparing Kyoto…" : total > 0 ? `Downloading Kyoto… ${Math.min(99, Math.floor(bytes / total * 100))}%` : `Downloading Kyoto… ${(bytes / 1_000_000).toFixed(1)} MB`;
+      if (message !== lastProgress) { lastProgress = message; callbacks.onStatus("loading", message); }
+    } }).then((gltf) => {
+      if (stopped || request.signal.aborted) { disposeObject(gltf.scene); return; }
       loaded = gltf.scene;
       const sourceMaterials = new Set<THREE.Material>();
       loaded.traverse((object) => {
@@ -75,8 +85,9 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       });
       sourceMaterials.forEach((material)=>material.dispose());
       scene.add(loaded); fallback.visible = false; callbacks.onStatus("ready");
-    }, undefined, (error) => { if (!stopped) { console.error("City asset loading failed", error); callbacks.onStatus("fallback", "Environment could not load. Showing the walkable collision layout."); } });
-  } else callbacks.onStatus("placeholder");
+    }).catch((error) => { if (!stopped && !request.signal.aborted) { console.error("City asset loading failed", error); callbacks.onStatus("fallback", "Kyoto couldn’t load. Please try again."); } });
+  };
+  if (environment.assetUrl) loadWorld(); else callbacks.onStatus("placeholder");
   let template: Awaited<ReturnType<typeof loadAvatarTemplate>> | null = null;
   const templateReady = loadAvatarTemplate().then((asset) => { if(stopped) { disposeAvatarTemplate(asset); return null; } template=asset; return asset; }).catch(()=>null);
   type Actor = { root: THREE.Group; capsule: THREE.Mesh; target: THREE.Vector3; yaw: number; label: HTMLButtonElement; avatar?: ReturnType<typeof createAvatar>; appearanceKey?:string; npcId:string|null; previous:THREE.Vector3; labelBlocked?:boolean };
@@ -173,6 +184,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     renderer.render(scene,camera);frame=requestAnimationFrame(render);
   };frame=requestAnimationFrame(render);
   return {
+    retryEnvironment(){loadWorld();},
     step(direction:[number,number]){if(enabled)step={direction,until:performance.now()+240};},
     setView(value:CameraView){resetInput();overview=false;const local=actors.get(`player:${entities.localPlayerId}`);cameraRig.setView(value,local?.root.rotation.y??0);},
     setOverview(value:boolean){overview=value;resetInput();cameraRig.setOverview(value);},
@@ -192,6 +204,6 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       }
       for(const [key,actor]of actors)if(!present.has(key)){actor.avatar?.dispose();scene.remove(actor.root);disposeObject(actor.root);actor.label.remove();actors.delete(key);}
     },
-    dispose(){stopped=true;cancelAnimationFrame(frame);resize.disconnect();resetInput();cameraRig.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
+    dispose(){stopped=true;environmentRequest.abort();cancelAnimationFrame(frame);resize.disconnect();resetInput();cameraRig.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
   };
 }
