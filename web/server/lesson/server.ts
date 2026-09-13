@@ -74,7 +74,7 @@ export function createLessonServer(options: { createBridge?: (...args: Construct
       if (current) await liveSlot.close(current);
       if (version === liveVersion) send({ type: 'ended' });
     };
-    const submit = async (questionId: string, answer?: string, choice?: number) => {
+    const submit = async (questionId: string, answer?: string, choice?: number, source: 'voice' | 'text' = 'text') => {
       if (!engine) throw new Error('Start a lesson first.');
       if (Date.now() - lastAssessment < 600) throw new Error('Please wait a moment before submitting again.');
       const ticket = engine.begin(questionId);
@@ -88,7 +88,7 @@ export function createLessonServer(options: { createBridge?: (...args: Construct
           if (!answer?.trim()) throw new Error('Speak or type your answer first.');
           feedback = await assessAnswer(engine.question, answer.trim(), nativeLanguage, controller.signal);
         }
-        if (!disposed && engine.finish(ticket, feedback)) {
+        if (!disposed && engine.finish(ticket, feedback, source)) {
           publish();
           send({ type: 'turn', turn: { id: `feedback-${++chatSequence}`, role: 'assistant', text: `${feedback.japanese}\n${feedback.meaning}`, done: true } });
           bridge?.feedback(feedback);
@@ -156,7 +156,7 @@ export function createLessonServer(options: { createBridge?: (...args: Construct
               if (turn.done) {
                 const questionId = spokenQuestions.get(turn.id)!; spokenQuestions.delete(turn.id);
                 if (questionId === engine.question.id && !engine.state.completed && turn.text.trim()) {
-                  void submit(questionId, turn.text.slice(0, 1500)).catch(cause => error(cause instanceof Error ? cause.message : 'Please retry your answer.'));
+                  void submit(questionId, turn.text.slice(0, 1500), undefined, 'voice').catch(cause => error(cause instanceof Error ? cause.message : 'Please retry your answer.'));
                 }
               }
             },

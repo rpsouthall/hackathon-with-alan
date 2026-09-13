@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 export type CameraView = "isometric" | "third-person";
-type Shot = CameraView | "overview";
+type Shot = CameraView | "overview" | "encounter";
 type Pose = { radius: number; phi: number; theta: number; halfHeight: number; perspective: number };
 const ISO_POLAR = Math.acos(1 / Math.sqrt(3));
 const THIRD_RADIUS = 6.5;
@@ -12,6 +12,7 @@ const thirdHeight = (radius: number) => radius * Math.tan(THIRD_FOV * Math.PI / 
 const defaultPoses = (): Record<Shot, Pose> => ({
   isometric: { radius: Math.sqrt(3) * 18, phi: ISO_POLAR, theta: Math.PI / 4, halfHeight: 12, perspective: 0 },
   "third-person": { radius: THIRD_RADIUS, phi: 1.16, theta: Math.PI, halfHeight: thirdHeight(THIRD_RADIUS), perspective: 1 },
+  encounter: { radius: 4.5, phi: 1.38, theta: 0, halfHeight: thirdHeight(4.5), perspective: 1 },
   overview: { radius: Math.sqrt(3) * 50, phi: ISO_POLAR, theta: Math.PI / 4, halfHeight: 39, perspective: 0 },
 });
 
@@ -46,6 +47,8 @@ export class GameCameraRig {
   private readonly desiredFocus = new THREE.Vector3();
   private readonly delta = new THREE.Vector3();
   private readonly spherical = new THREE.Spherical();
+  private encounter?: { position: THREE.Vector3; yaw: number };
+  private viewportWidth = 1280;
   private aspect = 1;
   private thirdVisited = false;
   private enabled = true;
@@ -83,29 +86,29 @@ export class GameCameraRig {
   }
 
   get isTransitioning(): boolean { return !!this.transition; }
-  get shot(): Shot { return this.overview ? "overview" : this.view; }
+  get shot(): Shot { return this.encounter ? "encounter" : this.overview ? "overview" : this.view; }
   get camera(): THREE.OrthographicCamera | THREE.PerspectiveCamera {
-    return this.transition ? this.blendCamera : this.shot === "third-person" ? this.perspective : this.orthographic;
+    return this.transition ? this.blendCamera : (this.shot === "third-person" || this.shot === "encounter") ? this.perspective : this.orthographic;
   }
-  private get controls(): OrbitControls { return this.shot === "third-person" ? this.thirdControls : this.isoControls; }
+  private get controls(): OrbitControls { return (this.shot === "third-person" || this.shot === "encounter") ? this.thirdControls : this.isoControls; }
 
   private readPose(): Pose {
     if (this.transition) return { ...this.blendPose };
     this.spherical.setFromVector3(this.delta.subVectors(this.camera.position, this.focus));
     const radius = this.spherical.radius;
     return { radius, theta: this.spherical.theta, phi: this.spherical.phi,
-      halfHeight: this.shot === "third-person" ? thirdHeight(radius) : (this.overview ? 39 : 12) / this.orthographic.zoom,
-      perspective: this.shot === "third-person" ? 1 : 0 };
+      halfHeight: (this.shot === "third-person" || this.shot === "encounter") ? thirdHeight(radius) : (this.overview ? 39 : 12) / this.orthographic.zoom,
+      perspective: (this.shot === "third-person" || this.shot === "encounter") ? 1 : 0 };
   }
 
   private installPose(pose: Pose): void {
-    const camera = this.shot === "third-person" ? this.perspective : this.orthographic;
+    const camera = (this.shot === "third-person" || this.shot === "encounter") ? this.perspective : this.orthographic;
     // Consume old drag inertia before assigning the exact destination pose.
     this.controls.enableDamping = false;
     this.controls.update();
     camera.position.setFromSpherical(this.spherical.set(pose.radius, pose.phi, pose.theta)).add(this.focus);
     camera.lookAt(this.focus);
-    if (this.shot !== "third-person") this.orthographic.zoom = (this.overview ? 39 : 12) / pose.halfHeight;
+    if ((this.shot !== "third-person" && this.shot !== "encounter")) this.orthographic.zoom = (this.overview ? 39 : 12) / pose.halfHeight;
     this.controls.target.copy(this.focus);
     this.controls.update();
     this.controls.enableDamping = true;
@@ -114,8 +117,8 @@ export class GameCameraRig {
   }
 
   private syncInput(): void {
-    this.isoControls.enabled = this.enabled && !this.transition && this.shot !== "third-person";
-    this.thirdControls.enabled = this.enabled && !this.transition && this.shot === "third-person";
+    this.isoControls.enabled = this.enabled && !this.encounter && !this.transition && (this.shot !== "third-person" && this.shot !== "encounter");
+    this.thirdControls.enabled = this.enabled && !this.encounter && !this.transition && (this.shot === "third-person" || this.shot === "encounter");
   }
   setInputEnabled(enabled: boolean): void { this.enabled = enabled; this.syncInput(); }
 
@@ -125,7 +128,7 @@ export class GameCameraRig {
     if (!this.transition) this.poses[this.shot] = { ...from };
     this.view = view;
     this.overview = overview;
-    if (this.shot === "third-person" && !this.thirdVisited) {
+    if ((this.shot === "third-person" || this.shot === "encounter") && !this.thirdVisited) {
       this.poses["third-person"].theta = yaw + Math.PI;
       this.thirdVisited = true;
     }
@@ -138,7 +141,21 @@ export class GameCameraRig {
   setView(view: CameraView, yaw = 0): void { this.select(view, false, yaw); }
   setOverview(overview: boolean): void { this.select(this.view, overview); }
 
+  setEncounter(position: THREE.Vector3 | null, yaw = 0): void {
+    if (position && this.encounter) { this.encounter.position.copy(position); return; }
+    if (!position && !this.encounter) return;
+    const from = this.readPose();
+    if (!this.encounter && !this.transition) this.poses[this.shot] = { ...from };
+    this.encounter = position ? { position: position.clone(), yaw } : undefined;
+    if (position) this.poses.encounter.theta = yaw;
+    this.blendPose = { ...from };
+    this.transition = { from, to: { ...this.poses[this.shot] }, focus: this.focus.clone(), elapsed: 0 };
+    this.syncInput();
+    this.applyBlend(from);
+  }
+
   resize(width: number, height: number): void {
+    if (height > 1) this.viewportWidth = width;
     this.aspect = Math.max(width, 1e-5) / Math.max(height, 1e-5);
     const h = this.overview ? 39 : 12;
     this.orthographic.left = -h * this.aspect;
@@ -162,6 +179,12 @@ export class GameCameraRig {
     dt = Number.isFinite(dt) ? THREE.MathUtils.clamp(dt, 0, 0.1) : 0;
     this.desiredFocus.copy(this.overview ? this.center : playerFeet);
     if (!this.overview) this.desiredFocus.y += 1;
+    if (this.encounter) {
+      this.desiredFocus.copy(this.encounter.position).add(new THREE.Vector3(0, 1.25, 0));
+      // Place the character in the open left portion, clear of the glass panel.
+      if (this.viewportWidth > 760) this.desiredFocus.add(new THREE.Vector3(Math.cos(this.encounter.yaw), 0, -Math.sin(this.encounter.yaw)).multiplyScalar(thirdHeight(4.5) * this.aspect * .48));
+      else this.desiredFocus.y -= 1.05;
+    }
     if (this.transition) {
       const t = this.transition;
       t.elapsed += dt;

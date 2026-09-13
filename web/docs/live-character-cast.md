@@ -6,9 +6,11 @@ The city keeps Ryan's 3D cast. Opening a supported encounter uses its world NPC 
 | --- | --- | --- |
 | Aoi | Rika Sitting | Coffee order |
 | Haru | Wayne | Directions around town |
-| Ren | Graham Sitting | Inn check-in |
+| Ren | Pedro Sitting | Inn check-in |
 | Yui | June HR | Fruit shopping |
-| Sora | Thaddeus Sitting | Tea shopping |
+| Sora | Wayne | Tea shopping |
+
+The user selected these replacements after reviewing `public/avatars/casting-preview.html`. Haru and Sora intentionally share Wayne's appearance, while keeping separate character names, roles and lessons. The previous Graham and Thaddeus previews remain only in the before/after comparison.
 
 Nao also has the coffee lesson, Koharu the restaurant lesson, and Kaede the tea lesson. Other residents retain their sample conversations and do not display a live-avatar badge. Appearance is separate from spoken language: the existing GPT-Live voice pipeline produces Japanese and accepts the learner's selected native language.
 
@@ -20,4 +22,4 @@ Select a resident and choose **Walk closer**. The client plans a pedestrian rout
 
 Choose **Stop walking**, press a movement key, change the selected resident, or switch away from the browser window to cancel. A blocked or unavailable route reports a message and leaves manual walking available. The map covers the city's pedestrian ground and bridges, not rooftop navigation.
 
-`tests/world/navigation.test.ts` follows routes to all five featured residents using the real room physics and verifies that each resulting encounter request passes the authority's distance check. Lesson tests check unique avatar assignments, matching character/scenario routing, and ten questions with multiple quiz types for every scenario.
+`tests/world/navigation.test.ts` follows routes to all five featured residents using the real room physics and verifies that each resulting encounter request passes the authority's distance check. Lesson tests check the selected avatar assignments, matching character/scenario routing, and ten questions with multiple quiz types for every scenario.

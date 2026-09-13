@@ -253,11 +253,12 @@ function GameSession({ session, onJoin }: { session: SessionSettings; onJoin: (s
   }, []);
 
   return (
-    <main className="game-shell iso-game-shell">
+    <main className={`game-shell iso-game-shell${phase === "conversation" && lessonNpcId ? " cinematic-encounter" : ""}`}>
       <section className="world-stage" aria-label={`${snapshot?.environment.name ?? "World"} interactive preview`}>
         {snapshot && <WorldViewport environment={snapshot.environment} players={snapshot.players} npcs={snapshot.npcs} localPlayerId={localPlayerId} selectedNpcId={selectedNpc.id} encounters={snapshot.encounters}
           inputEnabled={phase === "explore" && connection === "connected" && !showRoom && !showCharacter}
-          renderPaused={phase !== "explore" || showCharacter || showRoom}
+          renderPaused={phase === "results" || showCharacter || showRoom}
+          encounterNpcId={phase === "conversation" ? selectedNpc.id : undefined}
           walkingRequest={walkingRequest} onWalking={(walking, message) => { setWalking(walking); setWalkingNotice(message); }}
           onMove={(direction, yaw) => send({ type: "move", direction, yaw, sequence: 0 })}
           onInteract={(npcId) => requestConversation(npcId as NpcDefinition["id"])} />}

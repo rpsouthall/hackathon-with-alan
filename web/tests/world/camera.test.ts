@@ -98,3 +98,28 @@ test("reduced motion changes immediately and dialogs disable both sets of camera
   rig.setInputEnabled(true); assert.equal(rig.thirdControls.enabled, true); assert.equal(rig.isoControls.enabled, false);
   rig.update(NaN, spawn); assert(rig.camera.position.toArray().every(Number.isFinite)); rig.dispose();
 });
+
+ test("encounter frames the NPC left of the panel and restores the exploration shot", () => {
+  const rig = new GameCameraRig(spawn, center); rig.resize(1440, 900);
+  const before = project(rig, spawn.clone().add(new THREE.Vector3(0, 1, 0)));
+  const npc = new THREE.Vector3(6, .3, 11);
+  rig.setEncounter(npc, .4); finish(rig);
+  assert.equal(rig.shot, "encounter");
+  const head = project(rig, npc.clone().add(new THREE.Vector3(0, 1.5, 0)));
+  assert(head.x < -.1 && head.x > -.8, "NPC stays in the open left side");
+  assert.equal(rig.thirdControls.enabled, false);
+  rig.setEncounter(null); finish(rig);
+  assert.equal(rig.shot, "isometric");
+  assert(project(rig, spawn.clone().add(new THREE.Vector3(0, 1, 0))).distanceTo(before) < 1e-5);
+  assert.equal(rig.isoControls.enabled, true);
+  rig.dispose();
+});
+
+test("portrait encounter keeps the NPC above the bottom sheet", () => {
+  const rig = new GameCameraRig(spawn, center); rig.resize(390, 844);
+  rig.setEncounter(spawn, 0); finish(rig);
+  const head = project(rig, spawn.clone().add(new THREE.Vector3(0, 1.5, 0)));
+  assert(Math.abs(head.x) < .01);
+  assert(head.y > .4 && head.y < 1, "NPC head remains above the sheet at 30vh");
+  rig.dispose();
+});

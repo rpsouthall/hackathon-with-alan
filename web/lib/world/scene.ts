@@ -8,7 +8,7 @@ import { CHARACTER_PRESETS } from "../characters/presets";
 import type { EnvironmentManifest, NpcSnapshot, PlayerSnapshot, EncounterSnapshot, Vec3 } from "./schema";
 import type { createWalkingMap } from './navigation';
 
-export interface SceneEntities { players: PlayerSnapshot[]; npcs: NpcSnapshot[]; localPlayerId: string | null; encounters?: EncounterSnapshot[]; selectedNpcId?: string }
+export interface SceneEntities { players: PlayerSnapshot[]; npcs: NpcSnapshot[]; localPlayerId: string | null; encounters?: EncounterSnapshot[]; selectedNpcId?: string; encounterNpcId?: string }
 export interface SceneCallbacks { onMove: (direction: [number, number], yaw: number) => void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void; onToggleView?: () => void; onWalking?: (walking: boolean, message: string) => void }
 function disposeObject(root: THREE.Object3D) {
   const textures = new Set<THREE.Texture>(), materials = new Set<THREE.Material>(), geometries = new Set<THREE.BufferGeometry>();
@@ -159,6 +159,8 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
 
     }
     const local=actors.get(`player:${entities.localPlayerId}`);
+    const encounterActor = entities.encounterNpcId ? actors.get(`npc:${entities.encounterNpcId}`) : undefined;
+    cameraRig.setEncounter(encounterActor?.root.position ?? null, encounterActor?.root.rotation.y ?? 0);
     cameraRig.update(dt, local?.root.position ?? spawn);
     camera = cameraRig.camera;
     host.dataset.cameraView = overview ? "overview" : cameraRig.view;
@@ -213,12 +215,12 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
         actor.labelBlocked=raycaster.intersectObjects(surfaces,false).some(hit=>hit.object.visible&&hit.object instanceof THREE.Mesh&&!cutaway.isCutAway(hit.object,hit.point));
         raycaster.near=0;raycaster.far=Infinity;
       }
-      actor.label.style.display=outside||actor.labelBlocked?"none":"block";
+      actor.label.style.display=entities.encounterNpcId||outside||actor.labelBlocked?"none":"block";
       actor.label.style.left=`${(projected.x*.5+.5)*host.clientWidth}px`;
       actor.label.style.top=`${(-projected.y*.5+.5)*host.clientHeight}px`;
     }
     if(checkLabels)lastLabelCheck=now;
-    const selected=entities.npcs.find(n=>n.id===entities.selectedNpcId);ring.visible=Boolean(selected);if(selected)ring.position.set(selected.position[0],selected.position[1]+.04,selected.position[2]);
+    const selected=entities.npcs.find(n=>n.id===entities.selectedNpcId);ring.visible=Boolean(selected)&&!entities.encounterNpcId;if(selected)ring.position.set(selected.position[0],selected.position[1]+.04,selected.position[2]);
     renderer.render(scene,camera);frame=requestAnimationFrame(render);
   };frame=requestAnimationFrame(render);
   return {

@@ -12,6 +12,7 @@ export interface WorldViewportProps {
   localPlayerId: string | null;
   encounters?: EncounterSnapshot[];
   selectedNpcId?: string;
+  encounterNpcId?: string;
   walkingRequest?: { npcId: string; sequence: number } | null;
   onWalking?: (walking: boolean, message: string) => void;
   onMove: (direction: [number, number], yaw: number) => void;

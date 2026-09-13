@@ -11,16 +11,16 @@ export interface LessonCharacter {
 const avatars = {
   rika: { avatarId: '5dd4d830-957a-419f-9334-0dc4399ada5d', avatarName: 'Rika Sitting', preview: '/avatars/rika.webp' },
   wayne: { avatarId: 'dd73ea75-1218-4ef3-92ce-606d5f7fbc0a', avatarName: 'Wayne', preview: '/avatars/wayne.webp' },
-  graham: { avatarId: 'e9844e6d-847e-4964-a92b-7ecd066f69df', avatarName: 'Graham Sitting', preview: '/avatars/graham.webp' },
+  pedro: { avatarId: '7a517e8e-b41f-49e7-b6b3-2cdfb4bbff1e', avatarName: 'Pedro Sitting', preview: '/avatars/pedro.webp' },
   june: { avatarId: '65f9e3c9-d48b-4118-b73a-4ae2e3cbb8f0', avatarName: 'June HR', preview: '/avatars/june.webp' },
-  thaddeus: { avatarId: 'd1b25f7e-ef00-455b-af2f-62c84254924a', avatarName: 'Thaddeus Sitting', preview: '/avatars/thaddeus.webp' },
 };
 export const lessonCharacters: LessonCharacter[] = [
   { id: 'cafe_owner', name: 'Aoi', role: 'Café owner', scenarioId: 'coffee', ...avatars.rika },
   { id: 'local_guide', name: 'Haru', role: 'Local guide', scenarioId: 'directions', ...avatars.wayne },
-  { id: 'inn_host', name: 'Ren', role: 'Inn host', scenarioId: 'inn', ...avatars.graham },
+  { id: 'inn_host', name: 'Ren', role: 'Inn host', scenarioId: 'inn', ...avatars.pedro },
   { id: 'market_produce', name: 'Yui', role: 'Produce seller', scenarioId: 'market', ...avatars.june },
-  { id: 'market_tea', name: 'Sora', role: 'Tea seller', scenarioId: 'tea', ...avatars.thaddeus },
+  // Sharing Wayne with Haru is the user's selected casting choice.
+  { id: 'market_tea', name: 'Sora', role: 'Tea seller', scenarioId: 'tea', ...avatars.wayne },
   { id: 'kissa_aoi_host', name: 'Nao', role: 'Barista', scenarioId: 'coffee', ...avatars.wayne },
   { id: 'restaurant_momiji_host', name: 'Koharu', role: 'Restaurant host', scenarioId: 'restaurant', ...avatars.rika },
   { id: 'tea_hanami_host', name: 'Kaede', role: 'Tea host', scenarioId: 'tea', ...avatars.june },

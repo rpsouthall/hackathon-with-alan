@@ -20,9 +20,10 @@ test('unrelated city residents do not accidentally start the coffee lesson', () 
   }
 });
 
-test('the five featured neighbours have distinct live avatars and consistent lesson identities', () => {
+test('the featured neighbours use the selected cast while keeping their lesson identities', () => {
   const featured = ['cafe_owner', 'local_guide', 'inn_host', 'market_produce', 'market_tea'].map(id => lessonCharacterForWorldNpc(id)!);
-  assert.equal(new Set(featured.map(character => character.avatarId)).size, 5);
+  assert.deepEqual(featured.map(character => character.avatarName), ['Rika Sitting', 'Wayne', 'Pedro Sitting', 'June HR', 'Wayne']);
+  assert.equal(featured[1].avatarId, featured[4].avatarId, 'Haru and Sora intentionally share the selected Wayne appearance');
   assert.deepEqual(featured.map(character => character.scenarioId), ['coffee', 'directions', 'inn', 'market', 'tea']);
   for (const character of lessonCharacters) {
     const lesson = scenarioForCharacter(character);
