@@ -756,3 +756,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 1100px) { .world-camera-controls { top: 151px; } }
 @media (max-width: 860px) { .world-camera-controls { top: auto; bottom: 250px; } }
 @media (max-width: 600px) { .world-camera-controls { right: 12px; max-width: calc(100% - 24px); } .world-camera-controls button { padding: 8px 10px; } }
+
+/* Shared-world room membership and invitation controls. */
+.room-members { border-top: 1px solid var(--border); padding-top: 1rem; }
+.room-members ul { display: flex; flex-wrap: wrap; gap: .4rem .8rem; max-height: 7rem; overflow: auto; list-style: none; padding: 0; margin: .65rem 0 1rem; }
+.room-members li { font-size: .875rem; }
+.room-members p { overflow-wrap: anywhere; }

@@ -1,0 +1,16 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "kyoto-shared-world",
+  "main": "worker.ts",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "durable_objects": { "bindings": [{ "name": "KYOTO_ROOMS", "class_name": "KyotoRoom" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["KyotoRoom"] }],
+  "ratelimits": [{ "name": "WORLD_ADMISSION", "namespace_id": "2026091301", "simple": { "limit": 120, "period": 60 } }],
+  "vars": { "WORLD_ALLOWED_ORIGINS": "https://kyoto-conversations.hello770000.chatgpt.site" },
+  "observability": { "enabled": false },
+  "alias": { "@dimforge/rapier3d-compat": "./generated-rapier/rapier.mjs" },
+  "rules": [{ "type": "CompiledWasm", "globs": ["**/*.wasm"], "fallthrough": true }],
+  "build": { "command": "node scripts/prepare-rapier.mjs", "cwd": "." }
+}

@@ -45,3 +45,10 @@ next-env.d.ts
 /.codex/
 /outputs/
 /work/
+
+# Reproducible Workers-only Rapier adapter and local server state.
+/multiplayer/generated-rapier/
+/multiplayer/.generated-source/
+/multiplayer/.wrangler/
+/multiplayer/dist/
+.dev.vars*

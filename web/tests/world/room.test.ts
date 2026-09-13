@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { WorldRoom } from "../../lib/world/room";
 import { DEFAULT_ENVIRONMENT, DEFAULT_NPCS } from "../../lib/world/defaults";
-import { environmentSchema, commandSchema } from "../../lib/world/schema";
+import { environmentSchema, commandSchema, MAX_ROOM_PLAYERS } from "../../lib/world/schema";
 import { voiceAccess } from "../../lib/world/voice-contract";
 
 function nearbyRoom() {
@@ -70,8 +70,8 @@ test("environment replacement preserves logical NPC identity", () => {
 });
 test("snapshots cannot mutate authority and rooms enforce capacity", () => {
   const room = new WorldRoom();
-  for (let i = 0; i < 8; i++) room.join(`p${i}`, `Player ${i}`);
-  assert.throws(() => room.join("ninth", "Full"), /full/);
+  for (let i = 0; i < MAX_ROOM_PLAYERS; i++) room.join(`p${i}`, `Player ${i}`);
+  assert.throws(() => room.join("overflow", "Full"), /full/);
   const snapshot = room.snapshot(); snapshot.players[0].position[0] = 9000;
   assert.equal(room.snapshot().players[0].position[0], 0);
 });

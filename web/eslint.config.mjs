@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "multiplayer/generated-rapier/**",
+    "multiplayer/.generated-source/**",
+    "multiplayer/**/dist/**",
+    "**/.wrangler/**",
   ]),
   {
     files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],

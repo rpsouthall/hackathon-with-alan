@@ -12,7 +12,7 @@ npm ci
 npm run dev:game
 ```
 
-Open **http://localhost:5173**. Create your traveller in the welcome editor, enter a display name and room name, then choose **Join shared room**. Open another tab with a different name and the same room to explore together. **Play solo** runs the same city privately.
+Open **http://localhost:5173**. Create your traveller in the welcome editor, enter a display name and room name, then choose **Join Kyoto**. Open another tab with a different name and the same room to explore together. **Play solo** runs the same city privately.
 
 - Click the world, then use **WASD / arrows** or the on-screen walking buttons. Right-drag to orbit; scroll to zoom.
 - Walk near a resident and press **E**, click their label, or use **Start encounter**. Another nearby learner can join the encounter and take a speaking turn.
@@ -26,6 +26,11 @@ The local launcher starts both the frontend and room server. For alternate ports
 The current city release, `kyoto-city-v2-final-20260913`, contains a 68 × 54 m world, two bridges, eight furnished venues with open entrances, and 15 distinct residents. Players share authoritative Rapier movement, validated character cosmetics, NPC reservations and exclusive speaking turns. Conversations and feedback are clearly labelled examples; no microphone or GPT-Live voice session is connected, and sample scores are not earned progress.
 
 See [the world integration guide](web/lib/world/README.md) for asset provenance, Blender export contracts, multiplayer configuration and verification. Run `npm run test:world`, `npx tsc --noEmit` and `npm run lint` from `web/` for the integration checks. The `/world-lab` route retains the smaller blockout and asset-loading checks.
+
+The [hosted multiplayer guide](web/multiplayer/README.md) covers the Cloudflare
+Durable Object server, signed Site admission, 32-player rooms, deployment and
+`npm run test:multiplayer`. Public server deployment is pending Cloudflare account
+authorization; the existing public preview remains available.
 
 ## Join the project
 

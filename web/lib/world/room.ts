@@ -1,5 +1,5 @@
 import { DEFAULT_ENVIRONMENT, DEFAULT_NPCS } from "./defaults";
-import { commandSchema, environmentSchema, npcSchema, playerSchema, roomSchema, PROTOCOL_VERSION, type EnvironmentManifest, type NpcSnapshot, type RoomSnapshot, type RoomStateSnapshot, type Vec3 } from "./schema";
+import { commandSchema, environmentSchema, npcSchema, playerSchema, roomSchema, PROTOCOL_VERSION, MAX_ROOM_PLAYERS, type EnvironmentManifest, type NpcSnapshot, type RoomSnapshot, type RoomStateSnapshot, type Vec3 } from "./schema";
 import { RoomPhysics } from "./physics";
 
 export const PLAYER_RADIUS = 0.3;
@@ -33,7 +33,7 @@ export class WorldRoom {
   join(playerId: string, name: string) {
     if (this.disposed) throw new Error("Room is closed");
     if (this.state.players.some((p) => p.id === playerId)) throw new Error("Player already joined");
-    if (this.state.players.length >= 8) throw new Error("Room is full");
+    if (this.state.players.length >= MAX_ROOM_PLAYERS) throw new Error("Room is full");
     const player = playerSchema.parse({ id: playerId, name: name.trim(), position: [...this.state.environment.spawn], yaw: 0, animation: "idle" });
     this.physics?.join(playerId, player.position);
     this.state.players.push(player);

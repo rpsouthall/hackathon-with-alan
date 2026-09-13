@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const PROTOCOL_VERSION = 1 as const;
+export const MAX_ROOM_PLAYERS = 32;
 const id = z.string().min(1).max(64).regex(/^[a-zA-Z0-9_-]+$/);
 export const vectorSchema = z.tuple([z.number().finite(), z.number().finite(), z.number().finite()]);
 export type Vec3 = z.infer<typeof vectorSchema>;
@@ -68,14 +69,14 @@ export const playerSchema = z.object({
 });
 export type PlayerSnapshot = z.infer<typeof playerSchema>;
 export const encounterSchema = z.object({
-  id, npcId: id, ownerId: id, participantIds: z.array(id).min(1).max(8),
+  id, npcId: id, ownerId: id, participantIds: z.array(id).min(1).max(MAX_ROOM_PLAYERS),
   speakerId: id.nullable(),
 });
 export type EncounterSnapshot = z.infer<typeof encounterSchema>;
 export const roomSchema = z.object({
   protocol: z.literal(PROTOCOL_VERSION), roomId: id, revision: z.number().int().nonnegative(),
-  environment: environmentSchema, players: z.array(playerSchema).max(8), npcs: z.array(npcSchema).max(64),
-  encounters: z.array(encounterSchema).max(8),
+  environment: environmentSchema, players: z.array(playerSchema).max(MAX_ROOM_PLAYERS), npcs: z.array(npcSchema).max(64),
+  encounters: z.array(encounterSchema).max(MAX_ROOM_PLAYERS),
 });
 export type RoomSnapshot = z.infer<typeof roomSchema>;
 /** Static environment travels once in welcome; live room state stays small. */
