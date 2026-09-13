@@ -745,3 +745,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .character-editor-card .editor-actions { margin-top: 18px; padding-top: 12px; bottom: -24px; }
 }
 @media (max-width: 760px) { .character-editor-card .editor-actions { bottom: -22px; } }
+
+/* Camera actions remain clear of the character card and the movement pad. */
+.world-camera-controls { position: absolute; top: 128px; right: 18px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; max-width: calc(100% - 36px); }
+.world-camera-controls button { display: inline-flex; align-items: center; gap: 7px; min-height: 36px; padding: 8px 12px; border: 1px solid #d9ccb2; border-radius: 8px; background: #fff9e8f5; color: #35404a; font: 500 12px system-ui; box-shadow: 0 2px 8px #24372d14; cursor: pointer; }
+.world-camera-controls button:hover:not(:disabled) { background: #fffdf3; border-color: #aa7460; }
+.world-camera-controls button:focus-visible { outline: 3px solid #aa7460; outline-offset: 3px; }
+.world-camera-controls button:disabled { opacity: .5; cursor: default; }
+.world-camera-controls kbd { font: 10px system-ui; opacity: .65; padding: 1px 4px; border: 1px solid #bfae9580; border-radius: 3px; }
+@media (max-width: 1100px) { .world-camera-controls { top: 151px; } }
+@media (max-width: 860px) { .world-camera-controls { top: auto; bottom: 250px; } }
+@media (max-width: 600px) { .world-camera-controls { right: 12px; max-width: calc(100% - 24px); } .world-camera-controls button { padding: 8px 10px; } }

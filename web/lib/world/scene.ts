@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { GameCameraRig, type CameraView } from "./camera-rig";
 import { createAvatar, loadAvatarTemplate, disposeAvatarTemplate } from "../characters/avatar";
 import { SceneryCutaway, setOcclusionRay, isOccludingScenery } from "./occlusion";
 import { addWorldLighting } from "./lighting";
@@ -8,7 +8,7 @@ import { CHARACTER_PRESETS } from "../characters/presets";
 import type { EnvironmentManifest, NpcSnapshot, PlayerSnapshot, EncounterSnapshot } from "./schema";
 
 export interface SceneEntities { players: PlayerSnapshot[]; npcs: NpcSnapshot[]; localPlayerId: string | null; encounters?: EncounterSnapshot[]; selectedNpcId?: string }
-export interface SceneCallbacks { onMove: (direction: [number, number], yaw: number) => void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void }
+export interface SceneCallbacks { onMove: (direction: [number, number], yaw: number) => void; onInteract: (id: string) => void; onStatus: (status: string, error?: string) => void; onToggleView?: () => void }
 function disposeObject(root: THREE.Object3D) {
   const textures = new Set<THREE.Texture>(), materials = new Set<THREE.Material>(), geometries = new Set<THREE.BufferGeometry>();
   root.traverse((object) => { if (object instanceof THREE.Mesh) {
@@ -30,13 +30,10 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   host.appendChild(renderer.domElement);
   const scene = new THREE.Scene();
   addWorldLighting(scene, renderer, environment);
-  const camera = new THREE.OrthographicCamera(-12,12,12,-12,.1,250);
-  let viewSpan = 24;
-  const focus = new THREE.Vector3(...environment.spawn).add(new THREE.Vector3(0, 1, 0));
-  camera.position.copy(focus).add(new THREE.Vector3(18,18,18));
-  const controls = new OrbitControls(camera, renderer.domElement); controls.target.copy(focus); controls.enablePan = false;
-  controls.minZoom=.6; controls.maxZoom=2.5; controls.minPolarAngle = Math.acos(1/Math.sqrt(3)); controls.maxPolarAngle = controls.minPolarAngle;
-  controls.mouseButtons.LEFT = null; controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE; controls.update();
+  const spawn = new THREE.Vector3(...environment.spawn);
+  const center = new THREE.Vector3((environment.bounds.min[0]+environment.bounds.max[0])/2,0,(environment.bounds.min[2]+environment.bounds.max[2])/2);
+  const cameraRig = new GameCameraRig(spawn, center, renderer.domElement, window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  let camera = cameraRig.camera;
   const fallback = new THREE.Group();
   const debugMaterial = new THREE.MeshStandardMaterial({ color: "#9bab86" });
   if (environment.physics) {
@@ -94,7 +91,8 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   function keyDown(event:KeyboardEvent) {
     const key=event.key.toLowerCase();
     if(movementKeys.has(key)) {event.preventDefault();if(enabled)keys.add(key);}
-    if(key==="e"&&!event.repeat&&enabled) {
+    if(key==="v"&&!event.repeat&&enabled) { event.preventDefault(); resetInput(); callbacks.onToggleView?.(); }
+    if(key==="e"&&!event.repeat&&enabled&&!cameraRig.isTransitioning) {
       const player=entities.players.find(p=>p.id===entities.localPlayerId);
       const nearby=player&&entities.npcs.filter(n=>new THREE.Vector3(...n.position).distanceTo(new THREE.Vector3(...player.position))<=n.interactionRadius).sort((a,b)=>new THREE.Vector3(...a.position).distanceToSquared(new THREE.Vector3(...player.position))-new THREE.Vector3(...b.position).distanceToSquared(new THREE.Vector3(...player.position)))[0];
       if(nearby)callbacks.onInteract(nearby.id);
@@ -104,7 +102,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   const raycaster=new THREE.Raycaster(); let pointerStart=[0,0];
   function pointerDown(event:PointerEvent){pointerStart=[event.clientX,event.clientY];}
   function click(event:MouseEvent) {
-    host.focus(); if(!enabled||Math.hypot(event.clientX-pointerStart[0],event.clientY-pointerStart[1])>5)return;
+    host.focus(); if(!enabled||cameraRig.isTransitioning||Math.hypot(event.clientX-pointerStart[0],event.clientY-pointerStart[1])>5)return;
     const rect=renderer.domElement.getBoundingClientRect();
     raycaster.setFromCamera(new THREE.Vector2((event.clientX-rect.left)/rect.width*2-1,-(event.clientY-rect.top)/rect.height*2+1),camera);
     const hit=raycaster.intersectObjects([...actors.values()].filter(a=>a.npcId).map(a=>a.root),true).find(hit=>hit.object.visible);
@@ -113,9 +111,9 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   }
   host.addEventListener("keydown",keyDown);host.addEventListener("keyup",keyUp);host.addEventListener("blur",resetInput);window.addEventListener("blur",resetInput);
   renderer.domElement.addEventListener("pointerdown",pointerDown);renderer.domElement.addEventListener("click",click);
-  const resize=new ResizeObserver(()=>{const width=Math.max(host.clientWidth,1),height=Math.max(host.clientHeight,1);renderer.setSize(width,height);camera.left=-viewSpan*width/height/2;camera.right=-camera.left;camera.top=viewSpan/2;camera.bottom=-viewSpan/2;camera.updateProjectionMatrix();});resize.observe(host);
+  const resize=new ResizeObserver(()=>{const width=Math.max(host.clientWidth,1),height=Math.max(host.clientHeight,1);renderer.setSize(width,height);cameraRig.resize(width,height);});resize.observe(host);
   let frame=0,previous=performance.now(),lastInput=0,lastLabelCheck=0;
-  const desiredFocus=new THREE.Vector3(), forward=new THREE.Vector3(),right=new THREE.Vector3(),velocity=new THREE.Vector3(), projected=new THREE.Vector3();
+  const forward=new THREE.Vector3(),right=new THREE.Vector3(),velocity=new THREE.Vector3(), projected=new THREE.Vector3();
   const render=(now:number)=>{
     if(stopped)return; const dt=Math.min((now-previous)/1000,.1);previous=now;
     for(const actor of actors.values()) {
@@ -125,10 +123,11 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
 
     }
     const local=actors.get(`player:${entities.localPlayerId}`);
-    if(local&&!overview){desiredFocus.copy(local.root.position).add(new THREE.Vector3(0,1,0));const delta=desiredFocus.clone().sub(controls.target).multiplyScalar(1-Math.exp(-8*dt));camera.position.add(delta);controls.target.add(delta);}
-    controls.update();
-    camera.updateMatrixWorld(true);
-    if(now-lastInput>=50&&enabled){
+    cameraRig.update(dt, local?.root.position ?? spawn);
+    camera = cameraRig.camera;
+    host.dataset.cameraView = overview ? "overview" : cameraRig.view;
+    host.dataset.cameraTransition = String(cameraRig.isTransitioning);
+    if(now-lastInput>=50&&enabled&&!cameraRig.isTransitioning){
       const x=Number(keys.has("d")||keys.has("arrowright"))-Number(keys.has("a")||keys.has("arrowleft"))||(step&&now<step.until?step.direction[0]:0);
       const z=Number(keys.has("s")||keys.has("arrowdown"))-Number(keys.has("w")||keys.has("arrowup"))||(step&&now<step.until?step.direction[1]:0);
       camera.getWorldDirection(forward);forward.y=0;forward.normalize();right.crossVectors(forward,THREE.Object3D.DEFAULT_UP).normalize();
@@ -154,7 +153,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       }
       lastOcclusionCheck=now;
     }
-    cutaway.update(occlusionHits,now,dt,(local?.root.position??focus).clone().add(new THREE.Vector3(0,1.2,0)),camera);
+    cutaway.update(occlusionHits,now,dt,(local?.root.position??spawn).clone().add(new THREE.Vector3(0,1.2,0)),camera);
     const checkLabels=now-lastLabelCheck>=120;
     for (const actor of actors.values()) {
       const head=actor.root.position.clone().add(new THREE.Vector3(0,2.1,0));
@@ -175,9 +174,10 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   };frame=requestAnimationFrame(render);
   return {
     step(direction:[number,number]){if(enabled)step={direction,until:performance.now()+240};},
-    setOverview(value:boolean){overview=value;resetInput();if(value){const center=new THREE.Vector3((environment.bounds.min[0]+environment.bounds.max[0])/2,0,(environment.bounds.min[2]+environment.bounds.max[2])/2);viewSpan=78;camera.zoom=1;controls.target.copy(center);camera.position.copy(center).add(new THREE.Vector3(50,50,50));}else{viewSpan=24;camera.zoom=1;const p=actors.get(`player:${entities.localPlayerId}`)?.root.position??new THREE.Vector3(...environment.spawn);controls.target.copy(p).add(new THREE.Vector3(0,1,0));camera.position.copy(controls.target).add(new THREE.Vector3(18,18,18));}camera.left=-viewSpan*host.clientWidth/Math.max(1,host.clientHeight)/2;camera.right=-camera.left;camera.top=viewSpan/2;camera.bottom=-viewSpan/2;camera.updateProjectionMatrix();controls.update();},
+    setView(value:CameraView){resetInput();overview=false;const local=actors.get(`player:${entities.localPlayerId}`);cameraRig.setView(value,local?.root.rotation.y??0);},
+    setOverview(value:boolean){overview=value;resetInput();cameraRig.setOverview(value);},
     update(next:SceneEntities,inputEnabled:boolean){
-      entities=next;if(enabled&&!inputEnabled)resetInput();enabled=inputEnabled;const present=new Set<string>();
+      entities=next;if(enabled&&!inputEnabled)resetInput();enabled=inputEnabled;cameraRig.setInputEnabled(inputEnabled);const present=new Set<string>();
       const items=[...next.players.map(p=>({key:`player:${p.id}`,position:p.position,yaw:p.yaw,name:p.id===next.localPlayerId?`${p.name} · you`:p.name,npcId:null as string|null,appearance:p.appearance})),...next.npcs.map(n=>({key:`npc:${n.id}`,position:n.position,yaw:n.yaw??0,name:n.name,npcId:n.id,appearance:CHARACTER_PRESETS[n.id as keyof typeof CHARACTER_PRESETS]?.appearance??CHARACTER_PRESETS.local_guide.appearance}))];
       for(const item of items){present.add(item.key);let actor=actors.get(item.key);
         if(!actor){const root=new THREE.Group();root.position.fromArray(item.position);root.userData.npcId=item.npcId;const capsule=new THREE.Mesh(new THREE.CapsuleGeometry(.28,1.14,4,8),new THREE.MeshStandardMaterial({color:item.npcId?"#bf7865":"#5c7f89"}));capsule.position.y=.85;root.add(capsule);scene.add(root);
@@ -192,6 +192,6 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       }
       for(const [key,actor]of actors)if(!present.has(key)){actor.avatar?.dispose();scene.remove(actor.root);disposeObject(actor.root);actor.label.remove();actors.delete(key);}
     },
-    dispose(){stopped=true;cancelAnimationFrame(frame);resize.disconnect();resetInput();controls.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
+    dispose(){stopped=true;cancelAnimationFrame(frame);resize.disconnect();resetInput();cameraRig.dispose();host.removeEventListener("keydown",keyDown);host.removeEventListener("keyup",keyUp);host.removeEventListener("blur",resetInput);window.removeEventListener("blur",resetInput);renderer.domElement.removeEventListener("pointerdown",pointerDown);renderer.domElement.removeEventListener("click",click);for(const actor of actors.values()){actor.avatar?.dispose();actor.label.remove();}scene.traverse(object=>{if(object instanceof THREE.Light) object.dispose();});disposeObject(scene);if(template)disposeAvatarTemplate(template);renderer.dispose();renderer.domElement.remove();},
   };
 }

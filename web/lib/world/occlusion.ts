@@ -1,19 +1,24 @@
 import * as THREE from "three";
 
-/** Orthographic sight lines are parallel, not rays from the camera's position. */
+/** Follow the rendered projection, including the rig's blended projection. */
 export function setOcclusionRay(ray: THREE.Raycaster, camera: THREE.Camera, target: THREE.Vector3) {
-  if(camera instanceof THREE.PerspectiveCamera) {
+  ray.camera = camera;
+  // The transition rig uses PerspectiveCamera with an intermediate matrix.
+  // Only a true perspective projection has its ray origin at the camera.
+  if(camera instanceof THREE.PerspectiveCamera && camera.projectionMatrix.elements[15] === 0) {
     const direction=target.clone().sub(camera.position);
     ray.set(camera.position,direction.clone().normalize());
     ray.near=camera.near;
     ray.far=Math.max(ray.near,direction.length()-.2);
     return;
   }
-  const direction = camera.getWorldDirection(new THREE.Vector3());
-  const distance = target.clone().sub(camera.position).dot(direction);
-  ray.set(target.clone().addScaledVector(direction, -distance), direction);
-  ray.near = Math.max(.1, "near" in camera ? Number(camera.near) : .1);
-  ray.far = Math.max(ray.near, distance - .2);
+  const ndc = target.clone().project(camera);
+  const near = new THREE.Vector3(ndc.x, ndc.y, -1).unproject(camera);
+  const far = new THREE.Vector3(ndc.x, ndc.y, 1).unproject(camera);
+  const direction = far.sub(near).normalize();
+  ray.set(near, direction);
+  ray.near = 0;
+  ray.far = Math.max(0, target.clone().sub(near).dot(direction) - .2);
 }
 
 export function isOccludingScenery(mesh: THREE.Mesh) {

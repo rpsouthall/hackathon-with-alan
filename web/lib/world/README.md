@@ -46,7 +46,7 @@ Authoring sources live in the main checkout's **`kyoto_city/`** and **`npcs/`** 
 The copied city GLB and gameplay data match the SHA-256 entries in [RELEASE.json](../../public/models/kyoto/RELEASE.json) (the source lists the full-detail export too; this game uses LOD1):
 
 ```text
-kyoto_city_lod1.glb       54f24eb271c7aee2efdf022f5ba9440471a9c71f26485d9dc4b80b1e08512700
+kyoto_city_lod1.glb       9a81fc6fe459477544be3091b4a3f55023439fd9d5823d7285d23e6d07040169
 kyoto-city-gameplay.json fcf0eb34ccadbab6422c54c4faec0e7a23439320f35fe778b99ab93ae2c764ac
 komorebi_npc.glb         45bb1fdbe87b4a7f21c0260a66a356465fa77f941c172cb03422e22bb761e232
 ```
@@ -108,3 +108,7 @@ npm run build
 ```
 
 The consolidated suite currently contains **43 tests**: actual Three.js GLB loading and independent character animation/customization; real WebSocket clients, shared cosmetics, compact state and encounter turns; authoritative movement through both bridges and all eight venues; interaction with every one of the 15 residents; stairs, bounds, falling respawn, stale input and cleanup. These tests require loopback socket access. Browser controls, visual appearance and performance need browser verification in addition to these headless checks.
+
+## Graphics and camera follow-up
+
+The depth-corrected city render release is `kyoto-city-v2-depth-fix-20260913`; its gameplay data and marker contract are unchanged. Venue surfaces are separated to remove coplanar flicker. The runtime smooths scenery cutaways and supports an optional third-person view: press V or use the camera button to switch smoothly from the default isometric view. Regression tests cover camera interpolation and visibility rays during projection transitions. See `web/docs/graphics-polish.md` and `asset-fixes/venue-depth/README.md` for the asset repair and targeted graphics verification.
