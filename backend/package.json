@@ -1,0 +1,7 @@
+{
+  "name": "worldtalk-voice-backend",
+  "private": true,
+  "type": "module",
+  "scripts": { "dev": "node --env-file-if-exists=.env src/dev.mjs", "test": "node --test" },
+  "engines": { "node": ">=22" }
+}

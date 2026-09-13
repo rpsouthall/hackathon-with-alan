@@ -35,3 +35,11 @@ Direct Blender control also requires the Blender MCP connection described in the
 ## Current status
 
 Project repository initialized. The project brief and first Blender scene are still to be defined.
+
+## Japanese → English voice milestone
+
+Alan owns backend/voice on `codex/alan-backend-voice`; Ryan owns frontend/3D.
+The initial interpreter uses ElevenLabs Agents with HeyGen LiveAvatar's official
+connector. See [voice setup and frontend contract](docs/VOICE-HANDOFF.md).
+Run backend checks with `cd backend && npm test`. Live credentials and a Sites
+route wrapper are still required; this repository does not yet contain a deployed app.
