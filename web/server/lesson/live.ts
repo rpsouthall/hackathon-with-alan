@@ -2,7 +2,7 @@
 // See ../../lib/lesson/HEYGEN-LICENSE.txt.
 import type { LessonSocket, SocketFactory } from './socket';
 import type { LessonRuntime } from './runtime';
-import { speechInstruction } from '../../lib/lesson/difficulty';
+import { tutorInstructions, tutorQuestion, tutorFeedback } from './tutor-prompts';
 import { TurnProjector } from './turns';
 import { voiceForAvatar } from '../../lib/lesson/characters';
 import type { Feedback, NativeLanguage, Question, Scenario, Turn } from '../../lib/lesson/types';
@@ -79,7 +79,7 @@ export class LiveBridge {
       this.gpt = this.connect('wss://api.openai.com/v1/live/sessions', { headers: { Authorization: `Bearer ${this.runtime.OPENAI_API_KEY}` }, maxPayload: 8 * 1024 * 1024 });
       this.gpt.on('open', () => this.send(this.gpt, { type: 'session.start', event_id: 'start', session: {
         model: 'gpt-live-1',
-        instructions: `You are ${this.scenario.name}, a supportive Japanese tutor in ${this.scenario.title}. Understand English and ${this.language}; accept native-language answers and model natural Japanese. Correct one meaningful error kindly, without inventing errors. Never claim to assess pronunciation from transcripts. Follow the app's current task and difficulty. Before a level is chosen, ask the easy-or-difficult preference in English and Japanese and wait. After selection, speak Japanese at the selected level, one or two concise sentences at a time. Do not advance questions without the app. Wait silently until the app tells you to begin.`,
+        instructions: tutorInstructions(this.scenario, this.language),
         audio: { format: { type: 'audio/pcm', rate: 24000 }, output: { voice: voiceForAvatar(this.configuredAvatarId) } },
       } }));
       this.gpt.on('message', raw => {
@@ -93,7 +93,7 @@ export class LiveBridge {
           if (this.started && (event.type === 'session.input_transcript.delta' || event.type === 'session.output_transcript.delta')) {
             this.turns.fragment(event.type === 'session.input_transcript.delta' ? 'user' : 'assistant', event.delta || '', typeof event.start_ms === 'number' ? event.start_ms : null, typeof event.end_ms === 'number' ? event.end_ms : null);
           }
-          if (event.type === 'session.delegation.created' && event.delegation?.target === 'client' && typeof event.delegation.id === 'string') this.append('commentary', speechInstruction(this.current), event.delegation.id);
+          if (event.type === 'session.delegation.created' && event.delegation?.target === 'client' && typeof event.delegation.id === 'string') this.append('commentary', tutorQuestion(this.current), event.delegation.id);
           if (event.type === 'session.instructions.appended' && event.client_event_id === this.pendingSpeech) {
             this.pendingSpeech = null;
             this.append('commentary', 'Follow the current task instructions and speak now.');
@@ -147,11 +147,11 @@ export class LiveBridge {
     this.current = question;
     if (!this.started) return;
     this.send(this.media, { type: 'agent.interrupt' });
-    this.pendingSpeech = this.append('instructions', speechInstruction(question));
+    this.pendingSpeech = this.append('instructions', tutorQuestion(question));
   }
   feedback(feedback: Feedback) {
-    this.append('thinking', `App assessment: ${JSON.stringify({ verdict: feedback.verdict, naturalJapanese: feedback.japanese, meaning: feedback.meaning })}`.slice(0, 800));
-    this.append('instructions', `Briefly model this correct Japanese phrase now: ${feedback.japanese}. Encourage the learner to repeat it; stay on the current question.`);
+    this.send(this.media, { type: 'agent.interrupt' });
+    this.pendingSpeech = this.append('instructions', tutorFeedback(feedback));
   }
   close(): Promise<void> {
     return this.closePromise ??= this.dispose();
