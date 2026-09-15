@@ -13,9 +13,11 @@
 .panel p { margin: 10px 0 0; color: #b2c0b1; font-size: 10px; text-align: center; }
 .root button:hover { background-color: #547069; }
 .root button:focus-visible, .root input:focus-visible { outline: 2px solid #f1c39d; outline-offset: 3px; }
-:global(.minimal-game-hud) .root { left: 50%; top: 24px; bottom: auto; transform: translateX(-50%); }
-:global(.minimal-game-hud) .panel { position: absolute; left: 50%; top: 44px; margin-top: 0; transform: translateX(-50%); }
-@media (max-width: 600px) {
-  :global(.minimal-game-hud) .root { left: auto; right: 16px; top: 66px; transform: none; }
-  :global(.minimal-game-hud) .panel { left: auto; right: 0; transform: none; }
+:global(.minimal-game-hud) .root { left: auto; right: 24px; top: 76px; bottom: auto; transform: none; }
+:global(.minimal-game-hud) .panel { position: absolute; right: 0; top: 44px; margin-top: 0; }
+@media (max-width: 800px), (max-height: 500px), (pointer: coarse) {
+  :global(.minimal-game-hud) .root { left: max(14px, env(safe-area-inset-left)); right: auto; top: max(55px, calc(env(safe-area-inset-top) + 45px)); }
+  :global(.minimal-game-hud) .trigger { min-height: 36px; padding: 6px 10px; font-size: 11px; }
+  :global(.minimal-game-hud) .panel { left: 0; right: auto; }
 }
+.panel { max-height: calc(100dvh - 115px); overflow-y: auto; }

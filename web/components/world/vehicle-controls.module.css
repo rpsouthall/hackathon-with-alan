@@ -43,8 +43,8 @@
 .speed { display: inline-flex; align-items: baseline; gap: 4px; min-width: 51px; font-size: 17px; font-variant-numeric: tabular-nums; }
 .speed small { color: #c4d0cc; font-size: 9px; }
 .hint { flex-basis: 100%; text-align: center; color: #bdcbc7; padding-bottom: 3px; font-size: 10px; }
-@media (pointer: coarse) {
-  .controls { bottom: max(218px, calc(env(safe-area-inset-bottom) + 202px)); }
+@media (pointer: coarse), (max-width: 800px), (max-height: 500px) {
+  .controls { bottom: max(230px, calc(env(safe-area-inset-bottom) + 218px)); }
   .hint { display: none; }
   .action kbd { display: none; }
 }
