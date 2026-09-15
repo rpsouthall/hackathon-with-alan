@@ -913,3 +913,31 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .cinematic-encounter .world-stage button { visibility: hidden; pointer-events: none; }
 
 .editor-room-hint { grid-column: 1 / -1; margin: 0; color: #74685d; font-size: 13px; line-height: 1.5; }
+
+/* Thumb controls share the keyboard's local prediction path. */
+.walking-controls { position:absolute; left:max(16px, env(safe-area-inset-left)); bottom:max(22px, env(safe-area-inset-bottom)); z-index:24; display:grid; grid-template-columns:repeat(3,48px); gap:5px; touch-action:none; user-select:none; -webkit-user-select:none; }
+.walking-controls button { height:48px; border:1px solid #ffffff50; border-radius:14px; background:#153b32c9; color:white; font-size:24px; touch-action:none; -webkit-touch-callout:none; }
+.walking-controls button:active { background:#527e68; }
+.walking-controls button:disabled { opacity:.35; }
+@media (max-width:800px), (max-height:500px), (pointer:coarse) {
+  .minimal-game-hud .hud-party { top:max(15px, env(safe-area-inset-top)); left:max(14px, env(safe-area-inset-left)); width:110px; }
+  .minimal-game-hud .hud-party ul { display:none; }
+  .minimal-game-hud .hud-menu { top:max(12px, env(safe-area-inset-top)); right:max(14px, env(safe-area-inset-right)); }
+  .minimal-game-hud .hud-menu > summary { font-size:0; width:40px; height:40px; padding:8px; justify-content:center; }
+  .minimal-game-hud .hud-menu > summary span[aria-hidden] { font-size:22px; }
+  .minimal-game-hud .hud-lesson-toggle { top:max(14px, env(safe-area-inset-top)); padding:8px 10px; font-size:0; min-height:38px; gap:6px; }
+  .minimal-game-hud .hud-lesson-toggle::after { content:'Lessons'; font-size:12px; }
+  .minimal-game-hud .hud-lesson-picker { top:100px; left:14px; width:min(340px, calc(100vw - 28px)); max-height:calc(100dvh - 240px); }
+  .minimal-game-hud .hud-current-venue { top:100px; left:14px; width:auto; max-width:190px; padding:8px; }
+  .minimal-game-hud .hud-current-venue > span, .minimal-game-hud .hud-current-venue > small { display:none; }
+  .minimal-game-hud .hud-audio { left:auto; right:max(14px, env(safe-area-inset-right)); bottom:max(130px, calc(env(safe-area-inset-bottom) + 118px)); }
+  .minimal-game-hud .hud-audio-content { left:auto; right:0; max-height:calc(100dvh - 200px); overflow:auto; }
+  .minimal-game-hud .world-camera-controls { right:max(14px, env(safe-area-inset-right)); bottom:max(20px, env(safe-area-inset-bottom)); max-width:160px; gap:4px; }
+  .minimal-game-hud .world-camera-controls button { min-height:40px; padding:8px; font-size:10px; }
+  .minimal-game-hud .world-camera-controls kbd { display:none; }
+  .minimal-game-hud .hud-interact { bottom:max(180px, calc(env(safe-area-inset-bottom) + 168px)); max-width:calc(100vw - 30px); padding:9px 12px; font-size:12px; }
+  .minimal-game-hud .hud-interact kbd { display:none; }
+}
+
+@media (max-width:800px), (max-height:500px) { .minimal-game-hud nav[aria-label="Walking controls"] { display:grid !important; } }
+@media (max-height:500px) { .minimal-game-hud .hud-key-hints { display:none; } }

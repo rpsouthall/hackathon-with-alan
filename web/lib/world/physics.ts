@@ -110,14 +110,19 @@ export class RoomPhysics {
   private groundPosition(feet: Vec3, profile: ActorProfile, maxRise: number, maxDrop: number): Vec3 | null {
     const heights: number[] = [];
     const spread = profile.radius * 0.7;
+    // The outside of a wide capsule can be higher/lower than its feet on a
+    // walkable ramp. Probe the full footprint without treating that slope as a ledge.
+    const slopeReach = profile.vehicle ? spread * Math.tan((this.environment.physics?.maxSlopeDegrees ?? 35) * Math.PI / 180) : 0;
     for (const [dx, dz] of [[0, 0], [spread, 0], [-spread, 0], [0, spread], [0, -spread]]) {
-      const origin = { x: feet[0] + dx, y: feet[1] + maxRise, z: feet[2] + dz };
-      const hit = this.world.castRay(new rapier!.Ray(origin, { x: 0, y: -1, z: 0 }), maxRise + maxDrop, true,
+      const origin = { x: feet[0] + dx, y: feet[1] + maxRise + slopeReach, z: feet[2] + dz };
+      const hit = this.world.castRay(new rapier!.Ray(origin, { x: 0, y: -1, z: 0 }), maxRise + maxDrop + 2 * slopeReach, true,
         undefined, undefined, undefined, undefined, (collider) => this.staticHandles.has(collider.handle));
       if (!hit) return null;
       heights.push(origin.y - hit.timeOfImpact);
     }
-    if (Math.max(...heights) - Math.min(...heights) > 0.24) return null;
+    // Extra ray range is only for the outer footprint, never a taller step or fall.
+    if (heights[0] > feet[1] + maxRise || heights[0] < feet[1] - maxDrop) return null;
+    if (Math.max(...heights) - Math.min(...heights) > 0.24 + 2 * slopeReach) return null;
     return [feet[0], Math.max(...heights) + 0.011, feet[2]];
   }
 

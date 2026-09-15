@@ -15,3 +15,22 @@ test('all six Kyoto parking places are supported, and each ride mounts/dismounts
 test('mounting through a wall and mounting from far away are rejected',t=>{const env=fixture();env.vehicleSpawns![0].position=[0,0,1.9];env.colliders=[{min:[-3,0,.4],max:[3,3,.6]}];const r=new WorldRoom('blocked',env,[]);t.after(()=>r.dispose());r.join('a','A');assert.match(r.command('a',{type:'mount-vehicle',vehicleId:'ride'})!,/blocked/);const distant=fixture();distant.vehicleSpawns![0].position=[0,0,8];const d=new WorldRoom('far',distant,[]);t.after(()=>d.dispose());d.join('a','A');assert.match(d.command('a',{type:'mount-vehicle',vehicleId:'ride'})!,/within 2/);});
 test('a ride stops at an unsupported ledge without falling or teleporting',t=>{const env=fixture();env.spawn=[0,.011,0];env.vehicleSpawns![0].position=[0,.011,1];env.physics={colliders:[{name:'platform',position:[0,-.2,0],halfExtents:[4,.2,4],quaternion:[0,0,0,1]}],stepHeight:.22,maxSlopeDegrees:35,groundSnap:.3,gravity:-9.81};const r=new WorldRoom('ledge',env,[]);t.after(()=>r.dispose());r.join('a','A');assert.equal(r.command('a',{type:'mount-vehicle',vehicleId:'ride'}),null);drive(r,4,[0,1]);const v=r.snapshot().vehicles[0];assert(v.position[2]>2&&v.position[2]<3.5,JSON.stringify(v));assert(v.position[1]>-.02);assert.equal(v.speed,0);assert.equal(r.command('a',{type:'dismount-vehicle'}),null);});
 test('riding sweeps stop at solid walls',t=>{const env=fixture();env.colliders=[{min:[-5,0,5],max:[5,4,5.2]}];const r=new WorldRoom('wall',env,[]);t.after(()=>r.dispose());r.join('a','A');r.command('a',{type:'mount-vehicle',vehicleId:'ride'});drive(r,5,[0,1]);assert(r.snapshot().vehicles[0].position[2]<4.11);assert.equal(r.snapshot().vehicles[0].speed,0);});
+
+for (const kind of ['scooter', 'skateboard'] as const) for (const z of [4, -18.2]) for (const direction of [-1, 1]) {
+  test(`${kind} crosses bridge at ${z} heading ${direction}`, t => {
+    const position: [number, number, number] = [-direction * 6, .32, z];
+    const room = new WorldRoom('bridge', { ...KYOTO_ENVIRONMENT, spawn: position, vehicleSpawns: [{ id: 'ride', kind, position, yaw: 0 }] }, []);
+    t.after(() => room.dispose()); room.join('a', 'A');
+    assert.equal(room.command('a', { type: 'mount-vehicle', vehicleId: 'ride' }), null);
+    let highest = 0;
+    for (let i = 0; i < 100; i++) {
+      drive(room, .05, [direction, 0], i);
+      const p = room.snapshot().players[0].position;
+      highest = Math.max(highest, p[1]);
+      assert(p[1] > .15, `Stayed on bridge: ${p}`);
+      if (p[0] * direction > 5) break;
+    }
+    assert(room.snapshot().players[0].position[0] * direction > 5, `Crossed: ${room.snapshot().players[0].position}`);
+    if (z === 4) assert(highest > 1, 'Climbed bridge arch');
+  });
+}

@@ -38,7 +38,7 @@ function disposeObject(root: THREE.Object3D) {
 /** Authority snapshots reconcile local prediction; remote actors are interpolated. */
 export function mountWorldScene(host: HTMLElement, environment: EnvironmentManifest, callbacks: SceneCallbacks) {
   const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, window.matchMedia("(pointer: coarse)").matches ? 1.25 : 1.75));
   renderer.domElement.style.cssText = "display:block;width:100%;height:100%";
   host.appendChild(renderer.domElement);
   const scene = new THREE.Scene();
@@ -139,7 +139,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     pendingMovement = { direction, yaw, sprint };
     flushMovement(now);
   }
-  const input = new PlayerInput(); let step: {direction:[number,number];until:number;sprint:boolean}|null=null;
+  const input = new PlayerInput(); let touchDirection: [number, number] = [0, 0];
   let walkingMap: Promise<Awaited<ReturnType<typeof createWalkingMap>>> | undefined;
   let walkGeneration = 0;
   let walk: { npcId: string; destination: 'tutor' | 'entry'; goal: Vec3; radius: number; route: Vec3[]; lastPosition: Vec3; progressed: number } | null = null;
@@ -173,7 +173,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
   });
   const ring = new THREE.Mesh(new THREE.RingGeometry(.48,.55,32),new THREE.MeshBasicMaterial({color:"#bd624c",transparent:true,opacity:.8,side:THREE.DoubleSide,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1}));
   ring.rotation.x=-Math.PI/2; ring.visible=false; scene.add(ring);
-  function resetInput() {input.clear();step=null;stopWalking();sendMovement([0,0],walkingYaw,false);}
+  function resetInput() {input.clear();touchDirection=[0,0];stopWalking();sendMovement([0,0],walkingYaw,false);}
   function visibility() {if(document.hidden)resetInput();}
   function keyDown(event:KeyboardEvent) {
     if(!enabled)return;
@@ -237,8 +237,8 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     // controls refresh at 20Hz. Drawing never waits for an authority reply.
     if(enabled&&!cameraRig.isTransitioning){
       const [keyX,keyZ]=input.direction;
-      const x=keyX||(step&&now<step.until?step.direction[0]:0);
-      const z=keyZ||(step&&now<step.until?step.direction[1]:0);
+      const x=keyX||touchDirection[0];
+      const z=keyZ||touchDirection[1];
       camera.getWorldDirection(forward);forward.y=0;forward.normalize();right.crossVectors(forward,THREE.Object3D.DEFAULT_UP).normalize();
       velocity.copy(right).multiplyScalar(x).addScaledVector(forward,-z);if(velocity.length()>1)velocity.normalize();
       if (walk) {
@@ -256,7 +256,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
       }
       if(velocity.lengthSq())walkingYaw=Math.atan2(velocity.x,velocity.z);
       const direction:[number,number]=[velocity.x,velocity.z];
-      const sprint=Boolean(!walk&&(x||z)&&(input.sprinting||(step&&now<step.until&&step.sprint)));
+      const sprint=Boolean(!walk&&(x||z)&&input.sprinting);
       sendMovement(direction,walkingYaw,sprint,simulationNow);
     }
     const predicted=predictor?.advance(simulationNow,dt);
@@ -357,7 +357,7 @@ export function mountWorldScene(host: HTMLElement, environment: EnvironmentManif
     setHour(hours:number,animate=true){atmosphere.setHour(hours,animate);},
     setTimePlaying(playing:boolean){atmosphere.setPlaying(playing);},
     returnToSharedTime(){atmosphere.returnToSharedTime();},
-    step(direction:[number,number],sprint=false){if(enabled){stopWalking();step={direction,until:performance.now()+240,sprint};}},
+    setTouchDirection(direction:[number,number]){if(enabled&&!paused){if(direction[0]||direction[1])stopWalking();touchDirection=direction;}},
     setView(value:CameraView){resetInput();overview=false;const local=actors.get(`player:${entities.localPlayerId}`);cameraRig.setView(value,local?.root.rotation.y??0);},
     setOverview(value:boolean){overview=value;resetInput();cameraRig.setOverview(value);},
     update(next:SceneEntities,inputEnabled:boolean){

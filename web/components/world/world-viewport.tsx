@@ -9,6 +9,7 @@ import { EmoteWheel } from "./emote-wheel";
 import { AtmosphereControls } from "./atmosphere-controls";
 import { INITIAL_HOUR, type WorldTime } from "@/lib/world/day-cycle";
 import { useWorld } from "./world-provider";
+import { WalkingControls } from "./walking-controls";
 import { VehicleControls } from "./vehicle-controls";
 import { getVehicleControlState } from "./vehicle-controls-state";
 
@@ -130,9 +131,7 @@ export function WorldViewport(props: WorldViewportProps) {
   return <div className={props.className} style={{ position: "relative", minHeight: 320, height: "100%" }}>
     <div ref={host} tabIndex={0} role="application" aria-label="3D world. WASD or arrow keys to walk or ride. Hold Shift to sprint on foot. Press F to mount or dismount a vehicle, G for emotes, V to change view, E to interact." style={{ position: "absolute", inset: 0, outlineOffset: -3 }} />
     <AtmosphereControls time={time} onHour={(hours, animate) => runtime.current?.setHour(hours, animate)} onPlaying={playing => runtime.current?.setTimePlaying(playing)} onSharedTime={() => runtime.current?.returnToSharedTime()} />
-    <nav aria-label="Walking controls" style={{ position: "absolute", right: 16, top: "45%", display: "grid", gridTemplateColumns: "repeat(3, 32px)", gap: 3 }}>
-      {([{ label: "Move forward", direction: [0, -1], symbol: "↑", column: 2 }, { label: "Move left", direction: [-1, 0], symbol: "←", column: 1 }, { label: "Move backward", direction: [0, 1], symbol: "↓", column: 2 }, { label: "Move right", direction: [1, 0], symbol: "→", column: 3 }] as const).map((control, index) => <button key={control.label} type="button" aria-label={control.label} disabled={blocked || emotesOpen} onClick={(event) => runtime.current?.step([...control.direction], event.shiftKey)} style={{ gridColumn: control.column, gridRow: index === 0 ? 1 : 2, height: 32, color: "#203c30", background: "#ffffffe8", borderRadius: 6, border: "1px solid #849c8d" }}>{control.symbol}</button>)}
-    </nav>
+    <WalkingControls disabled={blocked || emotesOpen || Boolean(props.renderPaused)} onDirection={direction => runtime.current?.setTouchDirection(direction)} />
     <nav className="world-camera-controls" aria-label="View and character controls" data-view={overview ? "overview" : view}>
       <button type="button" disabled={blocked || emotesOpen} onClick={toggleView}
         aria-label={view === "isometric" ? "Switch to third-person view" : "Switch to isometric view"} aria-keyshortcuts="V" title="Change camera view (V)">
